@@ -1,7 +1,3 @@
 library skill_tree;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'package:skill_tree/src/tree.dart';
