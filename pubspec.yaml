@@ -1,6 +1,6 @@
 name: skill_tree
 description: A new Flutter package project.
-version: 0.0.1
+version: 0.0.1-nullsafety.0
 author:
 homepage:
 
