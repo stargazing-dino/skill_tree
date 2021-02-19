@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/models/base_node.dart';
 import 'package:skill_tree/src/models/empty_skill_node.dart';
 
 // TODO: This needs to be more customizable
@@ -8,8 +9,8 @@ import 'package:skill_tree/src/models/empty_skill_node.dart';
 
 typedef AcceptCallback = void Function(DragNode current, DragNode other);
 
-class DragNode<T, R> extends StatefulWidget {
-  final SkillNode<T, R> node;
+class DragNode<T extends Object, R> extends StatefulWidget {
+  final BaseNode<T, R> node;
 
   final Widget child;
 
@@ -44,7 +45,7 @@ class DragNode<T, R> extends StatefulWidget {
   }) {
     return DragNode<T, R>(
       child: child,
-      node: node as SkillNode<T, R>,
+      node: node as BaseNode<T, R>,
       depth: -1,
       column: -1,
       onAccept: onAccept,
@@ -65,7 +66,7 @@ class DragNode<T, R> extends StatefulWidget {
   }) {
     return DragNode<T, R>(
       child: child,
-      node: node as SkillNode<T, R>,
+      node: node as BaseNode<T, R>,
       depth: depth,
       column: column,
       onAccept: onAccept,
@@ -82,7 +83,7 @@ class _DragNodeState extends State<DragNode> {
   @override
   Widget build(BuildContext context) {
     return DragTarget<DragNode>(
-      key: widget.key,
+      key: ValueKey(widget.node.key),
       onAccept: (node) {
         widget.onAccept(widget, node);
       },

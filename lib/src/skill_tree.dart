@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/models/base_node.dart';
 import 'package:skill_tree/src/models/empty_skill_node.dart';
 import 'package:skill_tree/src/skill_row.dart';
 import 'package:skill_tree/src/tree_header.dart';
@@ -8,7 +9,7 @@ import 'package:skill_tree/src/tree_header.dart';
 import 'drag_node.dart';
 import 'quantity_button.dart';
 
-class SkillTree<T, R extends Object> extends StatefulWidget {
+class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
   final List<SkillNode<T, R>>? nodes;
 
   final List<Map<String, dynamic>>? layout;
@@ -75,8 +76,9 @@ class SkillTree<T, R extends Object> extends StatefulWidget {
   _SkillTreeState<T, R> createState() => _SkillTreeState<T, R>();
 }
 
-class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
-  late List<SkillNode<T, R>> nodes;
+class _SkillTreeState<T extends Object, R extends Object>
+    extends State<SkillTree<T, R>> {
+  late List<BaseNode<T, R>> nodes;
 
   @override
   void initState() {
@@ -99,6 +101,11 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
 
   @override
   Widget build(BuildContext context) {
+    final keyOne = nodes[0].globalKey;
+    final keyTwo = nodes[1].globalKey;
+
+    assert(keyOne != keyTwo);
+
     final children = _parseChildren(nodes);
 
     if (widget.isEditable) {
@@ -110,10 +117,11 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
             // Is this onTap necessary?
             onTap: widget.onTap.call,
             // TODO: Await https://github.com/flutter/flutter/issues/41334
-            child: ListView(
-              cacheExtent: 600.0,
-              shrinkWrap: true,
-              children: children,
+            child: Padding(
+              child: CustomPaint(
+                painter: TreePainter(nodes),
+                child: Column(children: children),
+              ),
               padding: widget.padding.copyWith(
                 top: widget.headerHeight +
                     widget.padding.top +
@@ -130,7 +138,7 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
               height: widget.headerHeight,
               unnattachedChildren: widget.unnattachedNodes.map((node) {
                 return DragNode.unnatached(
-                  key: node.key,
+                  key: node.globalKey,
                   child: widget.nodeBuilder(context, node.data),
                   onAccept: _swap,
                   isEditable: widget.isEditable,
@@ -181,13 +189,13 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
 
   /// Returns a list of children at depth N. N is not descibed as this is a
   /// generator. TODO: This can be made generic
-  Iterable<List<SkillNode<T, R>>> _depthFirstSearch(
-    List<SkillNode<T, R>> nodes,
+  Iterable<List<BaseNode<T, R>>> _depthFirstSearch(
+    List<BaseNode<T, R>> nodes,
   ) sync* {
     if (nodes.isNotEmpty) {
       yield nodes;
 
-      final nextNodes = nodes.fold<List<SkillNode<T, R>>>(
+      final nextNodes = nodes.fold<List<BaseNode<T, R>>>(
         [],
         (previousValue, node) => [...previousValue, ...node.children],
       );
@@ -198,7 +206,7 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
     }
   }
 
-  List<Widget> _parseChildren(List<SkillNode<T, R>> nodes) {
+  List<Widget> _parseChildren(List<BaseNode<T, R>> nodes) {
     final children = <Widget>[];
 
     var depth = 0;
@@ -211,7 +219,7 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
         if (node is EmptySkillNode<T>) {
           rowChildren.add(
             DragNode.empty(
-              key: node.key,
+              key: node.globalKey,
               child: widget.placeholderBuilder(context),
               onAccept: _swap,
               isEditable: widget.isEditable,
@@ -224,7 +232,7 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
         } else {
           rowChildren.add(
             DragNode(
-              key: node.key,
+              key: node.globalKey,
               child: widget.nodeBuilder(context, node.data),
               onAccept: _swap,
               isEditable: widget.isEditable,
@@ -259,8 +267,8 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
     return children;
   }
 
-  List<SkillNode<T, R>> _parseLayout(List<Map<String, dynamic>> layout) {
-    return layout.map((obj) => SkillNode<T, R>.fromMap(obj)).toList();
+  List<BaseNode<T, R>> _parseLayout(List<Map<String, dynamic>> layout) {
+    return layout.map((obj) => BaseNode<T, R>.fromMap(obj)).toList();
   }
 
   void _onAdd({required int index, required bool end}) {
@@ -424,12 +432,6 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
     // widget.onUpdate.call(_layout);
   }
 }
-// class _DragNodes {
-//   const _DragNodes(this.keylessNodes, this.nodes);
-
-//   final List<Widget> keylessNodes;
-//   final List<List<Widget>> nodes;
-// }
 
 // child: ReorderableListView(
 //   padding: widget.padding,
@@ -450,3 +452,43 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
 //   },
 //   children: children,
 // ),
+
+class TreePainter<T extends Object, R> extends CustomPainter {
+  final List<BaseNode<T, R>> nodes;
+
+  TreePainter(this.nodes);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final nodeOne = nodes.first;
+    final nodeLast = nodes.last;
+
+    assert(nodeOne != nodeLast);
+
+    final firstRenderBox =
+        nodeOne.globalKey.currentContext?.findRenderObject() as RenderBox?;
+    final secondRenderBox =
+        nodeLast.globalKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (firstRenderBox != null && secondRenderBox != null) {
+      final firstPosition = firstRenderBox.localToGlobal(Offset.zero);
+      final secondPosition = secondRenderBox.localToGlobal(Offset.zero);
+
+      canvas.drawLine(
+          firstPosition,
+          secondPosition,
+          Paint()
+            ..strokeWidth = 4
+            ..color = Colors.redAccent);
+    }
+
+    // for (final node in nodes) {
+    //   final box = node.globalKey.currentContext;
+    // }
+  }
+
+  @override
+  bool shouldRepaint(TreePainter<T, R> oldDelegate) {
+    return !listEquals(oldDelegate.nodes, nodes);
+  }
+}

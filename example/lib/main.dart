@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           body: SkillTree<String, int>(
+            unnattachedNodes: const [],
             onAddChild: () {},
             onTap: () {},
             onUpdate: (List<Map<String, dynamic>> nodes) {
@@ -71,38 +72,43 @@ class _MyHomePageState extends State<MyHomePage> {
               return Item(photoNumber: photoNumber);
             },
             nodes: [
+              // SkillNode(
+              //   data: 1,
+              //   key: 'mouse',
+              //   children: [
+              //     SkillNode(
+              //       children: [
+              //         SkillNode(
+              //           children: [],
+              //           data: 7,
+              //           key: 'Cheese',
+              //         ),
+              //         SkillNode(
+              //           children: [],
+              //           data: 10,
+              //           key: 'yep',
+              //         ),
+              //       ],
+              //       key: 'house',
+              //       data: 2,
+              //     ),
+              //   ],
+              // ),
               SkillNode(
-                data: 1,
-                key: ValueKey('mouse'),
-                children: [
-                  SkillNode(
-                    children: [
-                      SkillNode(
-                        children: [],
-                        data: 7,
-                        key: ValueKey('Cheese'),
-                      ),
-                      SkillNode(
-                        children: [],
-                        data: 10,
-                        key: ValueKey('yep'),
-                      ),
-                    ],
-                    key: ValueKey('house'),
-                    data: 2,
-                  ),
-                ],
+                data: 5,
+                key: 'nice',
+                children: [],
               ),
               SkillNode(
                 data: 3,
-                key: ValueKey('hi'),
+                key: 'hi',
                 children: [
-                  SkillNode(
-                    data: 5,
-                    key: ValueKey('nice'),
-                    children: [],
-                  ),
-                  EmptySkillNode(key: ValueKey('tree')),
+                  // SkillNode(
+                  //   data: 5,
+                  //   key: 'nice',
+                  //   children: [],
+                  // ),
+                  // EmptySkillNode(key: 'tree'),
                 ],
               ),
             ],

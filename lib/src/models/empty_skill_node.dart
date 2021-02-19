@@ -1,16 +1,18 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:skill_tree/src/models/skill_node.dart';
+import 'package:skill_tree/src/models/base_node.dart';
 
-class EmptySkillNode<T> extends SkillNode<T, Null> {
+@immutable
+class EmptySkillNode<T extends Object> extends BaseNode<T, Null> {
   EmptySkillNode({
-    required ValueKey<T> key,
-    ValueKey<T>? parentKey,
+    required T key,
+    T? parentKey,
+    bool isLocked = false,
   }) : super(
           key: key,
-          children: [],
+          children: const [],
           data: null,
           parentKey: parentKey,
+          isLocked: isLocked,
         );
 
   factory EmptySkillNode.fromMap(Map<String, dynamic> map) {

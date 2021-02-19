@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:skill_tree/skill_tree.dart';
+
+import 'base_node.dart';
 
 @immutable
-class SkillGroup<T, R extends Object> {
-  final List<SkillNode<T, R>> nodes;
+class SkillGroup<T extends Object, R> {
+  final List<BaseNode<T, R>> nodes;
 
   final bool isLocked;
 
@@ -16,7 +17,7 @@ class SkillGroup<T, R extends Object> {
   });
 
   SkillGroup<T, R> copyWith({
-    List<SkillNode<T, R>>? nodes,
+    List<BaseNode<T, R>>? nodes,
     bool? isLocked,
   }) {
     return SkillGroup<T, R>(
@@ -34,8 +35,8 @@ class SkillGroup<T, R extends Object> {
 
   factory SkillGroup.fromMap(Map<String, dynamic> map) {
     return SkillGroup<T, R>(
-      nodes: List<SkillNode<T, R>>.from(
-          map['nodes']?.map((x) => SkillNode<T, R>.fromMap(x))),
+      nodes: List<BaseNode<T, R>>.from(
+          map['nodes']?.map((x) => BaseNode<T, R>.fromMap(x))),
       isLocked: map['isLocked'],
     );
   }
