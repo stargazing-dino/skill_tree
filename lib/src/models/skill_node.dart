@@ -4,6 +4,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:skill_tree/src/models/empty_skill_node.dart';
 
+// TODO: Their should be base class above skill_node and empty_skill node
+// that handles serialization and all that. That was skill_node can have it's
+// data be non-null in a not weird and hacky way
+
 @immutable
 class SkillNode<T, R> {
   final ValueKey<T> key;

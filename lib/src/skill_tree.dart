@@ -180,7 +180,7 @@ class _SkillTreeState<T, R extends Object> extends State<SkillTree<T, R>> {
   }
 
   /// Returns a list of children at depth N. N is not descibed as this is a
-  /// generator
+  /// generator. TODO: This can be made generic
   Iterable<List<SkillNode<T, R>>> _depthFirstSearch(
     List<SkillNode<T, R>> nodes,
   ) sync* {
