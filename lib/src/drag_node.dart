@@ -1,82 +1,114 @@
 import 'package:flutter/material.dart';
+import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/models/empty_skill_node.dart';
 
 // TODO: This needs to be more customizable
 
-class DragNode extends StatelessWidget {
-  final Widget? child;
+// I can make a superclass called DragNode and sub class named EmptyNode
 
-  final int i;
+typedef AcceptCallback = void Function(DragNode current, DragNode other);
 
-  final int j;
+class DragNode<T, R> extends StatefulWidget {
+  final SkillNode<T, R> node;
 
-  final void Function(DragNode current, DragNode other) onAccept;
+  final Widget child;
+
+  final int depth;
+
+  final int column;
+
+  final AcceptCallback onAccept;
 
   final bool isEditable;
 
-  final WidgetBuilder? placeholderBuilder;
+  final Widget placeholder;
 
   const DragNode({
     Key? key,
     required this.child,
-    required this.i,
-    required this.j,
+    required this.node,
+    required this.depth,
+    required this.column,
     required this.onAccept,
     required this.isEditable,
-    this.placeholderBuilder,
+    required this.placeholder,
   }) : super(key: key);
 
+  factory DragNode.unnatached({
+    Key? key,
+    required Widget child,
+    required EmptySkillNode<T> node,
+    required AcceptCallback onAccept,
+    required bool isEditable,
+    required Widget placeholder,
+  }) {
+    return DragNode<T, R>(
+      child: child,
+      node: node as SkillNode<T, R>,
+      depth: -1,
+      column: -1,
+      onAccept: onAccept,
+      isEditable: isEditable,
+      placeholder: placeholder,
+    );
+  }
+
+  factory DragNode.empty({
+    Key? key,
+    required Widget child,
+    required EmptySkillNode<T> node,
+    required AcceptCallback onAccept,
+    required int depth,
+    required int column,
+    required bool isEditable,
+    required Widget placeholder,
+  }) {
+    return DragNode<T, R>(
+      child: child,
+      node: node as SkillNode<T, R>,
+      depth: depth,
+      column: column,
+      onAccept: onAccept,
+      isEditable: isEditable,
+      placeholder: placeholder,
+    );
+  }
+
+  @override
+  _DragNodeState createState() => _DragNodeState();
+}
+
+class _DragNodeState extends State<DragNode> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final placeHolderStyle = theme.textTheme.subtitle1 ??
-        TextStyle(
-          fontSize: 18.0,
-          fontWeight: FontWeight.bold,
-        );
-
-    final placeholder = isEditable
-        ? CircleAvatar(
-            backgroundColor: Theme.of(context).accentColor,
-            minRadius: 40,
-            child: Center(
-              child: Text(
-                'Drag\nhere',
-                textAlign: TextAlign.center,
-                style: placeHolderStyle,
-              ),
-            ),
-          )
-        : Container();
-
     return DragTarget<DragNode>(
-      key: key,
-      onAccept: (node) => onAccept(this, node),
+      key: widget.key,
+      onAccept: (node) {
+        widget.onAccept(widget, node);
+      },
       builder: (context, _, __) {
-        final childNode = child;
-
-        if (childNode == null) {
-          // Simple drag target
-          return placeholder;
-        } else if (i == -1 || j == -1) {
-          // Keyless children
+        if (widget.isEditable) {
           return Draggable<DragNode>(
-            feedback: childNode,
-            childWhenDragging: Container(),
-            data: this,
-            child: childNode,
+            dragAnchor: DragAnchor.child,
+            feedback: widget.child,
+            childWhenDragging: widget.placeholder,
+            data: widget,
+            child: widget.child,
           );
-        } else {
-          if (isEditable) {
-            return Draggable<DragNode>(
-              feedback: childNode,
-              childWhenDragging: placeholder,
-              data: this,
-              child: childNode,
-            );
-          }
-
-          return childNode;
         }
+
+        return widget.child;
+
+        // if (widget.depth == -1 || widget.column == -1) {
+        // Keyless children
+        // return Draggable<DragNode>(
+        //   dragAnchor: DragAnchor.child,
+        //   feedback: childNode,
+        //   childWhenDragging: Container(),
+        //   data: widget,
+        //   child: childNode,
+        // );
+        // } else {}
       },
     );
   }

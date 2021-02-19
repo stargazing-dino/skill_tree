@@ -1,8 +1,8 @@
 name: skill_tree
-description: A new Flutter package project.
+description: A draggable skill tree similar to Duolingo's for UI's stressing growth!
 version: 0.0.1-nullsafety.0
-author:
-homepage:
+author: Rex Magana
+# homepage:
 
 environment:
   sdk: ">=2.12.0-0 <3.0.0"
