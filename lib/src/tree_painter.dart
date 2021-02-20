@@ -18,6 +18,7 @@ class TreePainter<T extends Object, R extends Object> extends CustomPainter {
           ..color = Colors.white
           ..style = PaintingStyle.stroke;
 
+  // TODO: Move into utils and make generic
   Iterable<ParentChildren<BaseNode<T>>> traverseByLineage(
     BaseNode<T> node,
   ) sync* {

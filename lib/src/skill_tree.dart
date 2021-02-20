@@ -183,7 +183,8 @@ class _SkillTreeState<T extends Object, R extends Object>
   }
 
   /// Returns a list of children at depth N. N is not descibed as this is a
-  /// generator. TODO: This can be made generic
+  /// generator.
+  // TODO: Move into utils and make generic
   Iterable<List<BaseNode<T>>> _depthFirstSearch(
     List<BaseNode<T>> nodes,
   ) sync* {
