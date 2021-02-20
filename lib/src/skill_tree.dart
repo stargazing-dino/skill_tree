@@ -5,9 +5,9 @@ import 'package:skill_tree/src/models/base_node.dart';
 import 'package:skill_tree/src/models/empty_skill_node.dart';
 import 'package:skill_tree/src/skill_row.dart';
 import 'package:skill_tree/src/tree_header.dart';
+import 'package:skill_tree/src/tree_painter.dart';
 
 import 'drag_node.dart';
-import 'models/parent_children.dart';
 import 'quantity_button.dart';
 
 enum LineType { curved, angle, straight }
@@ -150,12 +150,7 @@ class _SkillTreeState<T extends Object, R extends Object>
               }).toList(),
               onAdd: widget.onAddChild,
               onAccept: (other) {
-                // if (other.column == -1 && other.depth == -1) {
-                //   return;
-                // }
-
-                // setState(() => _layout[other.column][other.depth] = null);
-                // widget.onUpdate.call(_layout);
+                // TODO:
               },
             ),
           ),
@@ -166,12 +161,10 @@ class _SkillTreeState<T extends Object, R extends Object>
               axis: Axis.horizontal,
               elevation: widget.cardElevation,
               onAdd: () {
-                // setState(() => _layout.add([null]));
-                // widget.onUpdate.call(_layout);
+                // TODO:
               },
               onRemove: () {
-                // setState(() => _layout.removeLast());
-                // widget.onUpdate.call(_layout);
+                // TODO:
               },
             ),
           ),
@@ -276,164 +269,22 @@ class _SkillTreeState<T extends Object, R extends Object>
   }
 
   void _onAdd({required int index, required bool end}) {
-    // if (_layout[row].length > widget.maxItems - 1) {
-    //   return;
-    // }
-    // if (end) {
-    //   _layout[row].add(null);
-    // } else {
-    //   _layout[row].insert(0, null);
-    // }
-
-    // setState(() {});
-    // widget.onUpdate.call(_layout);
+    // TODO:
   }
 
   void _onRemove({required int index, required bool end}) {
-    // if (_layout[row].length <= 1) {
-    //   _layout.removeAt(row);
-    //   setState(() {});
-    //   widget.onUpdate.call(_layout);
-    // } else {
-    //   if (end) {
-    //     _layout[row].removeLast();
-    //   } else {
-    //     _layout[row].removeAt(0);
-    //   }
-
-    //   setState(() {});
-    //   widget.onUpdate.call(_layout);
-    // }
+    //  TODO:
   }
 
-  // void _getNodes() {
-  //   assert(widget.children.every((child) => child.key != null));
-
-  //   _layout = widget.layout;
-
-  //   final dragNodes = _getDragNodes(_layout);
-
-  //   _nodes = dragNodes.nodes;
-  //   _keylessNodes = dragNodes.keylessNodes;
-  // }
-
-  // _DragNodes _getDragNodes(List<List<T?>> layout) {
-  //   final _nodes = <List<DragNode>>[];
-  //   final _childrenCopy = [...widget.children];
-
-  //   for (var i = 0; i < layout.length; i++) {
-  //     _nodes.add([]);
-
-  //     for (var j = 0; j < layout[i].length; j++) {
-  //       // Placeholder
-  //       if (layout[i][j] == null) {
-  //         _nodes[i].insert(
-  //           j,
-  //           DragNode(
-  //             // I think even placeholder nodes need keys if we're going to do
-  //             // animations
-  //             key: null,
-  //             child: null,
-  //             i: i,
-  //             j: j,
-  //             onAccept: _swap,
-  //             isEditable: widget.isEditable,
-  //           ),
-  //         );
-  //         continue;
-  //       }
-
-  //       final childIndex = _childrenCopy.indexWhere((child) {
-  //         return (child.key as ValueKey<T?>).value == layout[i][j];
-  //       });
-
-  //       if (childIndex != -1) {
-  //         final key = ValueKey(layout[i][j]);
-
-  //         _nodes[i].insert(
-  //           j,
-  //           DragNode(
-  //             key: key,
-  //             child: _childrenCopy[childIndex],
-  //             i: i,
-  //             j: j,
-  //             onAccept: _swap,
-  //             isEditable: widget.isEditable,
-  //           ),
-  //         );
-  //         _childrenCopy.removeAt(childIndex);
-  //       } else {
-  //         if (widget.ignoreMissingChildren) {
-  //           continue;
-  //         } else {
-  //           throw 'No matching child found for key "${layout[i][j]}';
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   final _keylessChildren = _childrenCopy.map<DragNode>((child) {
-  //     return DragNode(
-  //       child: child,
-  //       i: -1,
-  //       j: -1,
-  //       key: child.key,
-  //       onAccept: _swap,
-  //       isEditable: widget.isEditable,
-  //     );
-  //   }).toList();
-
-  //   return _DragNodes(_keylessChildren, _nodes);
-  // }
-
   void onAccept(DragNode current, DragNode other) {
-    // final otherKey = (other.key as ValueKey<T?>).value;
-
-    // if (otherKey != null) {
-    //   setState(() {
-    //     _layout[current.i][current.j] = otherKey;
-    //   });
-    //   widget.onUpdate.call(_layout);
-    // } else {
-    //   _swap(current, other);
-    // }
+    // TODO:
+    // Check types of second node
+    // if it's an empty slot, just place current there
+    // If it's another node, swap
   }
 
   void _swap(DragNode node, DragNode other) {
-    // if (node.i == -1 && node.j == -1) {
-    //   return;
-    // }
-
-    // if (node.i == -1 || node.j == -1) {
-    //   final key = (node.key as ValueKey<T?>).value;
-
-    //   if (key == null) {
-    //     throw 'Node $node has no ValueKey';
-    //   }
-
-    //   setState(() {
-    //     _layout[other.i][other.j] = key;
-    //   });
-    // } else if (other.i == -1 || other.j == -1) {
-    //   final key = (other.key as ValueKey<T?>).value;
-
-    //   if (key == null) {
-    //     throw 'Other node $node has no ValueKey';
-    //   }
-
-    //   setState(() {
-    //     _layout[node.i][node.j] = key;
-    //   });
-    // } else {
-    //   final temp = _layout[node.i][node.j];
-
-    //   setState(() {
-    //     _layout[node.i][node.j] = _layout[other.i][other.j];
-    //     _layout[other.i][other.j] = temp;
-    //   });
-    // }
-
-    // widget.onUpdate.call(_layout);
+    // TODO:
   }
 }
 
@@ -448,120 +299,3 @@ class _SkillTreeState<T extends Object, R extends Object>
 //     );
 //   }
 // }
-
-class TreePainter<T extends Object, R extends Object> extends CustomPainter {
-  final List<BaseNode<T>> nodes;
-
-  final BuildContext context;
-
-  final Paint brush;
-
-  TreePainter({required this.context, required this.nodes})
-      : brush = Paint()
-          ..strokeWidth = 4
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke;
-
-  Iterable<ParentChildren<BaseNode<T>>> traverseByLineage(
-    BaseNode<T> node,
-  ) sync* {
-    if (node.children.isNotEmpty) {
-      yield ParentChildren(parent: node, children: node.children);
-
-      for (final childNode in node.children) {
-        yield* traverseByLineage(childNode);
-      }
-    }
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // TODO: Move to field
-    // TODO: Lines should be differently colored if the node their going to is
-    // unlocked
-    final lineType = LineType.angle;
-
-    final relativePosition = context.findRenderObject() as RenderBox?;
-
-    if (relativePosition == null) return;
-
-    final startPoint = relativePosition.globalToLocal(Offset.zero);
-
-    for (final rootNode in nodes) {
-      for (final parentChildren in traverseByLineage(rootNode)) {
-        final parentRenderBox = parentChildren.parent.globalKey.currentContext
-            ?.findRenderObject() as RenderBox?;
-
-        if (parentRenderBox == null) break;
-
-        for (final child in parentChildren.children) {
-          final childRenderBox =
-              child.globalKey.currentContext?.findRenderObject() as RenderBox?;
-
-          if (childRenderBox == null) continue;
-
-          final parentPosition = parentRenderBox.localToGlobal(startPoint);
-          final childPosition = childRenderBox.localToGlobal(startPoint);
-          final bottomOfParent = parentPosition.translate(
-            parentRenderBox.size.width / 2,
-            parentRenderBox.size.height,
-          );
-          final topOfChild =
-              childPosition.translate(childRenderBox.size.width / 2, 0);
-
-          final verticalDx = topOfChild.dy - bottomOfParent.dy;
-          final verticalHalfDx = verticalDx / 2;
-          final horizontalDx = topOfChild.dx - bottomOfParent.dx;
-          final horizontalHalfDx = horizontalDx / 2;
-
-          switch (lineType) {
-            case LineType.angle:
-              final path = Path();
-
-              path.moveTo(bottomOfParent.dx, bottomOfParent.dy);
-              path.relativeLineTo(0, verticalHalfDx);
-              path.relativeLineTo(horizontalDx, 0);
-              path.relativeLineTo(0, verticalHalfDx);
-
-              canvas.drawPath(path, brush);
-              break;
-            case LineType.curved:
-              // TODO: This is whack. We should research how to do this
-              // correctly
-              final path = Path();
-              final multiplier = 7;
-
-              path.moveTo(bottomOfParent.dx, bottomOfParent.dy);
-              path.relativeArcToPoint(
-                Offset(horizontalHalfDx, verticalHalfDx),
-                radius: Radius.circular(verticalHalfDx * multiplier),
-                clockwise: horizontalHalfDx.isNegative,
-              );
-              path.relativeArcToPoint(
-                Offset(horizontalHalfDx, verticalHalfDx),
-                radius: Radius.circular(verticalHalfDx * multiplier),
-                clockwise: !horizontalHalfDx.isNegative,
-              );
-
-              canvas.drawPath(path, brush);
-
-              break;
-            case LineType.straight:
-              canvas.drawLine(
-                bottomOfParent,
-                topOfChild,
-                brush,
-              );
-
-              break;
-          }
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(TreePainter<T, R> oldDelegate) {
-    return !listEquals(oldDelegate.nodes, nodes);
-  }
-}
