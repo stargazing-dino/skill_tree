@@ -13,7 +13,7 @@ import 'quantity_button.dart';
 enum LineType { curved, angle, straight }
 
 class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
-  final List<SkillNode<T, R>>? nodes;
+  final List<BaseNode<T>>? nodes;
 
   final List<Map<String, dynamic>>? layout;
 
@@ -81,7 +81,7 @@ class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
 
 class _SkillTreeState<T extends Object, R extends Object>
     extends State<SkillTree<T, R>> {
-  late List<BaseNode<T, R>> nodes;
+  late List<BaseNode<T>> nodes;
 
   @override
   void initState() {
@@ -104,11 +104,6 @@ class _SkillTreeState<T extends Object, R extends Object>
 
   @override
   Widget build(BuildContext context) {
-    final keyOne = nodes[0].globalKey;
-    final keyTwo = nodes[1].globalKey;
-
-    assert(keyOne != keyTwo);
-
     final children = _parseChildren(nodes);
 
     if (widget.isEditable) {
@@ -196,13 +191,13 @@ class _SkillTreeState<T extends Object, R extends Object>
 
   /// Returns a list of children at depth N. N is not descibed as this is a
   /// generator. TODO: This can be made generic
-  Iterable<List<BaseNode<T, R>>> _depthFirstSearch(
-    List<BaseNode<T, R>> nodes,
+  Iterable<List<BaseNode<T>>> _depthFirstSearch(
+    List<BaseNode<T>> nodes,
   ) sync* {
     if (nodes.isNotEmpty) {
       yield nodes;
 
-      final nextNodes = nodes.fold<List<BaseNode<T, R>>>(
+      final nextNodes = nodes.fold<List<BaseNode<T>>>(
         [],
         (previousValue, node) => [...previousValue, ...node.children],
       );
@@ -213,7 +208,7 @@ class _SkillTreeState<T extends Object, R extends Object>
     }
   }
 
-  List<Widget> _parseChildren(List<BaseNode<T, R>> nodes) {
+  List<Widget> _parseChildren(List<BaseNode<T>> nodes) {
     final children = <Widget>[];
 
     var depth = 0;
@@ -230,13 +225,13 @@ class _SkillTreeState<T extends Object, R extends Object>
               child: widget.placeholderBuilder(context),
               onAccept: _swap,
               isEditable: widget.isEditable,
-              node: node as EmptySkillNode<T>,
+              node: node,
               column: index,
               depth: depth,
               placeholder: widget.placeholderBuilder(context),
             ),
           );
-        } else {
+        } else if (node is SkillNode<T, R>) {
           rowChildren.add(
             DragNode(
               key: node.globalKey,
@@ -249,6 +244,8 @@ class _SkillTreeState<T extends Object, R extends Object>
               placeholder: widget.placeholderBuilder(context),
             ),
           );
+        } else {
+          throw UnsupportedError('Node $node is of unsupported type');
         }
 
         index++;
@@ -274,8 +271,8 @@ class _SkillTreeState<T extends Object, R extends Object>
     return children;
   }
 
-  List<BaseNode<T, R>> _parseLayout(List<Map<String, dynamic>> layout) {
-    return layout.map((obj) => BaseNode<T, R>.fromMap(obj)).toList();
+  List<BaseNode<T>> _parseLayout(List<Map<String, dynamic>> layout) {
+    return layout.map((obj) => BaseNode<T>.fromMap(obj)).toList();
   }
 
   void _onAdd({required int index, required bool end}) {
@@ -440,28 +437,20 @@ class _SkillTreeState<T extends Object, R extends Object>
   }
 }
 
-// child: ReorderableListView(
-//   padding: widget.padding,
-//   header: TreeHeader(
-//     keylessChildren: _keylessNodes,
-//     onAdd: widget.onAddChild,
-//     onAccept: (other) {
-//       setState(() => _layout[other.i][other.j] = null);
-//       widget.onUpdate?.call(_layout);
-//     },
-//   ),
-//   onReorder: (int oldIndex, int newIndex) {
-//     if (newIndex > oldIndex) newIndex -= 1;
+// class SkillColumn extends StatelessWidget {
+//   final List<BaseNode<T>> nodes;
 
-//     final item = _layout.removeAt(oldIndex);
-//     setState(() => _layout.insert(newIndex, item));
-//     widget.onUpdate?.call(_layout);
-//   },
-//   children: children,
-// ),
+//   @override
+//   Widget build(BuildContext context) {
+//     return CustomPaint(
+//       painter: TreePainter(context: context, nodes: nodes),
+//       child: Column(children: children),
+//     );
+//   }
+// }
 
-class TreePainter<T extends Object, R> extends CustomPainter {
-  final List<BaseNode<T, R>> nodes;
+class TreePainter<T extends Object, R extends Object> extends CustomPainter {
+  final List<BaseNode<T>> nodes;
 
   final BuildContext context;
 
@@ -473,8 +462,8 @@ class TreePainter<T extends Object, R> extends CustomPainter {
           ..color = Colors.white
           ..style = PaintingStyle.stroke;
 
-  Iterable<ParentChildren<BaseNode<T, R>>> traverseByLineage(
-    BaseNode<T, R> node,
+  Iterable<ParentChildren<BaseNode<T>>> traverseByLineage(
+    BaseNode<T> node,
   ) sync* {
     if (node.children.isNotEmpty) {
       yield ParentChildren(parent: node, children: node.children);

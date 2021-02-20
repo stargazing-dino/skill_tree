@@ -9,8 +9,8 @@ import 'package:skill_tree/src/models/empty_skill_node.dart';
 
 typedef AcceptCallback = void Function(DragNode current, DragNode other);
 
-class DragNode<T extends Object, R> extends StatefulWidget {
-  final BaseNode<T, R> node;
+class DragNode<T extends Object, R extends Object> extends StatefulWidget {
+  final BaseNode<T> node;
 
   final Widget child;
 
@@ -45,7 +45,7 @@ class DragNode<T extends Object, R> extends StatefulWidget {
   }) {
     return DragNode<T, R>(
       child: child,
-      node: node as BaseNode<T, R>,
+      node: node,
       depth: -1,
       column: -1,
       onAccept: onAccept,
@@ -66,7 +66,7 @@ class DragNode<T extends Object, R> extends StatefulWidget {
   }) {
     return DragNode<T, R>(
       child: child,
-      node: node as BaseNode<T, R>,
+      node: node,
       depth: depth,
       column: column,
       onAccept: onAccept,
@@ -79,6 +79,8 @@ class DragNode<T extends Object, R> extends StatefulWidget {
   _DragNodeState createState() => _DragNodeState();
 }
 
+// TODO: This is stateful so I can change the drag node in some way when it's
+// being hovered over etc.
 class _DragNodeState extends State<DragNode> {
   @override
   Widget build(BuildContext context) {
