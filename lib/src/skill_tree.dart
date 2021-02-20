@@ -7,6 +7,7 @@ import 'package:skill_tree/src/skill_row.dart';
 import 'package:skill_tree/src/tree_header.dart';
 
 import 'drag_node.dart';
+import 'models/parent_children.dart';
 import 'quantity_button.dart';
 
 class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
@@ -118,9 +119,13 @@ class _SkillTreeState<T extends Object, R extends Object>
             onTap: widget.onTap.call,
             // TODO: Await https://github.com/flutter/flutter/issues/41334
             child: Padding(
-              child: CustomPaint(
-                painter: TreePainter(nodes),
-                child: Column(children: children),
+              child: Builder(
+                builder: (context) {
+                  return CustomPaint(
+                    painter: TreePainter(context: context, nodes: nodes),
+                    child: Column(children: children),
+                  );
+                },
               ),
               padding: widget.padding.copyWith(
                 top: widget.headerHeight +
@@ -456,7 +461,21 @@ class _SkillTreeState<T extends Object, R extends Object>
 class TreePainter<T extends Object, R> extends CustomPainter {
   final List<BaseNode<T, R>> nodes;
 
-  TreePainter(this.nodes);
+  final BuildContext context;
+
+  TreePainter({required this.context, required this.nodes});
+
+  Iterable<ParentChildren<BaseNode<T, R>>> traverseByDepth(
+    BaseNode<T, R> node,
+  ) sync* {
+    if (node.children.isNotEmpty) {
+      yield ParentChildren(parent: node, children: node.children);
+
+      for (final childNode in node.children) {
+        yield* traverseByDepth(childNode);
+      }
+    }
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -465,26 +484,42 @@ class TreePainter<T extends Object, R> extends CustomPainter {
 
     assert(nodeOne != nodeLast);
 
-    final firstRenderBox =
-        nodeOne.globalKey.currentContext?.findRenderObject() as RenderBox?;
-    final secondRenderBox =
-        nodeLast.globalKey.currentContext?.findRenderObject() as RenderBox?;
+    final relativePosition = context.findRenderObject() as RenderBox?;
 
-    if (firstRenderBox != null && secondRenderBox != null) {
-      final firstPosition = firstRenderBox.localToGlobal(Offset.zero);
-      final secondPosition = secondRenderBox.localToGlobal(Offset.zero);
+    if (relativePosition == null) return;
 
-      canvas.drawLine(
-          firstPosition,
-          secondPosition,
+    final startPoint = relativePosition.globalToLocal(Offset.zero);
+
+    for (final parentChildren in traverseByDepth(nodeOne)) {
+      final parentRenderBox = parentChildren.parent.globalKey.currentContext
+          ?.findRenderObject() as RenderBox?;
+
+      if (parentRenderBox == null) break;
+
+      for (final child in parentChildren.children) {
+        final childRenderBox =
+            child.globalKey.currentContext?.findRenderObject() as RenderBox?;
+
+        if (childRenderBox == null) continue;
+
+        final parentPosition = parentRenderBox.localToGlobal(startPoint);
+        final childPosition = childRenderBox.localToGlobal(startPoint);
+
+        canvas.drawLine(
+          parentPosition.translate(
+            parentRenderBox.size.width / 2,
+            parentRenderBox.size.height / 2,
+          ),
+          childPosition.translate(
+            childRenderBox.size.width / 2,
+            childRenderBox.size.height / 2,
+          ),
           Paint()
             ..strokeWidth = 4
-            ..color = Colors.redAccent);
+            ..color = Colors.redAccent,
+        );
+      }
     }
-
-    // for (final node in nodes) {
-    //   final box = node.globalKey.currentContext;
-    // }
   }
 
   @override

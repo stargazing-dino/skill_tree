@@ -72,36 +72,42 @@ class _MyHomePageState extends State<MyHomePage> {
               return Item(photoNumber: photoNumber);
             },
             nodes: [
-              // SkillNode(
-              //   data: 1,
-              //   key: 'mouse',
-              //   children: [
-              //     SkillNode(
-              //       children: [
-              //         SkillNode(
-              //           children: [],
-              //           data: 7,
-              //           key: 'Cheese',
-              //         ),
-              //         SkillNode(
-              //           children: [],
-              //           data: 10,
-              //           key: 'yep',
-              //         ),
-              //       ],
-              //       key: 'house',
-              //       data: 2,
-              //     ),
-              //   ],
-              // ),
               SkillNode(
-                data: 5,
+                key: 'mouse',
+                data: 1,
+                children: [
+                  SkillNode(
+                    key: 'house',
+                    data: 2,
+                    children: [
+                      SkillNode(
+                        key: 'Cheese',
+                        data: 7,
+                        children: [
+                          SkillNode(
+                            key: 'envy',
+                            data: 58,
+                            children: [],
+                          )
+                        ],
+                      ),
+                      SkillNode(
+                        key: 'yep',
+                        data: 10,
+                        children: [],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SkillNode(
                 key: 'nice',
+                data: 5,
                 children: [],
               ),
               SkillNode(
-                data: 3,
                 key: 'hi',
+                data: 3,
                 children: [
                   // SkillNode(
                   //   data: 5,
