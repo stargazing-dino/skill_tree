@@ -137,7 +137,7 @@ class Item extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: Colors.grey,
-          width: 2.0,
+          width: 2.4,
         ),
         boxShadow: [
           BoxShadow(

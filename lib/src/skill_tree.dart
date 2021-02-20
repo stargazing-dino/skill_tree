@@ -10,6 +10,8 @@ import 'drag_node.dart';
 import 'models/parent_children.dart';
 import 'quantity_button.dart';
 
+enum LineType { curved, angle, straight }
+
 class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
   final List<SkillNode<T, R>>? nodes;
 
@@ -463,26 +465,32 @@ class TreePainter<T extends Object, R> extends CustomPainter {
 
   final BuildContext context;
 
-  TreePainter({required this.context, required this.nodes});
+  final Paint brush;
 
-  Iterable<ParentChildren<BaseNode<T, R>>> traverseByDepth(
+  TreePainter({required this.context, required this.nodes})
+      : brush = Paint()
+          ..strokeWidth = 4
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke;
+
+  Iterable<ParentChildren<BaseNode<T, R>>> traverseByLineage(
     BaseNode<T, R> node,
   ) sync* {
     if (node.children.isNotEmpty) {
       yield ParentChildren(parent: node, children: node.children);
 
       for (final childNode in node.children) {
-        yield* traverseByDepth(childNode);
+        yield* traverseByLineage(childNode);
       }
     }
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final nodeOne = nodes.first;
-    final nodeLast = nodes.last;
-
-    assert(nodeOne != nodeLast);
+    // TODO: Move to field
+    // TODO: Lines should be differently colored if the node their going to is
+    // unlocked
+    final lineType = LineType.angle;
 
     final relativePosition = context.findRenderObject() as RenderBox?;
 
@@ -490,34 +498,75 @@ class TreePainter<T extends Object, R> extends CustomPainter {
 
     final startPoint = relativePosition.globalToLocal(Offset.zero);
 
-    for (final parentChildren in traverseByDepth(nodeOne)) {
-      final parentRenderBox = parentChildren.parent.globalKey.currentContext
-          ?.findRenderObject() as RenderBox?;
+    for (final rootNode in nodes) {
+      for (final parentChildren in traverseByLineage(rootNode)) {
+        final parentRenderBox = parentChildren.parent.globalKey.currentContext
+            ?.findRenderObject() as RenderBox?;
 
-      if (parentRenderBox == null) break;
+        if (parentRenderBox == null) break;
 
-      for (final child in parentChildren.children) {
-        final childRenderBox =
-            child.globalKey.currentContext?.findRenderObject() as RenderBox?;
+        for (final child in parentChildren.children) {
+          final childRenderBox =
+              child.globalKey.currentContext?.findRenderObject() as RenderBox?;
 
-        if (childRenderBox == null) continue;
+          if (childRenderBox == null) continue;
 
-        final parentPosition = parentRenderBox.localToGlobal(startPoint);
-        final childPosition = childRenderBox.localToGlobal(startPoint);
-
-        canvas.drawLine(
-          parentPosition.translate(
+          final parentPosition = parentRenderBox.localToGlobal(startPoint);
+          final childPosition = childRenderBox.localToGlobal(startPoint);
+          final bottomOfParent = parentPosition.translate(
             parentRenderBox.size.width / 2,
-            parentRenderBox.size.height / 2,
-          ),
-          childPosition.translate(
-            childRenderBox.size.width / 2,
-            childRenderBox.size.height / 2,
-          ),
-          Paint()
-            ..strokeWidth = 4
-            ..color = Colors.redAccent,
-        );
+            parentRenderBox.size.height,
+          );
+          final topOfChild =
+              childPosition.translate(childRenderBox.size.width / 2, 0);
+
+          final verticalDx = topOfChild.dy - bottomOfParent.dy;
+          final verticalHalfDx = verticalDx / 2;
+          final horizontalDx = topOfChild.dx - bottomOfParent.dx;
+          final horizontalHalfDx = horizontalDx / 2;
+
+          switch (lineType) {
+            case LineType.angle:
+              final path = Path();
+
+              path.moveTo(bottomOfParent.dx, bottomOfParent.dy);
+              path.relativeLineTo(0, verticalHalfDx);
+              path.relativeLineTo(horizontalDx, 0);
+              path.relativeLineTo(0, verticalHalfDx);
+
+              canvas.drawPath(path, brush);
+              break;
+            case LineType.curved:
+              // TODO: This is whack. We should research how to do this
+              // correctly
+              final path = Path();
+              final multiplier = 7;
+
+              path.moveTo(bottomOfParent.dx, bottomOfParent.dy);
+              path.relativeArcToPoint(
+                Offset(horizontalHalfDx, verticalHalfDx),
+                radius: Radius.circular(verticalHalfDx * multiplier),
+                clockwise: horizontalHalfDx.isNegative,
+              );
+              path.relativeArcToPoint(
+                Offset(horizontalHalfDx, verticalHalfDx),
+                radius: Radius.circular(verticalHalfDx * multiplier),
+                clockwise: !horizontalHalfDx.isNegative,
+              );
+
+              canvas.drawPath(path, brush);
+
+              break;
+            case LineType.straight:
+              canvas.drawLine(
+                bottomOfParent,
+                topOfChild,
+                brush,
+              );
+
+              break;
+          }
+        }
       }
     }
   }
