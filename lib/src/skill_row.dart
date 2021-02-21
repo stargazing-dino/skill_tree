@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'quantity_button.dart';
-
 typedef QuantityUpdate = void Function({required int index, required bool end});
 
 class SkillRow extends StatelessWidget {
@@ -39,38 +37,46 @@ class SkillRow extends StatelessWidget {
     return Padding(
       padding: tilePadding,
       child: IntrinsicHeight(
-        child: Stack(
-          children: <Widget>[
-            SizedBox.expand(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: children,
-              ),
-            ),
-            if (isEditable) ...[
-              Align(
-                alignment: Alignment.centerLeft,
-                child: QuantityButton(
-                  axis: Axis.vertical,
-                  onAdd: () => onAdd(index: index, end: false),
-                  onRemove: () => onRemove(index: index, end: false),
-                  elevation: cardElevation,
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: QuantityButton(
-                  axis: Axis.vertical,
-                  onAdd: () => onAdd(index: index, end: true),
-                  onRemove: () => onRemove(index: index, end: true),
-                  elevation: cardElevation,
-                ),
-              ),
-            ],
-          ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: children,
         ),
       ),
+
+      // IntrinsicHeight(
+      //   child: Stack(
+      //     children: <Widget>[
+      //       SizedBox.expand(
+      //         child: Row(
+      //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //           crossAxisAlignment: CrossAxisAlignment.center,
+      //           children: children,
+      //         ),
+      //       ),
+      //       if (isEditable) ...[
+      //         Align(
+      //           alignment: Alignment.centerLeft,
+      //           child: QuantityButton(
+      //             axis: Axis.vertical,
+      //             onAdd: () => onAdd(index: index, end: false),
+      //             onRemove: () => onRemove(index: index, end: false),
+      //             elevation: cardElevation,
+      //           ),
+      //         ),
+      //         Align(
+      //           alignment: Alignment.centerRight,
+      //           child: QuantityButton(
+      //             axis: Axis.vertical,
+      //             onAdd: () => onAdd(index: index, end: true),
+      //             onRemove: () => onRemove(index: index, end: true),
+      //             elevation: cardElevation,
+      //           ),
+      //         ),
+      //       ],
+      //     ],
+      //   ),
+      // ),
     );
   }
 }

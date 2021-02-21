@@ -19,7 +19,12 @@ abstract class BaseNode<T extends Object> {
     this.parentKey,
   }) : globalKey = GlobalObjectKey(key);
 
-  BaseNode<T> copyWith();
+  BaseNode<T> copyWith({
+    T? key,
+    List<BaseNode<T>>? children,
+    bool? isLocked,
+    T? parentKey,
+  });
 
   Map<String, dynamic> toMap();
 

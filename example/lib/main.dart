@@ -62,7 +62,6 @@ class _MyHomePageState extends State<MyHomePage> {
           body: SkillTree<String, int>(
             unnattachedNodes: const [],
             onAddChild: () {},
-            onTap: () {},
             onUpdate: (List<Map<String, dynamic>> nodes) {
               // setState(() {
               // _nodes = nodes;
@@ -100,21 +99,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-              SkillNode(
+              EmptySkillNode(
                 key: 'nice',
-                data: 5,
-                children: [],
-              ),
-              SkillNode(
-                key: 'hi',
-                data: 3,
                 children: [
-                  // SkillNode(
-                  //   data: 5,
-                  //   key: 'nice',
-                  //   children: [],
-                  // ),
-                  // EmptySkillNode(key: 'tree'),
+                  SkillNode(
+                    key: 'glut',
+                    data: 70,
+                    children: [],
+                  )
                 ],
               ),
             ],

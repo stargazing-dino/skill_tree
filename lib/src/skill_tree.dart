@@ -8,6 +8,7 @@ import 'package:skill_tree/src/tree_header.dart';
 import 'package:skill_tree/src/tree_painter.dart';
 
 import 'drag_node.dart';
+import 'graph_functions.dart';
 import 'quantity_button.dart';
 
 enum LineType { curved, angle, straight }
@@ -20,8 +21,6 @@ class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
   final List<SkillNode<T, R>> unnattachedNodes;
 
   final Widget Function(BuildContext context, R data) nodeBuilder;
-
-  final VoidCallback onTap;
 
   final VoidCallback onAddChild;
 
@@ -60,12 +59,11 @@ class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
     this.layout,
     this.unnattachedNodes = const [],
     required this.nodeBuilder,
-    required this.onTap,
     required this.onAddChild,
     required this.onUpdate,
     this.placeholderBuilder = defaultPlaceHolderBuilder,
     this.padding = const EdgeInsets.all(12.0),
-    this.tilePadding = const EdgeInsets.symmetric(vertical: 6.0),
+    this.tilePadding = const EdgeInsets.symmetric(vertical: 8.0),
     this.isEditable = true,
     this.ignoreMissingChildren = false,
     this.headerHeight = 80.0,
@@ -85,7 +83,7 @@ class _SkillTreeState<T extends Object, R extends Object>
 
   @override
   void initState() {
-    nodes = widget.nodes ?? _parseLayout(widget.layout!);
+    nodes = _addParentIds(widget.nodes ?? _parseLayout(widget.layout!));
 
     super.initState();
   }
@@ -104,33 +102,37 @@ class _SkillTreeState<T extends Object, R extends Object>
 
   @override
   Widget build(BuildContext context) {
-    final children = _parseChildren(nodes);
+    final content = Row(
+      children: nodes.map((node) {
+        return Expanded(
+          child: Builder(
+            builder: (context) {
+              // TODO: Eventually, I'll want children to be possible
+              // even on the same row
+              final children = _parseChildren([node]);
+
+              return CustomPaint(
+                painter: TreePainter(context: context, root: node),
+                child: Column(children: children),
+              );
+            },
+          ),
+        );
+      }).toList(),
+    );
 
     if (widget.isEditable) {
       return Stack(
         fit: StackFit.passthrough,
         children: <Widget>[
-          GestureDetector(
-            // TODO:
-            // Is this onTap necessary?
-            onTap: widget.onTap.call,
-            // TODO: Await https://github.com/flutter/flutter/issues/41334
-            child: Padding(
-              child: Builder(
-                builder: (context) {
-                  return CustomPaint(
-                    painter: TreePainter(context: context, nodes: nodes),
-                    child: Column(children: children),
-                  );
-                },
-              ),
-              padding: widget.padding.copyWith(
-                top: widget.headerHeight +
-                    widget.padding.top +
-                    widget.tilePadding.top,
-                bottom: widget.padding.bottom + 32.0,
-              ),
+          Padding(
+            padding: widget.padding.copyWith(
+              top: widget.headerHeight +
+                  widget.padding.top +
+                  widget.tilePadding.top,
+              bottom: widget.padding.bottom + 32.0,
             ),
+            child: content,
           ),
           Container(
             padding: widget.padding,
@@ -171,35 +173,25 @@ class _SkillTreeState<T extends Object, R extends Object>
         ],
       );
     } else {
-      return GestureDetector(
-        onTap: widget.onTap.call,
-        child: ListView(
-          padding: widget.padding,
-          shrinkWrap: true,
-          children: children,
-        ),
+      return Padding(
+        padding: widget.padding,
+        child: content,
       );
     }
   }
 
-  /// Returns a list of children at depth N. N is not descibed as this is a
-  /// generator.
-  // TODO: Move into utils and make generic
-  Iterable<List<BaseNode<T>>> _depthFirstSearch(
-    List<BaseNode<T>> nodes,
-  ) sync* {
-    if (nodes.isNotEmpty) {
-      yield nodes;
+  List<BaseNode<T>> _addParentIds(List<BaseNode<T>> nodes) {
+    return nodes.map((node) {
+      if (node.children.isEmpty) return node;
 
-      final nextNodes = nodes.fold<List<BaseNode<T>>>(
-        [],
-        (previousValue, node) => [...previousValue, ...node.children],
+      return node.copyWith(
+        children: _addParentIds(
+          node.children.map((childNode) {
+            return childNode.copyWith(parentKey: node.key);
+          }).toList(),
+        ),
       );
-
-      if (nextNodes.isNotEmpty) {
-        yield* _depthFirstSearch(nextNodes);
-      }
-    }
+    }).toList();
   }
 
   List<Widget> _parseChildren(List<BaseNode<T>> nodes) {
@@ -207,7 +199,7 @@ class _SkillTreeState<T extends Object, R extends Object>
 
     var depth = 0;
 
-    for (final nodeLayer in _depthFirstSearch(nodes)) {
+    for (final nodeLayer in depthFirstSearch(nodes)) {
       var index = 0;
       final rowChildren = <Widget>[];
 
@@ -288,15 +280,3 @@ class _SkillTreeState<T extends Object, R extends Object>
     // TODO:
   }
 }
-
-// class SkillColumn extends StatelessWidget {
-//   final List<BaseNode<T>> nodes;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return CustomPaint(
-//       painter: TreePainter(context: context, nodes: nodes),
-//       child: Column(children: children),
-//     );
-//   }
-// }
