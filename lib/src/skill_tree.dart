@@ -1,282 +1,134 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/models/base_node.dart';
-import 'package:skill_tree/src/models/empty_skill_node.dart';
-import 'package:skill_tree/src/skill_row.dart';
-import 'package:skill_tree/src/tree_header.dart';
-import 'package:skill_tree/src/tree_painter.dart';
+import 'dart:math';
 
-import 'drag_node.dart';
-import 'graph_functions.dart';
-import 'quantity_button.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+import 'package:skill_tree/src/models/skill_edge.dart';
+import 'package:skill_tree/src/models/skill_layout.dart';
+import 'package:skill_tree/src/models/skill_node.dart';
 
-enum LineType { curved, angle, straight }
+// TODO: Column has it so it can nest itself because it itself is a Flex. We
+// should have something like the same so we can nest skill trees.
+class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
+  final List<SkillEdge<EdgeType, String>> edges;
 
-class SkillTree<T extends Object, R extends Object> extends StatefulWidget {
-  final List<BaseNode<T>>? nodes;
+  final List<SkillNode<NodeType>> nodes;
 
-  final List<Map<String, dynamic>>? layout;
+  final SkillLayout layout;
 
-  final List<SkillNode<T, R>> unnattachedNodes;
+  final Function(Map<String, dynamic> json)? onSave;
 
-  final Widget Function(BuildContext context, R data) nodeBuilder;
+  final Map<String, dynamic> Function(NodeType value)? serializeNode;
 
-  final VoidCallback onAddChild;
+  final Map<String, dynamic> Function(EdgeType value)? serializeEdge;
 
-  final EdgeInsets padding;
+  final NodeType Function(Map<String, dynamic> json)? deserializeNode;
 
-  final EdgeInsets tilePadding;
+  final EdgeType Function(Map<String, dynamic> json)? deserializeEdge;
 
-  final WidgetBuilder placeholderBuilder;
+  final Widget Function(
+    SkillEdge<EdgeType, SkillNode<NodeType>> edge,
+  )? edgeBuilder;
 
-  final ValueChanged<List<Map<String, dynamic>>> onUpdate;
+  final Widget Function(SkillNode<NodeType> node)? nodeBuilder;
 
-  final bool isEditable;
+  SkillTree({
+    Key? key,
+    required this.edges,
+    required this.nodes,
+    required this.layout,
+    this.onSave,
+    this.serializeNode,
+    this.serializeEdge,
+    this.deserializeNode,
+    this.deserializeEdge,
+    this.edgeBuilder,
+    this.nodeBuilder,
+  }) : super(
+          key: key,
+          children: nodes
+              .map<Widget>(nodeBuilder?.call ?? defaultNodeBuilder)
+              .toList(),
+        );
 
-  final bool ignoreMissingChildren;
-
-  final double headerHeight;
-
-  final double editPadding;
-
-  final int maxItems;
-
-  final double cardElevation;
-
-  static Widget defaultPlaceHolderBuilder(BuildContext context) {
-    return Material(
-      shape: CircleBorder(),
-      elevation: 10.0,
-      child: CircleAvatar(
-        child: Center(child: Icon(Icons.add_box_outlined)),
-      ),
-    );
+  static Widget defaultEdgeBuilder<EdgeType, NodeType>(
+    SkillEdge<EdgeType, NodeType> skillEdge,
+  ) {
+    return const Placeholder();
   }
 
-  const SkillTree({
-    this.nodes,
-    this.layout,
-    this.unnattachedNodes = const [],
-    required this.nodeBuilder,
-    required this.onAddChild,
-    required this.onUpdate,
-    this.placeholderBuilder = defaultPlaceHolderBuilder,
-    this.padding = const EdgeInsets.all(12.0),
-    this.tilePadding = const EdgeInsets.symmetric(vertical: 8.0),
-    this.isEditable = true,
-    this.ignoreMissingChildren = false,
-    this.headerHeight = 80.0,
-    this.editPadding = 26.0,
-    this.maxItems = 4,
-    this.cardElevation = 4.0,
-  }) : assert((nodes != null && layout == null) ||
-            layout != null && nodes == null);
+  static Widget defaultNodeBuilder<NodeType>(SkillNode<NodeType> skillNode) {
+    return Text(skillNode.id);
+  }
+
+  static List<SkillEdge<T, SkillNode<R>>> castEdges<T, R>(
+    List<SkillEdge<T, String>> edges,
+    List<SkillNode<R>> nodes,
+  ) {
+    return edges.map<SkillEdge<T, SkillNode<R>>>(
+      (edge) {
+        return edge.cast<T, SkillNode<R>>(
+          data: edge.data,
+          from: nodes.firstWhere((node) => node.id == edge.from),
+          to: nodes.firstWhere((node) => node.id == edge.to),
+        );
+      },
+    ).toList();
+  }
+
+  static void thing<T>() {}
 
   @override
-  _SkillTreeState<T, R> createState() => _SkillTreeState<T, R>();
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderSkillsTree<EdgeType, NodeType>(castEdges(edges, nodes));
+  }
 }
 
-class _SkillTreeState<T extends Object, R extends Object>
-    extends State<SkillTree<T, R>> {
-  late List<BaseNode<T>> nodes;
+class NodeViewParentData extends ContainerBoxParentData<RenderBox> {
+  int? depth;
+}
+
+class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, NodeViewParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, NodeViewParentData> {
+  final List<SkillEdge<EdgeType, SkillNode<NodeType>>> edges;
+
+  RenderSkillsTree(this.edges);
 
   @override
-  void initState() {
-    nodes = _addParentIds(widget.nodes ?? _parseLayout(widget.layout!));
-
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant SkillTree<T, R> oldWidget) {
-    if (listEquals(oldWidget.nodes, widget.nodes) ||
-        listEquals(oldWidget.layout, widget.layout)) {
-      setState(() {
-        nodes = widget.nodes ?? _parseLayout(widget.layout!);
-      });
-    }
-
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final content = Row(
-      children: nodes.map((node) {
-        return Expanded(
-          child: Builder(
-            builder: (context) {
-              // TODO: Eventually, I'll want children to be possible
-              // even on the same row
-              final children = _parseChildren([node]);
-
-              return CustomPaint(
-                painter: TreePainter(context: context, root: node),
-                child: Column(children: children),
-              );
-            },
-          ),
-        );
-      }).toList(),
-    );
-
-    if (widget.isEditable) {
-      return Stack(
-        fit: StackFit.passthrough,
-        children: <Widget>[
-          Padding(
-            padding: widget.padding.copyWith(
-              top: widget.headerHeight +
-                  widget.padding.top +
-                  widget.tilePadding.top,
-              bottom: widget.padding.bottom + 32.0,
-            ),
-            child: content,
-          ),
-          Container(
-            padding: widget.padding,
-            alignment: Alignment.topCenter,
-            child: TreeHeader(
-              elevation: widget.cardElevation,
-              height: widget.headerHeight,
-              unnattachedChildren: widget.unnattachedNodes.map((node) {
-                return DragNode.unnatached(
-                  key: node.globalKey,
-                  child: widget.nodeBuilder(context, node.data),
-                  onAccept: _swap,
-                  isEditable: widget.isEditable,
-                  node: node as EmptySkillNode<T>,
-                  placeholder: widget.placeholderBuilder(context),
-                );
-              }).toList(),
-              onAdd: widget.onAddChild,
-              onAccept: (other) {
-                // TODO:
-              },
-            ),
-          ),
-          Container(
-            alignment: Alignment.bottomCenter,
-            margin: EdgeInsets.only(bottom: widget.padding.bottom),
-            child: QuantityButton(
-              axis: Axis.horizontal,
-              elevation: widget.cardElevation,
-              onAdd: () {
-                // TODO:
-              },
-              onRemove: () {
-                // TODO:
-              },
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Padding(
-        padding: widget.padding,
-        child: content,
-      );
+  void setupParentData(covariant RenderObject child) {
+    if (child.parentData is! NodeViewParentData) {
+      child.parentData = NodeViewParentData();
     }
   }
 
-  List<BaseNode<T>> _addParentIds(List<BaseNode<T>> nodes) {
-    return nodes.map((node) {
-      if (node.children.isEmpty) return node;
+  @override
+  void performLayout() {
+    final children = getChildrenAsList();
+    double width = 0, height = 0;
 
-      return node.copyWith(
-        children: _addParentIds(
-          node.children.map((childNode) {
-            return childNode.copyWith(parentKey: node.key);
-          }).toList(),
-        ),
-      );
-    }).toList();
-  }
-
-  List<Widget> _parseChildren(List<BaseNode<T>> nodes) {
-    final children = <Widget>[];
-
-    var depth = 0;
-
-    for (final nodeLayer in depthFirstSearch(nodes)) {
-      var index = 0;
-      final rowChildren = <Widget>[];
-
-      for (final node in nodeLayer) {
-        if (node is EmptySkillNode<T>) {
-          rowChildren.add(
-            DragNode.empty(
-              key: node.globalKey,
-              child: widget.placeholderBuilder(context),
-              onAccept: _swap,
-              isEditable: widget.isEditable,
-              node: node,
-              column: index,
-              depth: depth,
-              placeholder: widget.placeholderBuilder(context),
-            ),
-          );
-        } else if (node is SkillNode<T, R>) {
-          rowChildren.add(
-            DragNode(
-              key: node.globalKey,
-              child: widget.nodeBuilder(context, node.data),
-              onAccept: _swap,
-              isEditable: widget.isEditable,
-              depth: depth,
-              column: index,
-              node: node,
-              placeholder: widget.placeholderBuilder(context),
-            ),
-          );
-        } else {
-          throw UnsupportedError('Node $node is of unsupported type');
-        }
-
-        index++;
-      }
-
-      children.add(
-        SkillRow(
-          key: ValueKey('$index,$depth'),
-          tilePadding: widget.tilePadding,
-          index: index,
-          depth: depth,
-          cardElevation: widget.cardElevation,
-          children: rowChildren,
-          isEditable: widget.isEditable,
-          onAdd: _onAdd,
-          onRemove: _onRemove,
-        ),
+    for (final child in children) {
+      child.layout(
+        BoxConstraints(maxWidth: constraints.maxWidth),
+        parentUsesSize: true,
       );
 
-      depth++;
+      height += child.size.height;
+      width = max(width, child.size.width);
     }
 
-    return children;
+    var childOffset = const Offset(0, 0);
+    for (final child in children) {
+      final childParentData = child.parentData as NodeViewParentData;
+      childParentData.offset = Offset(0, childOffset.dx);
+      childOffset += Offset(0, child.size.height);
+    }
+
+    size = Size(width, height);
   }
 
-  List<BaseNode<T>> _parseLayout(List<Map<String, dynamic>> layout) {
-    return layout.map((obj) => BaseNode<T>.fromMap(obj)).toList();
-  }
-
-  void _onAdd({required int index, required bool end}) {
-    // TODO:
-  }
-
-  void _onRemove({required int index, required bool end}) {
-    //  TODO:
-  }
-
-  void onAccept(DragNode current, DragNode other) {
-    // TODO:
-    // Check types of second node
-    // if it's an empty slot, just place current there
-    // If it's another node, swap
-  }
-
-  void _swap(DragNode node, DragNode other) {
-    // TODO:
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    defaultPaint(context, offset);
   }
 }

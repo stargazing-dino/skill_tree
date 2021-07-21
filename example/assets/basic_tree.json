@@ -1,0 +1,30 @@
+{
+    "layout": "heirarchical",
+    "name": "",
+    "nodes": [
+        {
+            "id": 0,
+            "data": null
+        },
+        {
+            "id": 1,
+            "data": null
+        },
+        {
+            "id": 2,
+            "data": null
+        }
+    ],
+    "edges": [
+        {
+            "from": 0,
+            "to": 1,
+            "data": null
+        },
+        {
+            "from": 0,
+            "to": 2,
+            "data": null
+        }
+    ]
+}
