@@ -1,9 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/graphs/directed_graph.dart';
+import 'package:skill_tree/src/layouts/directed_layout.dart';
+import 'package:skill_tree/src/layouts/radial_layout.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/layout.dart';
@@ -174,82 +175,22 @@ class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
   @override
   void performLayout() {
     final children = getChildrenAsList();
-    final childrenParentData = children.map((child) {
-      return child.parentData as SkillNodeParentData;
-    }).toList();
-    final childNodes = childrenParentData.map((parentData) {
-      return graph.nodes.singleWhere((node) => node.id == parentData.id);
-    }).toList();
-    final zipped = List.generate(
-      children.length,
-      (index) {
-        return ChildContainer(
-          children[index],
-          childrenParentData[index],
-          childNodes[index],
-        );
-      },
-    );
 
-    double height = 0;
+    if (_skillLayout is DirectedLayout) {
+      throw UnimplementedError();
+    } else if (_skillLayout is LayeredLayout) {
+      final _size = _skillLayout.layout(
+        constraints: constraints,
+        children: children,
+        graph: _graph,
+      );
 
-    for (final nodeLayer in graph.breadthFirstSearch) {
-      double layerHeight = 0.0;
-
-      for (final node in nodeLayer) {
-        final container = zipped
-            .singleWhere((container) => container.parentData.id == node.id);
-        final child = container.renderBox;
-
-        final _width = child.computeMinIntrinsicWidth(constraints.maxHeight);
-        final _height = child.computeMinIntrinsicHeight(constraints.maxWidth);
-        final childSize = Size(_width, _height);
-
-        // final childParentData = child.parentData as SkillNodeParentData;
-
-        child.layout(
-          constraints,
-          parentUsesSize: true,
-        );
-
-        layerHeight = max(childSize.height, layerHeight);
-      }
-
-      height += layerHeight;
+      size = _size;
+    } else if (_skillLayout is RadialLayout) {
+      throw UnimplementedError();
+    } else {
+      throw ArgumentError('$layout is not a supported layout');
     }
-
-    var dy = 0.0;
-
-    for (final nodeLayer in graph.breadthFirstSearch) {
-      // final overflowed = [];
-      var dx = 0.0;
-
-      for (final node in nodeLayer) {
-        final container = zipped
-            .singleWhere((container) => container.parentData.id == node.id);
-        final child = container.renderBox;
-        final childParentData = container.parentData;
-
-        childParentData.offset = Offset(dx, dy);
-        dx += child.size.width;
-      }
-
-      final layerHeight = nodeLayer
-          .map((node) {
-            return zipped.singleWhere((container) {
-              return container.node.id == node.id;
-            });
-          })
-          .map((container) => container.renderBox)
-          .fold<double>(0.0, (acc, element) => max(acc, element.size.height));
-
-      dy += layerHeight;
-    }
-
-    size = Size(
-      constraints.maxWidth,
-      height,
-    );
   }
 
   @override
@@ -297,12 +238,10 @@ class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
   }
 }
 
-class ChildContainer<NodeType> {
-  ChildContainer(this.renderBox, this.parentData, this.node);
+class ChildAndParentData {
+  ChildAndParentData(this.renderBox, this.parentData);
 
   final RenderBox renderBox;
 
   final SkillNodeParentData parentData;
-
-  final Node<NodeType> node;
 }

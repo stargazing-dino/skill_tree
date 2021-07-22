@@ -1,6 +1,6 @@
 # skill_tree
 
-A package to build skill trees of any kind.
+A package to build skill trees of any kind. This package differs from `graphview` as it only tries to provide users an interface to make a skill tree rather than a general purpose graph viewer.
 
 ## Simple usage
 
@@ -27,8 +27,8 @@ class Home extends StatelessWidget {
 ```
 
 > Why not `Map<Node, Set<Node>> edges`?
-
-__Answer: it's easier to serialize and deserialize this way... I think -- also, that way you can attach data to edges__
+>
+>__Answer: it's easier to serialize and deserialize this way... I think -- also, this way you can attach data to edges__
 
 Say you want to store information on the node that is specific to your application. For example, the MP it costs to fire that skill. For this, you can provide a map or data class to hold your custom data. To do this, you'll also need to provide a custom serializer and deserializer. 
 
@@ -44,9 +44,9 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The first data type is the type of the edge. The second is
+    // The first data type is the data type of the edge. The second is
     // of the node
-    return SkillTree<dynamic, MyData>(
+    return SkillTree<void, MyData>(
       layout: HeirarchicLayout(),
       serializeNode: (MyData myData) {
         return myData.toJson(myData);
@@ -84,7 +84,7 @@ nodeBuilder: (node) {
 },
 ```
 
-That's pretty shweet right? Notice the `SkillNode` though? That's because you have the option to insert `SkillNode`s inside of the nodes field directly and define your children that way.
+That's pretty shweet right? Notice the `SkillNode` though? That's because you have the option to insert `SkillNode`s inside of the nodes field directly and define your children that way. The same is possible with `SkillEdge`.
 
 ```dart
 SkillTree<void, void>(
@@ -95,7 +95,33 @@ SkillTree<void, void>(
 ),
 ```
 
-The same is possible with `SkillEdge`.
+Another feature users usually want with their skill trees are points and points to acqure functionality. A node usually has a `cost` associated with it to unlock. For that, you can provide a `requirement` to your `SkillNode` and a `value` to your `SkillTree`. Note, everything defined on a `SkillTree` is automatically deserialized for you excluding the `data`. With that information, you can decide on whether your node is locked or unlocked.
+
+```dart
+class Home extends StatelessWidget {
+  const Home({ Key? key }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SkillTree<void, void>(
+      value: 5,
+      maxValue: 20,
+      layout: HeirarchicLayout(),
+      edges: [
+        Edge(from: '0', to: '1'),
+        Edge(from: '0', to: '2'),
+      ],
+      nodes: [
+        // TODO: I need an assertion in the graph that checks a SkillNode has a
+        // smaller requirement than its descendant. Throw [GraphException].
+        SkillNode(id: '0', child: MyChild(), requirement: 1),
+        SkillNode(id: '1', child: MyChild(), requirement: 10),
+        SkillNode(id: '2', child: MyChild(), requirement: 15),
+      ],
+    );
+  }
+}
+```
 
 # But muh customizability !
 
@@ -103,23 +129,21 @@ The same is possible with `SkillEdge`.
 
 Custom edges can even be drawn by providing an `edgePainter` to either a `SkillTree` or a `SkillEdge`.
 
-TODO:
+# Help me
 
-# Questions
+I'm not very good with graphs. I'd love to have fancy algorithms that draw both the nodes and edges but I think I'll need support for that.
 
-> __Q:__ Can I use a Adjacency Matrix to store my data like this ?
+How you can help:
 
-```
-  a b c d e
-a 1 1 - - -
-b - - 1 - -
-c - - - 1 -
-d - 1 1 - -
-```
+- [ ] Open an issue with an example of a skill tree and a rough sketch of how it'd be accomplished. We can start with two things. How the `graph` representation would look like and how a `layout` algorithm would roughly work. You don't have to be exact.
+- [ ] Improve on my definition of a graph and its subtypes.
+- [ ] Provide a better interface for managing the graph. This could be writing me some generic algorithms like depthFirstSearh or whatever.
+- [ ] Every TODO: is free game but are likely related to low level Flutter rendering
 
-> __A:__ What the hell is even that? But no really, if you can help me create other serialization methods that'd be cool.
 
 # TODO
-- [] unnattachedNodes
-- [] onAddChild
-- [] onUpdate
+- [ ] toggleable GUI to add and edit nodes (onAddChild, onUpdate)
+- [ ] animations
+- [ ] unnattached nodes
+- [ ] SkillTree.fromJson
+- [ ] Other serialization options (adjacency matrix?)

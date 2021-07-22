@@ -22,8 +22,8 @@ class SkillNode<T> extends ParentDataWidget<SkillNodeParentData>
   const SkillNode({
     Key? key,
     required Widget child,
-    required this.data,
     required this.id,
+    this.data,
     this.depth,
     this.name,
     this.requirement,

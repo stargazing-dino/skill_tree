@@ -6,8 +6,7 @@ import 'package:skill_tree/skill_tree.dart';
 
 void main() => runApp(const MyApp());
 
-// Assets from https://opetngameart.org/content/random-rpg-icons-part-1
-
+/// Assets from https://opetngameart.org/content/random-rpg-icons-part-1
 class MyApp extends StatelessWidget {
   const MyApp({Key key}) : super(key: key);
 
@@ -47,16 +46,13 @@ class MyHomePage extends StatelessWidget {
             ),
           ),
           body: SkillTree<void, void>(
-            layout: HierarchicLayout(),
+            layout: LayeredLayout(),
             nodeBuilder: (node) {
+              final photoId = int.parse(node.id) + 1;
+
               return SkillNode<void>.fromNode(
                 node: node,
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  color: Colors.pink,
-                  child: Center(child: Text(node.id)),
-                ),
+                child: Item(photoNumber: photoId),
               );
             },
             edges: [
@@ -76,38 +72,37 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
+class Item extends StatelessWidget {
+  final int photoNumber;
 
-// class Item extends StatelessWidget {
-//   final int photoNumber;
+  const Item({Key key, this.photoNumber}) : super(key: key);
 
-//   const Item({Key key, this.photoNumber}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       decoration: BoxDecoration(
-//         borderRadius: BorderRadius.circular(16.0),
-//         border: Border.all(
-//           color: Colors.grey,
-//           width: 2.4,
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             offset: const Offset(1.0, 2.0),
-//             blurRadius: 4.0,
-//             color: Colors.grey.shade600,
-//           )
-//         ],
-//       ),
-//       // clipBehavior: Clip.hardEdge,
-//       child: ClipRRect(
-//         borderRadius: BorderRadius.circular(16.0),
-//         child: Image.asset(
-//           'assets/icons_512x512/$photoNumber.png',
-//           height: 64.0,
-//           width: 64.0,
-//         ),
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: Colors.grey,
+          width: 2.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            offset: const Offset(1.0, 2.0),
+            blurRadius: 4.0,
+            color: Colors.grey.shade600,
+          )
+        ],
+      ),
+      // clipBehavior: Clip.hardEdge,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.0),
+        child: Image.asset(
+          'assets/icons_512x512/$photoNumber.png',
+          height: 64.0,
+          width: 64.0,
+        ),
+      ),
+    );
+  }
+}
