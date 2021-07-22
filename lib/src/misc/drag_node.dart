@@ -9,7 +9,7 @@
 // typedef AcceptCallback = void Function(DragNode current, DragNode other);
 
 // class DragNode<T> extends StatefulWidget {
-//   final NodeView<T> node;
+//   final SkillNode<T> node;
 
 //   final Widget child;
 

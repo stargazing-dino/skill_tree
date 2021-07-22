@@ -1,3 +1,3 @@
-import 'package:skill_tree/src/models/skill_layout.dart';
+import 'package:skill_tree/src/models/layout.dart';
 
-class HierarchicLayout extends SkillLayout {}
+class HierarchicLayout extends Layout {}

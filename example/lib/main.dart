@@ -22,14 +22,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({Key key}) : super(key: key);
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -54,20 +49,25 @@ class _MyHomePageState extends State<MyHomePage> {
           body: SkillTree<void, void>(
             layout: HierarchicLayout(),
             nodeBuilder: (node) {
-              return Container(
-                height: 100,
-                width: 100,
-                color: Colors.pink,
+              return SkillNode<void>.fromNode(
+                node: node,
+                child: Container(
+                  height: 100,
+                  width: 100,
+                  color: Colors.pink,
+                  child: Center(child: Text(node.id)),
+                ),
               );
             },
             edges: [
-              SkillEdge(from: '0', to: '1'),
-              SkillEdge(from: '0', to: '2'),
+              Edge(from: '0', to: '1'),
+              Edge(from: '0', to: '2'),
             ],
             nodes: [
-              SkillNode(id: '0'),
-              SkillNode(id: '2'),
-              SkillNode(id: '1'),
+              Node(id: '0'),
+              Node(id: '1'),
+              Node(id: '2'),
+              Node(id: '3'),
             ],
           ),
         ),
@@ -75,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
 
 // class Item extends StatelessWidget {
 //   final int photoNumber;

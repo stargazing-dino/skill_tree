@@ -1,36 +1,33 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:skill_tree/src/models/skill_edge.dart';
-import 'package:skill_tree/src/models/skill_layout.dart';
-import 'package:skill_tree/src/models/skill_node.dart';
+import 'package:skill_tree/src/graphs/directed_graph.dart';
+import 'package:skill_tree/src/models/edge.dart';
+import 'package:skill_tree/src/models/graph.dart';
+import 'package:skill_tree/src/models/layout.dart';
+import 'package:skill_tree/src/models/node.dart';
+import 'package:skill_tree/src/skill_edge.dart';
+import 'package:skill_tree/src/skill_node.dart';
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
+
+// TODO: What do we do with self-directed edges? Do we allow them?
+
+/// A widget to create a skill tree. This assumes a digraph structure. That is,
+/// edges are directed.
+///
+/// Edges can be acyclic so long as the [Layout] properly handles it. The
+/// default layout does not as it's unidrected in a single axis. For acyclic
+/// graphs, use the a [CircularLayout] instead.
+///
+/// Edges and nodes go through two representations. The first is unconnected to
+/// the UI and are in the form of Edge and Node. They are then transformed into
+/// [SkillEdge] and [SkillNode] via the `builders`. These are then passed
+/// through to [RenderSkillsTree] where they are laid out and rendered.
 class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
-  final List<SkillEdge<EdgeType, String>> edges;
-
-  final List<SkillNode<NodeType>> nodes;
-
-  final SkillLayout layout;
-
-  final Function(Map<String, dynamic> json)? onSave;
-
-  final Map<String, dynamic> Function(NodeType value)? serializeNode;
-
-  final Map<String, dynamic> Function(EdgeType value)? serializeEdge;
-
-  final NodeType Function(Map<String, dynamic> json)? deserializeNode;
-
-  final EdgeType Function(Map<String, dynamic> json)? deserializeEdge;
-
-  final Widget Function(
-    SkillEdge<EdgeType, SkillNode<NodeType>> edge,
-  )? edgeBuilder;
-
-  final Widget Function(SkillNode<NodeType> node)? nodeBuilder;
-
   SkillTree({
     Key? key,
     required this.edges,
@@ -43,92 +40,269 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
     this.deserializeEdge,
     this.edgeBuilder,
     this.nodeBuilder,
-  }) : super(
+    this.value,
+    this.maxValue,
+  })  : assert((value == null || maxValue == null) || value <= maxValue),
+        super(
           key: key,
           children: nodes
               .map<Widget>(nodeBuilder?.call ?? defaultNodeBuilder)
               .toList(),
         );
 
-  static Widget defaultEdgeBuilder<EdgeType, NodeType>(
-    SkillEdge<EdgeType, NodeType> skillEdge,
-  ) {
-    return const Placeholder();
+  final List<Edge<EdgeType, String>> edges;
+
+  final List<Node<NodeType>> nodes;
+
+  final Layout layout;
+
+  final Function(Map<String, dynamic> json)? onSave;
+
+  final Map<String, dynamic> Function(NodeType value)? serializeNode;
+
+  final Map<String, dynamic> Function(EdgeType value)? serializeEdge;
+
+  final NodeType Function(Map<String, dynamic> json)? deserializeNode;
+
+  final EdgeType Function(Map<String, dynamic> json)? deserializeEdge;
+
+  final SkillEdge Function(
+    Edge<EdgeType, SkillNode<NodeType>> edge,
+  )? edgeBuilder;
+
+  final SkillNode Function(Node<NodeType> node)? nodeBuilder;
+
+  final int? value;
+
+  final int? maxValue;
+
+  static SkillNode<NodeType> defaultNodeBuilder<NodeType>(Node<NodeType> node) {
+    if (node is SkillNode<NodeType>) {
+      return node;
+    }
+
+    return SkillNode<NodeType>.fromNode(
+      child: Text(node.id),
+      node: node,
+      depth: null,
+      name: '',
+    );
   }
 
-  static Widget defaultNodeBuilder<NodeType>(SkillNode<NodeType> skillNode) {
-    return Text(skillNode.id);
-  }
-
-  static List<SkillEdge<T, SkillNode<R>>> castEdges<T, R>(
-    List<SkillEdge<T, String>> edges,
-    List<SkillNode<R>> nodes,
+  /// Takes a list of edges with string ids and maps those ids to nodes. This
+  /// is a convenience method to make things easier to work with.
+  static List<Edge<T, Node<R>>> _castEdges<T, R>(
+    List<Edge<T, String>> edges,
+    List<Node<R>> nodes,
   ) {
-    return edges.map<SkillEdge<T, SkillNode<R>>>(
+    return edges.map<Edge<T, Node<R>>>(
       (edge) {
-        return edge.cast<T, SkillNode<R>>(
+        return edge.cast(
           data: edge.data,
-          from: nodes.firstWhere((node) => node.id == edge.from),
-          to: nodes.firstWhere((node) => node.id == edge.to),
+          from: nodes.singleWhere((node) => node.id == edge.from),
+          to: nodes.singleWhere((node) => node.id == edge.to),
         );
       },
     ).toList();
   }
 
-  static void thing<T>() {}
+  // TODO: If we need end up creating different types of graphs, we should
+  // do so by making factory constructors and initializing them in the
+  // initializer list.
+  Graph<EdgeType, NodeType> get graph {
+    return DirectedGraph<EdgeType, NodeType>(
+      nodes: nodes,
+      edges: _castEdges(edges, nodes),
+    );
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderObject renderObject,
+  ) {
+    renderObject as RenderSkillsTree<EdgeType, NodeType>
+      .._graph = graph
+      .._skillLayout = layout;
+  }
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderSkillsTree<EdgeType, NodeType>(castEdges(edges, nodes));
-  }
-}
+    // TODO: How do I wrap this render object with a theme?
+    // final skillThemeData = SkillTreeTheme.of(context);
 
-class NodeViewParentData extends ContainerBoxParentData<RenderBox> {
-  int? depth;
+    return RenderSkillsTree<EdgeType, NodeType>(
+      graph: graph,
+      skillLayout: layout,
+    );
+  }
 }
 
 class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox, NodeViewParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, NodeViewParentData> {
-  final List<SkillEdge<EdgeType, SkillNode<NodeType>>> edges;
+        ContainerRenderObjectMixin<RenderBox, SkillNodeParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
+  Graph<EdgeType, NodeType> _graph;
+  Graph<EdgeType, NodeType> get graph => _graph;
+  set graph(Graph<EdgeType, NodeType> graph) {
+    if (_graph == graph) return;
+    _graph = graph;
+    markNeedsLayout();
+  }
 
-  RenderSkillsTree(this.edges);
+  Layout _skillLayout;
+  Layout get skillLayout => _skillLayout;
+  set skillLayout(Layout skillLayout) {
+    if (_skillLayout == skillLayout) return;
+    _skillLayout = skillLayout;
+    markNeedsLayout();
+  }
+
+  RenderSkillsTree({
+    required Graph<EdgeType, NodeType> graph,
+    required Layout skillLayout,
+  })  : _graph = graph,
+        _skillLayout = skillLayout;
 
   @override
   void setupParentData(covariant RenderObject child) {
-    if (child.parentData is! NodeViewParentData) {
-      child.parentData = NodeViewParentData();
+    if (child.parentData is! SkillNodeParentData) {
+      child.parentData = SkillNodeParentData();
     }
   }
 
   @override
   void performLayout() {
     final children = getChildrenAsList();
-    double width = 0, height = 0;
+    final childrenParentData = children.map((child) {
+      return child.parentData as SkillNodeParentData;
+    }).toList();
+    final childNodes = childrenParentData.map((parentData) {
+      return graph.nodes.singleWhere((node) => node.id == parentData.id);
+    }).toList();
+    final zipped = List.generate(
+      children.length,
+      (index) {
+        return ChildContainer(
+          children[index],
+          childrenParentData[index],
+          childNodes[index],
+        );
+      },
+    );
 
-    for (final child in children) {
-      child.layout(
-        BoxConstraints(maxWidth: constraints.maxWidth),
-        parentUsesSize: true,
-      );
+    double height = 0;
 
-      height += child.size.height;
-      width = max(width, child.size.width);
+    for (final nodeLayer in graph.breadthFirstSearch) {
+      double layerHeight = 0.0;
+
+      for (final node in nodeLayer) {
+        final container = zipped
+            .singleWhere((container) => container.parentData.id == node.id);
+        final child = container.renderBox;
+
+        final _width = child.computeMinIntrinsicWidth(constraints.maxHeight);
+        final _height = child.computeMinIntrinsicHeight(constraints.maxWidth);
+        final childSize = Size(_width, _height);
+
+        // final childParentData = child.parentData as SkillNodeParentData;
+
+        child.layout(
+          constraints,
+          parentUsesSize: true,
+        );
+
+        layerHeight = max(childSize.height, layerHeight);
+      }
+
+      height += layerHeight;
     }
 
-    var childOffset = const Offset(0, 0);
-    for (final child in children) {
-      final childParentData = child.parentData as NodeViewParentData;
-      childParentData.offset = Offset(0, childOffset.dx);
-      childOffset += Offset(0, child.size.height);
+    var dy = 0.0;
+
+    for (final nodeLayer in graph.breadthFirstSearch) {
+      // final overflowed = [];
+      var dx = 0.0;
+
+      for (final node in nodeLayer) {
+        final container = zipped
+            .singleWhere((container) => container.parentData.id == node.id);
+        final child = container.renderBox;
+        final childParentData = container.parentData;
+
+        childParentData.offset = Offset(dx, dy);
+        dx += child.size.width;
+      }
+
+      final layerHeight = nodeLayer
+          .map((node) {
+            return zipped.singleWhere((container) {
+              return container.node.id == node.id;
+            });
+          })
+          .map((container) => container.renderBox)
+          .fold<double>(0.0, (acc, element) => max(acc, element.size.height));
+
+      dy += layerHeight;
     }
 
-    size = Size(width, height);
+    size = Size(
+      constraints.maxWidth,
+      height,
+    );
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
     defaultPaint(context, offset);
   }
+
+  // TODO: This is not yet implemented because I currently don't know how I'm
+  // going to handle edges and their painting.
+  static SkillEdge<EdgeType, NodeType> defaultEdgeBuilder<EdgeType, NodeType>(
+    Edge<EdgeType, Node<NodeType>> edge,
+  ) {
+    if (edge is SkillEdge<EdgeType, NodeType>) {
+      return edge;
+    }
+
+    throw UnimplementedError();
+    // return SkillEdge<EdgeType, NodeType>.fromEdge(
+    //   edge: edge,
+    //   color: Colors.pink,
+    //   createForegroundPainter: (
+    //     SkillNode<NodeType> from,
+    //     Offset fromOffset,
+    //     Size fromSize,
+    //     SkillNode<NodeType> to,
+    //     Offset toOffset,
+    //     Size toSize,
+    //   ) {
+    //     throw UnimplementedError();
+    //   },
+    //   createPainter: (
+    //     SkillNode<NodeType> from,
+    //     Offset fromOffset,
+    //     Size fromSize,
+    //     SkillNode<NodeType> to,
+    //     Offset toOffset,
+    //     Size toSize,
+    //   ) {
+    //     throw UnimplementedError();
+    //   },
+    //   key: Key('${edge.from.id},${edge.to.id}'),
+    //   thickness: 2.0,
+    //   willChange: false,
+    // );
+  }
+}
+
+class ChildContainer<NodeType> {
+  ChildContainer(this.renderBox, this.parentData, this.node);
+
+  final RenderBox renderBox;
+
+  final SkillNodeParentData parentData;
+
+  final Node<NodeType> node;
 }

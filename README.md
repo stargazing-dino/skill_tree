@@ -10,21 +10,25 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SkillTree(
+    return SkillTree<void, void>(
       layout: HeirarchicLayout(),
       edges: [
-        SkillEdge(from: '0', to: '1'),
-        SkillEdge(from: '0', to: '2'),
+        Edge(from: '0', to: '1'),
+        Edge(from: '0', to: '2'),
       ],
       nodes: [
-        SkillNode(id: '0'),
-        SkillNode(id: '2'),
-        SkillNode(id: '1'),
+        Node(id: '0'),
+        Node(id: '2'),
+        Node(id: '1'),
       ],
     );
   }
 }
 ```
+
+> Why not `Map<Node, Set<Node>> edges`?
+
+__Answer: it's easier to serialize and deserialize this way... I think -- also, that way you can attach data to edges__
 
 Say you want to store information on the node that is specific to your application. For example, the MP it costs to fire that skill. For this, you can provide a map or data class to hold your custom data. To do this, you'll also need to provide a custom serializer and deserializer. 
 
@@ -51,13 +55,13 @@ class Home extends StatelessWidget {
         return myData.fromJson(json);
       },
       edges: [
-        SkillEdge(from: '0', to: '1'),
-        SkillEdge(from: '0', to: '2'),
+        Edge(from: '0', to: '1'),
+        Edge(from: '0', to: '2'),
       ],
       nodes: [
-        SkillNode(id: '0', data: MyData(4)),
-        SkillNode(id: '2', data: MyData(4)),
-        SkillNode(id: '1', data: MyData(4)),
+        Node(id: '0', data: MyData(4)),
+        Node(id: '2', data: MyData(4)),
+        Node(id: '1', data: MyData(4)),
       ],
     );
   }
@@ -67,20 +71,55 @@ class Home extends StatelessWidget {
 Now that you have your MP on the node you can render it how you like by providing a nodeBuilder. It will receive the node and your data.
 
 ```dart
-nodeBuilder: (SkillNode<MyData> node) {
-  return Column(
-    children: [
-      Text(node.name),
-      Text('MP cost: ${node.data}'),
-    ],
+nodeBuilder: (node) {
+  return SkillNode.fromNode(
+    node: node,
+    child: Column(
+      children: [
+        Text(node.name),
+        Text('MP cost: ${node.data.cost}'),
+      ],
+    ),
   );
-}
+},
 ```
 
-That's pretty shweet.
+That's pretty shweet right? Notice the `SkillNode` though? That's because you have the option to insert `SkillNode`s inside of the nodes field directly and define your children that way.
 
+```dart
+SkillTree<void, void>(
+  nodes: [
+    SkillNode(id: '0', child: Container()),
+    // ...
+  ],
+),
+```
+
+The same is possible with `SkillEdge`.
+
+# But muh customizability !
+
+`skill_tree` provides a theme called `SkillTreeThemeData` that you can modify as you like. If none is provided, a default is created that takes values from your app's default `ThemeData`.
+
+Custom edges can even be drawn by providing an `edgePainter` to either a `SkillTree` or a `SkillEdge`.
+
+TODO:
+
+# Questions
+
+> __Q:__ Can I use a Adjacency Matrix to store my data like this ?
+
+```
+  a b c d e
+a 1 1 - - -
+b - - 1 - -
+c - - - 1 -
+d - 1 1 - -
+```
+
+> __A:__ What the hell is even that? But no really, if you can help me create other serialization methods that'd be cool.
 
 # TODO
-- [] unnattachedNodes: const [],
-- [] onAddChild: () {},
-- [] onUpdate:
+- [] unnattachedNodes
+- [] onAddChild
+- [] onUpdate
