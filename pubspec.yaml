@@ -1,6 +1,6 @@
 name: skill_tree
 description: A package for creating skill trees of any shape and size
-version: 0.0.1-nullsafety.0
+version: 0.0.1
 homepage: https://github.com/Nolence/skill_tree
 
 environment:
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  meta: ^1.7.0
 
 dev_dependencies:
   flutter_test:
