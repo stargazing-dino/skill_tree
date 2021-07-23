@@ -8,7 +8,7 @@ import 'package:skill_tree/src/skill_node.dart';
 
 enum EdgeStyle { bold, dotted }
 
-typedef CreateCustomPainter<NodeType> = CustomPainter Function({
+typedef CreateCustomPainter<NodeType extends Object> = CustomPainter Function({
   required SkillNode<NodeType> from,
   required Offset fromOffset,
   required Size fromSize,
@@ -19,7 +19,8 @@ typedef CreateCustomPainter<NodeType> = CustomPainter Function({
 
 /// This widget is created AFTER the nodes have been laid out. It is given the
 /// [from] and [to] nodes as well as their offsets and sizing.
-class SkillEdge<EdgeType, NodeType> extends SingleChildRenderObjectWidget
+class SkillEdge<EdgeType extends Object, NodeType extends Object>
+    extends SingleChildRenderObjectWidget
     implements Edge<EdgeType, Node<NodeType>> {
   const SkillEdge({
     Widget? child,

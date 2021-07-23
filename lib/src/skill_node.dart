@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/models/node.dart';
+import 'package:skill_tree/src/widgets/draggable_skill_node.dart';
 
 /// This contains information necessary for layout.
 class SkillNodeParentData extends ContainerBoxParentData<RenderBox> {
@@ -17,17 +18,24 @@ class SkillNodeParentData extends ContainerBoxParentData<RenderBox> {
 // TODO: This will likely need to be a DragNode/DragTarget as well
 
 /// A representation of a node in the skill tree.
-class SkillNode<T> extends ParentDataWidget<SkillNodeParentData>
+
+class SkillNode<T extends Object> extends ParentDataWidget<SkillNodeParentData>
     implements Node<T> {
-  const SkillNode({
+  SkillNode({
     Key? key,
     required Widget child,
     required this.data,
     required this.id,
-    this.depth,
+    required this.depth,
     this.name,
-    this.requirement,
-  }) : super(key: key, child: child);
+  }) : super(
+          key: key,
+          child: DragableSkillNode(
+            data: data,
+            id: id,
+            child: child,
+          ),
+        );
 
   @override
   final T? data;
@@ -38,13 +46,7 @@ class SkillNode<T> extends ParentDataWidget<SkillNodeParentData>
   @override
   final String? name;
 
-  /// Related to rendering. This is used to determine the placement of the node
-  /// in the tree.
   final int? depth;
-
-  /// Related to rendering. This is used to determine whether this node has
-  /// been acquired or not.
-  final int? requirement;
 
   factory SkillNode.fromNode({
     required Node<T> node,
@@ -57,7 +59,6 @@ class SkillNode<T> extends ParentDataWidget<SkillNodeParentData>
       id: node.id,
       child: child,
       depth: depth,
-      name: name,
     );
   }
 

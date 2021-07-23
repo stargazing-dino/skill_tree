@@ -53,7 +53,6 @@ abstract class Graph<EdgeType, NodeType> {
   }
 
   Iterable<Node<NodeType>> get depthFirstSearch sync* {
-    // TODO:
     throw UnimplementedError();
   }
 
@@ -87,6 +86,13 @@ abstract class Graph<EdgeType, NodeType> {
       } else {
         yield nextLayer;
       }
+    }
+  }
+
+  Iterable<Iterable<Iterable<Node<NodeType>>>>
+      get treeBreadthFirstSearch sync* {
+    for (final rootNode in rootNodes) {
+      yield nodeBreadthFirstSearch(rootNode);
     }
   }
 

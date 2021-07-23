@@ -35,7 +35,8 @@ import 'package:skill_tree/src/skill_node.dart';
 /// the UI and are in the form of Edge and Node. They are then transformed into
 /// [SkillEdge] and [SkillNode] via the `builders`. These are then passed
 /// through to [RenderSkillsTree] where they are laid out and rendered.
-class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
+class SkillTree<EdgeType extends Object, NodeType extends Object>
+    extends MultiChildRenderObjectWidget {
   SkillTree({
     Key? key,
     required this.edges,
@@ -84,7 +85,9 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
 
   final int? maxValue;
 
-  static SkillNode<NodeType> defaultNodeBuilder<NodeType>(Node<NodeType> node) {
+  static SkillNode<NodeType> defaultNodeBuilder<NodeType extends Object>(
+    Node<NodeType> node,
+  ) {
     if (node is SkillNode<NodeType>) {
       return node;
     }
@@ -196,9 +199,23 @@ abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
     defaultPaint(context, offset);
   }
 
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    return defaultHitTestChildren(result, position: position);
+  }
+
+  // TODO: memoize this or something. Don't want to getChildrenAsList every time
+  RenderBox childForNode(Node<NodeType> node) {
+    return getChildrenAsList().singleWhere((child) {
+      final parentData = child.parentData as SkillNodeParentData;
+      return parentData.id == node.id;
+    });
+  }
+
   // TODO: This is not yet implemented because I currently don't know how I'm
   // going to handle edges and their painting.
-  static SkillEdge<EdgeType, NodeType> defaultEdgeBuilder<EdgeType, NodeType>(
+  static SkillEdge<EdgeType, NodeType>
+      defaultEdgeBuilder<EdgeType extends Object, NodeType extends Object>(
     Edge<EdgeType, Node<NodeType>> edge,
   ) {
     if (edge is SkillEdge<EdgeType, NodeType>) {

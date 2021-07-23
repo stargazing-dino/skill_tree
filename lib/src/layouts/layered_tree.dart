@@ -33,8 +33,6 @@ class RenderLayeredLayout<EdgeType, NodeType>
   /// This goes through layer by layer and
   @override
   void performLayout() {
-    final children = getChildrenAsList();
-
     // ---------------- Size the nodes ---------------
     final rootLayer = graph.breadthFirstSearch.first;
 
@@ -60,10 +58,7 @@ class RenderLayeredLayout<EdgeType, NodeType>
     for (final node in rootLayer) {
       // This is a tree
       final flex = maxBreadths[node]! / maxBreadth;
-      final child = children.singleWhere((child) {
-        final parentData = child.parentData as SkillNodeParentData;
-        return parentData.id == node.id;
-      });
+      final child = childForNode(node);
       final maxWidth = constraints.maxWidth * flex;
       final height = child.computeMaxIntrinsicHeight(maxWidth);
 
@@ -75,10 +70,7 @@ class RenderLayeredLayout<EdgeType, NodeType>
     /// Layout the children of this layer
     for (final node in rootLayer) {
       final flex = maxBreadths[node]! / maxBreadth;
-      final child = children.singleWhere((child) {
-        final parentData = child.parentData as SkillNodeParentData;
-        return parentData.id == node.id;
-      });
+      final child = childForNode(node);
       final maxWidth = constraints.maxWidth * flex;
 
       child.layout(
@@ -95,10 +87,7 @@ class RenderLayeredLayout<EdgeType, NodeType>
 
         for (final node in layer) {
           // This is a tree
-          final child = children.singleWhere((child) {
-            final parentData = child.parentData as SkillNodeParentData;
-            return parentData.id == node.id;
-          });
+          final child = childForNode(node);
           final maxWidth = constraints.maxWidth * flex;
           final height = child.computeMaxIntrinsicHeight(maxWidth);
 
@@ -108,10 +97,7 @@ class RenderLayeredLayout<EdgeType, NodeType>
         layerHeights.add(layerHeight);
 
         for (final node in layer) {
-          final child = children.singleWhere((child) {
-            final parentData = child.parentData as SkillNodeParentData;
-            return parentData.id == node.id;
-          });
+          final child = childForNode(node);
           final maxWidth = constraints.maxWidth * flex;
 
           child.layout(
@@ -122,16 +108,15 @@ class RenderLayeredLayout<EdgeType, NodeType>
       }
     }
 
+    // POSITIONING
+
     var dy = 0.0;
     var dx = 0.0;
 
     for (final node in rootLayer) {
       // This is a tree
       final flex = maxBreadths[node]! / maxBreadth;
-      final child = children.singleWhere((child) {
-        final parentData = child.parentData as SkillNodeParentData;
-        return parentData.id == node.id;
-      });
+      final child = childForNode(node);
       final childParentData = child.parentData as SkillNodeParentData;
       final maxWidth = constraints.maxWidth * flex;
       final childSize = child.size;
@@ -154,10 +139,7 @@ class RenderLayeredLayout<EdgeType, NodeType>
       for (final layer in graph.nodeBreadthFirstSearch(rootNode)) {
         for (final node in layer) {
           final flex = treeFlex / layer.length;
-          final child = children.singleWhere((child) {
-            final parentData = child.parentData as SkillNodeParentData;
-            return parentData.id == node.id;
-          });
+          final child = childForNode(node);
           final childParentData = child.parentData as SkillNodeParentData;
           final maxWidth = constraints.maxWidth * flex;
           final childSize = child.size;
@@ -179,26 +161,4 @@ class RenderLayeredLayout<EdgeType, NodeType>
       layerHeights.fold(0.0, (acc, element) => acc += element),
     );
   }
-
-  /// Returns the child's height
-  double layoutChild({
-    required BoxConstraints treeConstraints,
-    required RenderBox child,
-  }) {
-    final _width = child.computeMinIntrinsicWidth(treeConstraints.maxHeight);
-    final _height = child.computeMinIntrinsicHeight(treeConstraints.maxWidth);
-    final childSize = Size(_width, _height);
-
-    child.layout(
-      constraints,
-      parentUsesSize: true,
-    );
-
-    return childSize.height;
-  }
-
-  void positionLayer({
-    required BoxConstraints layerConstraints,
-    required Iterable<Node<NodeType>> nodes,
-  }) {}
 }
