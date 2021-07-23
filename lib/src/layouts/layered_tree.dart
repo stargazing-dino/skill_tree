@@ -2,13 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
-import 'package:skill_tree/src/models/layout.dart';
 
-// GraphView describes it here
-// https://pub.dev/packages/graphview#layered-graph
-class LayeredLayout extends Layout {
-  LayeredLayout({
+class LayeredTreeDelegate extends SkillTreeDelegate {
+  LayeredTreeDelegate({
     this.crossAxisSpacing = 0,
     this.mainAxisSpacing = 0,
   });
@@ -16,14 +14,22 @@ class LayeredLayout extends Layout {
   final double crossAxisSpacing;
 
   final double mainAxisSpacing;
+}
+
+// GraphView describes it here
+// https://pub.dev/packages/graphview#layered-graph
+class RenderLayeredLayout<EdgeType, NodeType>
+    extends RenderSkillTree<EdgeType, NodeType> {
+  RenderLayeredLayout({
+    required Graph<EdgeType, NodeType> graph,
+    required this.delegate,
+  }) : super(graph);
+
+  final LayeredTreeDelegate delegate;
 
   @override
-  Size layout({
-    required BoxConstraints constraints,
-    required List<RenderBox> children,
-    // FIXME: Can I narrow this type? I.e., can it be a DirectedGraph?
-    required Graph graph,
-  }) {
+  void performLayout() {
+    final children = getChildrenAsList();
     double height = 0;
 
     for (final nodeLayer in graph.breadthFirstSearch) {
@@ -87,7 +93,7 @@ class LayeredLayout extends Layout {
       dy += layerHeight;
     }
 
-    return Size(
+    size = Size(
       constraints.maxWidth,
       height,
     );

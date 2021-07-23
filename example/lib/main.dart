@@ -46,7 +46,7 @@ class MyHomePage extends StatelessWidget {
             ),
           ),
           body: SkillTree<void, void>(
-            layout: LayeredLayout(),
+            delegate: LayeredTreeDelegate(),
             nodeBuilder: (node) {
               final photoId = int.parse(node.id) + 1;
 

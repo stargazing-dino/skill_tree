@@ -3,11 +3,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/graphs/directed_graph.dart';
-import 'package:skill_tree/src/layouts/directed_layout.dart';
-import 'package:skill_tree/src/layouts/radial_layout.dart';
+import 'package:skill_tree/src/layouts/directed_tree.dart';
+import 'package:skill_tree/src/layouts/radial_tree.dart';
+import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
-import 'package:skill_tree/src/models/layout.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
@@ -20,9 +20,9 @@ import 'package:skill_tree/src/skill_node.dart';
 /// A widget to create a skill tree. This assumes a digraph structure. That is,
 /// edges are directed.
 ///
-/// Edges can be acyclic so long as the [Layout] properly handles it. The
+/// Edges can be acyclic so long as the [LayoutDelegate] properly handles it. The
 /// default layout does not as it's unidrected in a single axis. For acyclic
-/// graphs, use the a [CircularLayout] instead.
+/// graphs, use the a [RadialLayout] instead.
 ///
 /// Edges and nodes go through two representations. The first is unconnected to
 /// the UI and are in the form of Edge and Node. They are then transformed into
@@ -33,7 +33,7 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
     Key? key,
     required this.edges,
     required this.nodes,
-    required this.layout,
+    required this.delegate,
     this.onSave,
     this.serializeNode,
     this.serializeEdge,
@@ -55,7 +55,7 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
 
   final List<Node<NodeType>> nodes;
 
-  final Layout layout;
+  final SkillTreeDelegate delegate;
 
   final Function(Map<String, dynamic> json)? onSave;
 
@@ -122,27 +122,39 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    renderObject as RenderSkillsTree<EdgeType, NodeType>
-      .._graph = graph
-      .._skillLayout = layout;
+    (renderObject as RenderSkillTree<EdgeType, NodeType>)._graph = graph;
   }
 
+  /// We create a render object instead of a [CustomMultiChildLayout]
+  /// because we want to define our own ParentData necessary for the layout.
   @override
   RenderObject createRenderObject(BuildContext context) {
     // TODO: How do I wrap this render object with a theme?
     // final skillThemeData = SkillTreeTheme.of(context);
 
-    return RenderSkillsTree<EdgeType, NodeType>(
-      graph: graph,
-      skillLayout: layout,
-    );
+    final _delegate = delegate;
+
+    if (_delegate is DirectedTreeDelegate) {
+      return RenderDirectedTree(graph: graph, delegate: _delegate);
+    } else if (_delegate is RadialTreeDelegate) {
+      return RenderRadialLayout(graph: graph, delegate: _delegate);
+    } else if (_delegate is LayeredTreeDelegate) {
+      return RenderLayeredLayout(graph: graph, delegate: _delegate);
+    } else {
+      throw UnimplementedError('Delegate $_delegate is not a supported type.');
+    }
   }
 }
 
-class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
+/// This takes inspiration from but does not extend or implement
+/// [MultiChildLayoutDelegate] as that class is specific to a
+/// [CustomMultiChildLayout] and its needs.
+abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillNodeParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
+  RenderSkillTree(Graph<EdgeType, NodeType> graph) : _graph = graph;
+
   Graph<EdgeType, NodeType> _graph;
   Graph<EdgeType, NodeType> get graph => _graph;
   set graph(Graph<EdgeType, NodeType> graph) {
@@ -151,45 +163,10 @@ class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
     markNeedsLayout();
   }
 
-  Layout _skillLayout;
-  Layout get skillLayout => _skillLayout;
-  set skillLayout(Layout skillLayout) {
-    if (_skillLayout == skillLayout) return;
-    _skillLayout = skillLayout;
-    markNeedsLayout();
-  }
-
-  RenderSkillsTree({
-    required Graph<EdgeType, NodeType> graph,
-    required Layout skillLayout,
-  })  : _graph = graph,
-        _skillLayout = skillLayout;
-
   @override
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SkillNodeParentData) {
       child.parentData = SkillNodeParentData();
-    }
-  }
-
-  @override
-  void performLayout() {
-    final children = getChildrenAsList();
-
-    if (_skillLayout is DirectedLayout) {
-      throw UnimplementedError();
-    } else if (_skillLayout is LayeredLayout) {
-      final _size = _skillLayout.layout(
-        constraints: constraints,
-        children: children,
-        graph: _graph,
-      );
-
-      size = _size;
-    } else if (_skillLayout is RadialLayout) {
-      throw UnimplementedError();
-    } else {
-      throw ArgumentError('$layout is not a supported layout');
     }
   }
 
@@ -236,12 +213,4 @@ class RenderSkillsTree<EdgeType, NodeType> extends RenderBox
     //   willChange: false,
     // );
   }
-}
-
-class ChildAndParentData {
-  ChildAndParentData(this.renderBox, this.parentData);
-
-  final RenderBox renderBox;
-
-  final SkillNodeParentData parentData;
 }

@@ -13,7 +13,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SkillTree<void, void>(
-      layout: HeirarchicLayout(),
+      layout: LayeredLayout(),
       edges: [
         Edge(from: '0', to: '1'),
         Edge(from: '0', to: '2'),
@@ -49,7 +49,7 @@ class Home extends StatelessWidget {
     // The first data type is the data type of the edge. The second is
     // of the node
     return SkillTree<void, MyData>(
-      layout: HeirarchicLayout(),
+      layout: LayeredLayout(),
       serializeNode: (MyData myData) {
         return myData.toJson(myData);
       },
@@ -108,7 +108,7 @@ class Home extends StatelessWidget {
     return SkillTree<void, void>(
       value: 5,
       maxValue: 20,
-      layout: HeirarchicLayout(),
+      layout: LayeredLayout(),
       edges: [
         Edge(from: '0', to: '1'),
         Edge(from: '0', to: '2'),
