@@ -5,7 +5,10 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
 
 // TODO: Can this extend iterable so I iterate over all nodes. Would that be
-// cool?
+// cool? No, instead of Iterable<Whatever> we should do Map<Node, Set<Node>>
+// right?
+/// This a class to hold logic related to an abstract graph and its operations
+/// and should NOT be in any way related to UI or rendering.
 abstract class Graph<EdgeType, NodeType> {
   List<Node<NodeType>> get nodes;
 
@@ -19,7 +22,7 @@ abstract class Graph<EdgeType, NodeType> {
 
   /// A [Node] is a root node if there are no edges containing it or there
   /// are no edges with a `to` matching it.
-  List<RootNode<NodeType>> get rootNodes {
+  List<Node<NodeType>> get rootNodes {
     final result = <Node<NodeType>>[];
 
     for (final node in nodes) {
@@ -28,7 +31,7 @@ abstract class Graph<EdgeType, NodeType> {
       }
     }
 
-    return result.cast<RootNode<NodeType>>();
+    return result;
   }
 
   /// Returns a layer of the graph at a time
@@ -37,7 +40,7 @@ abstract class Graph<EdgeType, NodeType> {
 
     var hasMore = true;
 
-    Iterable<Node<NodeType>> currentNodes = rootNodes;
+    Iterable<Node<NodeType>> currentNodes = rootNodes.cast<Node<NodeType>>();
 
     while (hasMore) {
       final edgesOut = edges.where((edge) => currentNodes.contains(edge.from));
@@ -63,7 +66,7 @@ abstract class Graph<EdgeType, NodeType> {
   }
 
   Iterable<Iterable<Node<NodeType>>> nodeBreadthFirstSearch(
-    RootNode<NodeType> rootNode,
+    Node<NodeType> rootNode,
   ) sync* {
     bool hasDescendents = true;
     var descendents = nodeDescendents(rootNode);
@@ -89,7 +92,7 @@ abstract class Graph<EdgeType, NodeType> {
 
   /// Given a root node, traverses the tree and returns the max breadth of the
   /// tree.
-  int maxBreadth(RootNode<NodeType> rootNode) {
+  int maxBreadth(Node<NodeType> rootNode) {
     int maxNodes = 1;
 
     for (final layer in nodeBreadthFirstSearch(rootNode)) {

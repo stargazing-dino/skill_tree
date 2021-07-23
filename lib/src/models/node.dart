@@ -39,10 +39,33 @@ class Node<T> {
   }
 }
 
-abstract class RootNode<T> extends Node<T> {
-  RootNode({
-    required String id,
-    T? data,
-    String? name,
-  }) : super(id: id, data: data, name: name);
-}
+// TODO: This stuff would be internal to the graph and we'd need another Node
+// type for a user provided node. We would transform all of those user provided
+// nodes to one of these types and that would help us better work with nodes.
+// The same could be safe of edges. We could have a self-referential edge and
+// all that.
+
+// class RootNode<T> extends Node<T> {
+//   RootNode({
+//     required String id,
+//     T? data,
+//     String? name,
+//   }) : super(id: id, data: data, name: name);
+// }
+
+// class LeafNode<T> extends Node<T> {
+//   LeafNode({
+//     required String id,
+//     T? data,
+//     String? name,
+//   }) : super(id: id, data: data, name: name);
+// }
+
+// a node with at least one child.
+// class InternalNode<T> extends Node<T> {
+//   InternalNode({
+//     required String id,
+//     T? data,
+//     String? name,
+//   }) : super(id: id, data: data, name: name);
+// }

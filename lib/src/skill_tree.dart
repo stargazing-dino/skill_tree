@@ -12,10 +12,17 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
 
+// Future note. If someone is not good with graph theory (like i was), they
+// shouldn't make a flippin skill tree. You know how many of my brain cells
+// committed suicide from this dumb ass package?
+
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
 
 // TODO: What do we do with self-directed edges? Do we allow them?
+
+// TODO: In technical terms, isn't this a forest, which is a set of trees?
+// Because I want to allow multiple root nodes and leaf nodes?
 
 /// A widget to create a skill tree. This assumes a digraph structure. That is,
 /// edges are directed.
