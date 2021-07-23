@@ -122,7 +122,9 @@ class SkillTree<EdgeType, NodeType> extends MultiChildRenderObjectWidget {
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    (renderObject as RenderSkillTree<EdgeType, NodeType>)._graph = graph;
+    (renderObject as RenderSkillTree<EdgeType, NodeType>)
+      .._graph = graph
+      .._delegate = delegate;
   }
 
   /// We create a render object instead of a [CustomMultiChildLayout]
@@ -153,13 +155,25 @@ abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillNodeParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
-  RenderSkillTree(Graph<EdgeType, NodeType> graph) : _graph = graph;
+  RenderSkillTree({
+    required Graph<EdgeType, NodeType> graph,
+    required SkillTreeDelegate delegate,
+  })  : _graph = graph,
+        _delegate = delegate;
 
   Graph<EdgeType, NodeType> _graph;
   Graph<EdgeType, NodeType> get graph => _graph;
   set graph(Graph<EdgeType, NodeType> graph) {
     if (_graph == graph) return;
     _graph = graph;
+    markNeedsLayout();
+  }
+
+  SkillTreeDelegate _delegate;
+  SkillTreeDelegate get delegate => _delegate;
+  set delegate(SkillTreeDelegate delegate) {
+    if (_delegate == delegate) return;
+    _delegate = delegate;
     markNeedsLayout();
   }
 

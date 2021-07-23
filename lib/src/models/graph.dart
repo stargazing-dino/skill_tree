@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
@@ -17,7 +19,7 @@ abstract class Graph<EdgeType, NodeType> {
 
   /// A [Node] is a root node if there are no edges containing it or there
   /// are no edges with a `to` matching it.
-  List<Node<NodeType>> get rootNodes {
+  List<RootNode<NodeType>> get rootNodes {
     final result = <Node<NodeType>>[];
 
     for (final node in nodes) {
@@ -26,16 +28,16 @@ abstract class Graph<EdgeType, NodeType> {
       }
     }
 
-    return result;
+    return result.cast<RootNode<NodeType>>();
   }
 
   /// Returns a layer of the graph at a time
   Iterable<Iterable<Node<NodeType>>> get breadthFirstSearch sync* {
-    var currentNodes = rootNodes;
-
-    yield currentNodes;
+    yield rootNodes;
 
     var hasMore = true;
+
+    Iterable<Node<NodeType>> currentNodes = rootNodes;
 
     while (hasMore) {
       final edgesOut = edges.where((edge) => currentNodes.contains(edge.from));
@@ -50,6 +52,51 @@ abstract class Graph<EdgeType, NodeType> {
   Iterable<Node<NodeType>> get depthFirstSearch sync* {
     // TODO:
     throw UnimplementedError();
+  }
+
+  bool nodeHasDescendents(Node<NodeType> node) {
+    return edges.any((edge) => edge.from == node);
+  }
+
+  Iterable<Node<NodeType>> nodeDescendents(Node<NodeType> node) {
+    return edges.where((edge) => edge.from == node).map((edge) => edge.to);
+  }
+
+  Iterable<Iterable<Node<NodeType>>> nodeBreadthFirstSearch(
+    RootNode<NodeType> rootNode,
+  ) sync* {
+    bool hasDescendents = true;
+    var descendents = nodeDescendents(rootNode);
+
+    yield descendents;
+
+    while (hasDescendents) {
+      final nextLayer = descendents.fold<List<Iterable<Node<NodeType>>>>(
+        [],
+        (acc, node) {
+          acc.add(nodeDescendents(node));
+          return acc;
+        },
+      ).expand((edges) => edges);
+
+      if (nextLayer.isEmpty) {
+        hasDescendents = false;
+      } else {
+        yield nextLayer;
+      }
+    }
+  }
+
+  /// Given a root node, traverses the tree and returns the max breadth of the
+  /// tree.
+  int maxBreadth(RootNode<NodeType> rootNode) {
+    int maxNodes = 1;
+
+    for (final layer in nodeBreadthFirstSearch(rootNode)) {
+      maxNodes = max(layer.length, maxNodes);
+    }
+
+    return maxNodes;
   }
 
   @override

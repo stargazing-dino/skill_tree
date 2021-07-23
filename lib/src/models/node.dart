@@ -38,3 +38,11 @@ class Node<T> {
     return data.hashCode ^ id.hashCode ^ name.hashCode;
   }
 }
+
+abstract class RootNode<T> extends Node<T> {
+  RootNode({
+    required String id,
+    T? data,
+    String? name,
+  }) : super(id: id, data: data, name: name);
+}

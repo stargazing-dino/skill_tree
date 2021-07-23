@@ -16,6 +16,8 @@ class LayeredTreeDelegate extends SkillTreeDelegate {
   final double mainAxisSpacing;
 }
 
+// TODO: Don't expose this class
+
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
 class RenderLayeredLayout<EdgeType, NodeType>
@@ -23,14 +25,19 @@ class RenderLayeredLayout<EdgeType, NodeType>
   RenderLayeredLayout({
     required Graph<EdgeType, NodeType> graph,
     required this.delegate,
-  }) : super(graph);
+  }) : super(graph: graph, delegate: delegate);
 
+  @override
   final LayeredTreeDelegate delegate;
 
+  /// This goes through layer by layer and
   @override
   void performLayout() {
     final children = getChildrenAsList();
     double height = 0;
+
+    // ---------------- Size the nodes ---------------
+    var _constraints = constraints;
 
     for (final nodeLayer in graph.breadthFirstSearch) {
       double layerHeight = 0.0;
@@ -41,21 +48,14 @@ class RenderLayeredLayout<EdgeType, NodeType>
           return parentData.id == node.id;
         });
 
-        // FIXME: How can we do this? I rather not subclass RenderObject in this
-        // layout because then I'd need to provide graph and all that when
-        // constructing the skill tree.
-        // Option 1: Ignore...
-        // Option 2: Make this a RenderObject and graph late and apply it to the
-        // instance.
-        // Option 3: Precompute the sizes of the children and pass them in.
-        final _width = child.computeMinIntrinsicWidth(constraints.maxHeight);
-        final _height = child.computeMinIntrinsicHeight(constraints.maxWidth);
+        final _width = child.computeMinIntrinsicWidth(_constraints.maxHeight);
+        final _height = child.computeMinIntrinsicHeight(_constraints.maxWidth);
         final childSize = Size(_width, _height);
 
         // final childParentData = child.parentData as SkillNodeParentData;
 
         child.layout(
-          constraints,
+          _constraints,
           parentUsesSize: true,
         );
 
@@ -63,8 +63,15 @@ class RenderLayeredLayout<EdgeType, NodeType>
       }
 
       height += layerHeight;
+      // FIXME: This can go beyond... Got to clip it.
+      _constraints = _constraints.copyWith(
+        maxHeight: _constraints.maxHeight - layerHeight,
+      );
     }
 
+    /// On the root layer, we need to know some things. Mainly, if a node has
+    /// descedents, what is the maximum number of them. Based off that, that node
+    /// will be placed in the center of the maximum number... What???
     var dy = 0.0;
 
     for (final nodeLayer in graph.breadthFirstSearch) {
@@ -72,6 +79,8 @@ class RenderLayeredLayout<EdgeType, NodeType>
       var dx = 0.0;
 
       for (final node in nodeLayer) {
+        // if node.hasDescendants
+
         final child = children.singleWhere((child) {
           final parentData = child.parentData as SkillNodeParentData;
           return parentData.id == node.id;

@@ -11,8 +11,9 @@ class RenderDirectedTree<EdgeType, NodeType>
   RenderDirectedTree({
     required Graph<EdgeType, NodeType> graph,
     required this.delegate,
-  }) : super(graph);
+  }) : super(graph: graph, delegate: delegate);
 
+  @override
   final DirectedTreeDelegate delegate;
 
   /// This RenderObject works by layers. It passes each layer (including the

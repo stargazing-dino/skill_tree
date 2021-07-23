@@ -11,8 +11,9 @@ class RenderRadialLayout<EdgeType, NodeType>
   RenderRadialLayout({
     required Graph<EdgeType, NodeType> graph,
     required this.delegate,
-  }) : super(graph);
+  }) : super(graph: graph, delegate: delegate);
 
+  @override
   final RadialTreeDelegate delegate;
 
   @override
