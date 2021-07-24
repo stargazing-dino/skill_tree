@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
+import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
+import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
 import 'package:skill_tree/src/graphs/directed_graph.dart';
 import 'package:skill_tree/src/layouts/directed_tree.dart';
+import 'package:skill_tree/src/layouts/layered_tree.dart';
 import 'package:skill_tree/src/layouts/radial_tree.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
@@ -12,9 +16,7 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
 
-// Future note. If someone is not good with graph theory (like i was), they
-// shouldn't make a flippin skill tree. You know how many of my brain cells
-// committed suicide from this dumb ass package?
+part 'models/render_skill_tree.dart';
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
@@ -34,7 +36,7 @@ import 'package:skill_tree/src/skill_node.dart';
 /// Edges and nodes go through two representations. The first is unconnected to
 /// the UI and are in the form of Edge and Node. They are then transformed into
 /// [SkillEdge] and [SkillNode] via the `builders`. These are then passed
-/// through to [RenderSkillsTree] where they are laid out and rendered.
+/// through to [RenderSkillTree] where they are laid out and rendered.
 class SkillTree<EdgeType extends Object, NodeType extends Object>
     extends MultiChildRenderObjectWidget {
   SkillTree({
@@ -54,8 +56,11 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
   })  : assert((value == null || maxValue == null) || value <= maxValue),
         super(
           key: key,
+          // TODO: I think we should pass in the edges here too... We would then
+          // figure out whats what in the RenderSkillTree. First we would layout
+          // the nodes and then the nodes
           children: nodes
-              .map<Widget>(nodeBuilder?.call ?? defaultNodeBuilder)
+              .map<Widget>(nodeBuilder?.call ?? defaultSkillNodeBuilder)
               .toList(),
         );
 
@@ -85,7 +90,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
 
   final int? maxValue;
 
-  static SkillNode<NodeType> defaultNodeBuilder<NodeType extends Object>(
+  static SkillNode<NodeType> defaultSkillNodeBuilder<NodeType extends Object>(
     Node<NodeType> node,
   ) {
     if (node is SkillNode<NodeType>) {
@@ -153,102 +158,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
     } else if (_delegate is LayeredTreeDelegate) {
       return RenderLayeredLayout(graph: graph, delegate: _delegate);
     } else {
-      throw UnimplementedError('Delegate $_delegate is not a supported type.');
+      throw ArgumentError('Delegate $_delegate is not a supported type.');
     }
-  }
-}
-
-/// This takes inspiration from but does not extend or implement
-/// [MultiChildLayoutDelegate] as that class is specific to a
-/// [CustomMultiChildLayout] and its needs.
-abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
-    with
-        ContainerRenderObjectMixin<RenderBox, SkillNodeParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
-  RenderSkillTree({
-    required Graph<EdgeType, NodeType> graph,
-    required SkillTreeDelegate delegate,
-  })  : _graph = graph,
-        _delegate = delegate;
-
-  Graph<EdgeType, NodeType> _graph;
-  Graph<EdgeType, NodeType> get graph => _graph;
-  set graph(Graph<EdgeType, NodeType> graph) {
-    if (_graph == graph) return;
-    _graph = graph;
-    markNeedsLayout();
-  }
-
-  SkillTreeDelegate _delegate;
-  SkillTreeDelegate get delegate => _delegate;
-  set delegate(SkillTreeDelegate delegate) {
-    if (_delegate == delegate) return;
-    _delegate = delegate;
-    markNeedsLayout();
-  }
-
-  @override
-  void setupParentData(covariant RenderObject child) {
-    if (child.parentData is! SkillNodeParentData) {
-      child.parentData = SkillNodeParentData();
-    }
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    defaultPaint(context, offset);
-  }
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    return defaultHitTestChildren(result, position: position);
-  }
-
-  // TODO: memoize this or something. Don't want to getChildrenAsList every time
-  RenderBox childForNode(Node<NodeType> node) {
-    return getChildrenAsList().singleWhere((child) {
-      final parentData = child.parentData as SkillNodeParentData;
-      return parentData.id == node.id;
-    });
-  }
-
-  // TODO: This is not yet implemented because I currently don't know how I'm
-  // going to handle edges and their painting.
-  static SkillEdge<EdgeType, NodeType>
-      defaultEdgeBuilder<EdgeType extends Object, NodeType extends Object>(
-    Edge<EdgeType, Node<NodeType>> edge,
-  ) {
-    if (edge is SkillEdge<EdgeType, NodeType>) {
-      return edge;
-    }
-
-    throw UnimplementedError();
-    // return SkillEdge<EdgeType, NodeType>.fromEdge(
-    //   edge: edge,
-    //   color: Colors.pink,
-    //   createForegroundPainter: (
-    //     SkillNode<NodeType> from,
-    //     Offset fromOffset,
-    //     Size fromSize,
-    //     SkillNode<NodeType> to,
-    //     Offset toOffset,
-    //     Size toSize,
-    //   ) {
-    //     throw UnimplementedError();
-    //   },
-    //   createPainter: (
-    //     SkillNode<NodeType> from,
-    //     Offset fromOffset,
-    //     Size fromSize,
-    //     SkillNode<NodeType> to,
-    //     Offset toOffset,
-    //     Size toSize,
-    //   ) {
-    //     throw UnimplementedError();
-    //   },
-    //   key: Key('${edge.from.id},${edge.to.id}'),
-    //   thickness: 2.0,
-    //   willChange: false,
-    // );
   }
 }

@@ -15,10 +15,7 @@ class SkillNodeParentData extends ContainerBoxParentData<RenderBox> {
   String? id;
 }
 
-// TODO: This will likely need to be a DragNode/DragTarget as well
-
 /// A representation of a node in the skill tree.
-
 class SkillNode<T extends Object> extends ParentDataWidget<SkillNodeParentData>
     implements Node<T> {
   SkillNode({

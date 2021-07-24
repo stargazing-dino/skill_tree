@@ -1,8 +1,6 @@
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/models/delegate.dart';
+import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
-
-class RadialTreeDelegate extends SkillTreeDelegate {}
 
 // A circular skill tree. I know there's a game that does this, but I'm not
 // sure which.

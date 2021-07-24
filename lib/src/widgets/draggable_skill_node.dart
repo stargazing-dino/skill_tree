@@ -5,6 +5,10 @@ import 'package:skill_tree/src/models/node.dart';
 
 typedef WrapWidget = Widget Function(BuildContext context, Widget child);
 
+// TODO: onUpdate
+
+/// This class is wrapped by a SkillNode and provides a draggable interface for
+/// nodes. The update strategy for moving nodes is determined by the user.
 class DragableSkillNode<T extends Object> extends StatelessWidget
     implements Node<T> {
   const DragableSkillNode({
@@ -12,6 +16,7 @@ class DragableSkillNode<T extends Object> extends StatelessWidget
     required this.child,
     required this.data,
     required this.id,
+    // TODO: Make all of this required
     this.depth,
     this.name,
     this.requirement,

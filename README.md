@@ -13,7 +13,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SkillTree<void, void>(
-      layout: LayeredLayout(),
+      delegate: LayeredTreeDelegate(),
       edges: [
         Edge(from: '0', to: '1'),
         Edge(from: '0', to: '2'),
@@ -49,7 +49,7 @@ class Home extends StatelessWidget {
     // The first data type is the data type of the edge. The second is
     // of the node
     return SkillTree<void, MyData>(
-      layout: LayeredLayout(),
+      delegate: LayeredTreeDelegate(),
       serializeNode: (MyData myData) {
         return myData.toJson(myData);
       },
@@ -108,7 +108,7 @@ class Home extends StatelessWidget {
     return SkillTree<void, void>(
       value: 5,
       maxValue: 20,
-      layout: LayeredLayout(),
+      delegate: LayeredTreeDelegate(),
       edges: [
         Edge(from: '0', to: '1'),
         Edge(from: '0', to: '2'),
@@ -135,12 +135,12 @@ Custom edges can even be drawn by providing an `edgePainter` to either a `SkillT
 
 I'm not very good with graphs. I'd love to have fancy algorithms that draw both the nodes and edges but I think I'll need support for that.
 
-How you can help:
+Ways to help:
 
-- [ ] Open an issue with an example of a skill tree and a rough sketch of how it'd be accomplished. We can start with two things. How the `graph` representation would look like and how a `layout` algorithm would roughly work. You don't have to be exact.
-- [ ] Improve on my definition of a graph and its subtypes.
-- [ ] Provide a better interface for managing the graph. This could be writing me some generic algorithms like depthFirstSearh or whatever.
-- [ ] Every TODO: is free game but are likely related to low level Flutter rendering
+* Open an issue with an example of a skill tree and a rough sketch of how it'd be accomplished. We can start with two things. How the `graph` representation would look like and how a `layout` algorithm would roughly work. You don't have to be exact.
+* Improve on my definition of a graph and its subtypes.
+* Provide a better interface for managing the graph. This could be writing me some generic algorithms like depthFirstSearh or whatever.
+* Every TODO: is free game but are likely related to low level Flutter rendering
 
 
 # TODO

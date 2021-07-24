@@ -2,21 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/models/delegate.dart';
+import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
-
-class LayeredTreeDelegate extends SkillTreeDelegate {
-  LayeredTreeDelegate({
-    this.crossAxisSpacing = 0,
-    this.mainAxisSpacing = 0,
-  });
-
-  final double crossAxisSpacing;
-
-  final double mainAxisSpacing;
-}
-
-// FIXME: Don't expose this class or other like it
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
@@ -30,16 +17,13 @@ class RenderLayeredLayout<EdgeType, NodeType>
   @override
   final LayeredTreeDelegate delegate;
 
-  /// This goes through layer by layer and
+  /// First, we get the max node count in layer from each root. Those act as
+  /// flex's. For example, if a rootNode has a maxLayerCount of 4 and
+  /// another has one of 2, we would distribute 4/6 of the space to the first
+  /// (including constraints)  and 2/6 to the second.
   @override
   void performLayout() {
-    // ---------------- Size the nodes ---------------
     final rootLayer = graph.breadthFirstSearch.first;
-
-    // First, we get the max node count in layer from each root. Those act as
-    // flex's. For example, if a rootNode has a maxLayerCount of 4 and
-    // another has one of 2, we would distribute 4/6 of the space to the first
-    // (including constraints)  and 2/6 to the second.
     final maxBreadths = Map<Node, int>.fromEntries(
       rootLayer.map<MapEntry<Node, int>>((rootNode) {
         return MapEntry(rootNode, graph.maxBreadth(rootNode));

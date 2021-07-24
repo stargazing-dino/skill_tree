@@ -1,8 +1,6 @@
-import 'package:skill_tree/src/models/delegate.dart';
+import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
-import 'package:skill_tree/src/skill_tree.dart';
-
-class DirectedTreeDelegate extends SkillTreeDelegate {}
 
 /// A graph whose nodes are repulsed from others
 /// See here https://pub.dev/packages/graphview#directed-graph
