@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:skill_tree/skill_tree.dart';
 
 void main() => runApp(const MyApp());
@@ -38,19 +39,23 @@ class MyHomePage extends StatelessWidget {
         Scaffold(
           backgroundColor: theme.primaryColor.withAlpha(20),
           appBar: AppBar(
-            brightness: Brightness.dark,
-            backgroundColor: theme.backgroundColor.withAlpha(40),
+            systemOverlayStyle: SystemUiOverlayStyle.light,
             title: const Text(
               'Skill Tree',
               style: TextStyle(color: Colors.white),
             ),
           ),
-          body: SkillTree<void, void>(
-            delegate: LayeredTreeDelegate(),
+          body: SkillTree<void, void, String>(
+            delegate: LayeredTreeDelegate(
+              layout: [
+                ['0', '1', null],
+                ['2', null, '3'],
+              ],
+            ),
             nodeBuilder: (node) {
               final photoId = int.parse(node.id) + 1;
 
-              return SkillNode<void>.fromNode(
+              return SkillNode.fromNode(
                 node: node,
                 child: Item(photoNumber: photoId),
               );

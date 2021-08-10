@@ -5,19 +5,20 @@ part of '../skill_tree.dart';
 /// [MultChildCustomLayout] doesn't allow for setting the layout size based
 /// on the sizes of the children. Instead of that, therefore, we just define new
 /// layouts by implementing this class and creating a custom [RenderBox]
-abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
+abstract class RenderSkillTree<EdgeType, NodeType extends Object,
+        IdType extends Object> extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillNodeParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
   RenderSkillTree({
-    required Graph<EdgeType, NodeType> graph,
+    required Graph<EdgeType, NodeType, IdType> graph,
     required SkillTreeDelegate delegate,
   })  : _graph = graph,
         _delegate = delegate;
 
-  Graph<EdgeType, NodeType> _graph;
-  Graph<EdgeType, NodeType> get graph => _graph;
-  set graph(Graph<EdgeType, NodeType> graph) {
+  Graph<EdgeType, NodeType, IdType> _graph;
+  Graph<EdgeType, NodeType, IdType> get graph => _graph;
+  set graph(Graph<EdgeType, NodeType, IdType> graph) {
     if (_graph == graph) return;
     _graph = graph;
     markNeedsLayout();
@@ -49,7 +50,7 @@ abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
   }
 
   // TODO: memoize this or something. Don't want to getChildrenAsList every time
-  RenderBox childForNode(Node<NodeType> node) {
+  RenderBox childForNode(Node<NodeType, IdType> node) {
     return getChildrenAsList().singleWhere((child) {
       final parentData = child.parentData as SkillNodeParentData;
       return parentData.id == node.id;
@@ -58,11 +59,11 @@ abstract class RenderSkillTree<EdgeType, NodeType> extends RenderBox
 
   // TODO: This is not yet implemented because I currently don't know how I'm
   // going to handle edges and their painting.
-  static SkillEdge<EdgeType, NodeType>
-      defaultEdgeBuilder<EdgeType extends Object, NodeType extends Object>(
-    Edge<EdgeType, Node<NodeType>> edge,
+  static SkillEdge<EdgeType, NodeType, IdType> defaultEdgeBuilder<
+      EdgeType extends Object, NodeType extends Object, IdType extends Object>(
+    Edge<EdgeType, Node<NodeType, IdType>> edge,
   ) {
-    if (edge is SkillEdge<EdgeType, NodeType>) {
+    if (edge is SkillEdge<EdgeType, NodeType, IdType>) {
       return edge;
     }
 

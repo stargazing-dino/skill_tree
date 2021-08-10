@@ -4,10 +4,10 @@ import 'package:skill_tree/src/models/graph.dart';
 
 /// A graph whose nodes are repulsed from others
 /// See here https://pub.dev/packages/graphview#directed-graph
-class RenderDirectedTree<EdgeType, NodeType>
-    extends RenderSkillTree<EdgeType, NodeType> {
+class RenderDirectedTree<EdgeType, NodeType extends Object,
+    IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderDirectedTree({
-    required Graph<EdgeType, NodeType> graph,
+    required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,
   }) : super(graph: graph, delegate: delegate);
 

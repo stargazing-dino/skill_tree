@@ -7,10 +7,10 @@ import 'package:skill_tree/src/models/graph.dart';
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
-class RenderLayeredLayout<EdgeType, NodeType>
-    extends RenderSkillTree<EdgeType, NodeType> {
+class RenderLayeredLayout<EdgeType, NodeType extends Object,
+    IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderLayeredLayout({
-    required Graph<EdgeType, NodeType> graph,
+    required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,
   }) : super(graph: graph, delegate: delegate);
 

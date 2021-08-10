@@ -8,20 +8,21 @@ import 'package:skill_tree/src/skill_node.dart';
 
 enum EdgeStyle { bold, dotted }
 
-typedef CreateCustomPainter<NodeType extends Object> = CustomPainter Function({
-  required SkillNode<NodeType> from,
+typedef CreateCustomPainter<NodeType extends Object, IdType extends Object>
+    = CustomPainter Function({
+  required SkillNode<NodeType, IdType> from,
   required Offset fromOffset,
   required Size fromSize,
-  required SkillNode<NodeType> to,
+  required SkillNode<NodeType, IdType> to,
   required Offset toOffset,
   required Size toSize,
 });
 
 /// This widget is created AFTER the nodes have been laid out. It is given the
 /// [from] and [to] nodes as well as their offsets and sizing.
-class SkillEdge<EdgeType extends Object, NodeType extends Object>
-    extends SingleChildRenderObjectWidget
-    implements Edge<EdgeType, Node<NodeType>> {
+class SkillEdge<EdgeType extends Object, NodeType extends Object,
+        IdType extends Object> extends SingleChildRenderObjectWidget
+    implements Edge<EdgeType, Node<NodeType, IdType>> {
   const SkillEdge({
     Widget? child,
     this.data,
@@ -38,11 +39,11 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object>
 
   factory SkillEdge.fromEdge({
     required Key key,
-    required Edge<EdgeType, Node<NodeType>> edge,
+    required Edge<EdgeType, Node<NodeType, IdType>> edge,
     required double thickness,
     required Color color,
-    required CreateCustomPainter<NodeType> createPainter,
-    required CreateCustomPainter<NodeType> createForegroundPainter,
+    required CreateCustomPainter<NodeType, IdType> createPainter,
+    required CreateCustomPainter<NodeType, IdType> createForegroundPainter,
     required bool willChange,
     bool isComplex = false,
   }) {
@@ -66,18 +67,18 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object>
   final EdgeType? data;
 
   @override
-  final Node<NodeType> from;
+  final Node<NodeType, IdType> from;
 
   @override
-  final Node<NodeType> to;
+  final Node<NodeType, IdType> to;
 
   final bool willChange;
 
   final bool isComplex;
 
-  final CreateCustomPainter<NodeType> createPainter;
+  final CreateCustomPainter<NodeType, IdType> createPainter;
 
-  final CreateCustomPainter<NodeType> createForegroundPainter;
+  final CreateCustomPainter<NodeType, IdType> createForegroundPainter;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {

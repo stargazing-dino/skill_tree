@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 /// not stored here but in the edges. This is done to keep cyclic graphs
 /// possible.
 @sealed
-class Node<T> {
+class Node<NodeType extends Object, IdType extends Object> {
   Node({
     required this.id,
     this.data,
@@ -15,10 +15,10 @@ class Node<T> {
   /// information from the json representation, ensure you use a `withConverter`
   /// function to convert the json representation to the data type on the
   /// [SkillTree].
-  final T? data;
+  final NodeType? data;
 
   /// The id of the skill node.
-  final String id;
+  final IdType id;
 
   /// The optional semantic name of the skill node.
   final String? name;
@@ -27,7 +27,7 @@ class Node<T> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is Node<T> &&
+    return other is Node<NodeType, IdType> &&
         other.data == data &&
         other.id == id &&
         other.name == name;

@@ -5,19 +5,21 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/widgets/draggable_skill_node.dart';
 
 /// This contains information necessary for layout.
-class SkillNodeParentData extends ContainerBoxParentData<RenderBox> {
+class SkillNodeParentData<IdType extends Object>
+    extends ContainerBoxParentData<RenderBox> {
   /// An override for the depth this node is at. This can be used to place
   /// a node at a specific "level" of the tree without needing N number
   /// ancestors.
   int? depth;
 
   /// Used to match the [RenderBox] to the [SkillNode] when laying out.
-  String? id;
+  IdType? id;
 }
 
 /// A representation of a node in the skill tree.
-class SkillNode<T extends Object> extends ParentDataWidget<SkillNodeParentData>
-    implements Node<T> {
+class SkillNode<NodeType extends Object, IdType extends Object>
+    extends ParentDataWidget<SkillNodeParentData>
+    implements Node<NodeType, IdType> {
   SkillNode({
     Key? key,
     required Widget child,
@@ -35,10 +37,10 @@ class SkillNode<T extends Object> extends ParentDataWidget<SkillNodeParentData>
         );
 
   @override
-  final T? data;
+  final NodeType? data;
 
   @override
-  final String id;
+  final IdType id;
 
   @override
   final String? name;
@@ -46,7 +48,7 @@ class SkillNode<T extends Object> extends ParentDataWidget<SkillNodeParentData>
   final int? depth;
 
   factory SkillNode.fromNode({
-    required Node<T> node,
+    required Node<NodeType, IdType> node,
     required Widget child,
     int? depth,
     String? name,

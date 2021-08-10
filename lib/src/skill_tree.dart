@@ -37,8 +37,8 @@ part 'models/render_skill_tree.dart';
 /// the UI and are in the form of Edge and Node. They are then transformed into
 /// [SkillEdge] and [SkillNode] via the `builders`. These are then passed
 /// through to [RenderSkillTree] where they are laid out and rendered.
-class SkillTree<EdgeType extends Object, NodeType extends Object>
-    extends MultiChildRenderObjectWidget {
+class SkillTree<EdgeType extends Object, NodeType extends Object,
+    IdType extends Object> extends MultiChildRenderObjectWidget {
   SkillTree({
     Key? key,
     required this.edges,
@@ -64,11 +64,11 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
               .toList(),
         );
 
-  final List<Edge<EdgeType, String>> edges;
+  final List<Edge<EdgeType, IdType>> edges;
 
-  final List<Node<NodeType>> nodes;
+  final List<Node<NodeType, IdType>> nodes;
 
-  final SkillTreeDelegate delegate;
+  final SkillTreeDelegate<IdType> delegate;
 
   final Function(Map<String, dynamic> json)? onSave;
 
@@ -80,38 +80,42 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
 
   final EdgeType Function(Map<String, dynamic> json)? deserializeEdge;
 
-  final SkillEdge Function(
-    Edge<EdgeType, SkillNode<NodeType>> edge,
+  final SkillEdge<EdgeType, NodeType, IdType> Function(
+    Edge<EdgeType, SkillNode<NodeType, IdType>> edge,
   )? edgeBuilder;
 
-  final SkillNode Function(Node<NodeType> node)? nodeBuilder;
+  final SkillNode<NodeType, IdType> Function(Node<NodeType, IdType> node)?
+      nodeBuilder;
 
   final int? value;
 
   final int? maxValue;
 
-  static SkillNode<NodeType> defaultSkillNodeBuilder<NodeType extends Object>(
-    Node<NodeType> node,
+  static SkillNode<NodeType, IdType>
+      defaultSkillNodeBuilder<NodeType extends Object, IdType extends Object>(
+    Node<NodeType, IdType> node,
   ) {
-    if (node is SkillNode<NodeType>) {
+    if (node is SkillNode<NodeType, IdType>) {
       return node;
     }
 
-    return SkillNode<NodeType>.fromNode(
-      child: Text(node.id),
+    return SkillNode<NodeType, IdType>.fromNode(
+      child: Text(node.id.toString()),
       node: node,
       depth: null,
       name: '',
     );
   }
 
+  // FIXME: I screwed this
   /// Takes a list of edges with string ids and maps those ids to nodes. This
   /// is a convenience method to make things easier to work with.
-  static List<Edge<T, Node<R>>> _castEdges<T, R>(
-    List<Edge<T, String>> edges,
-    List<Node<R>> nodes,
+  static List<Edge<EdgeType, Node<NodeType, IdType>>>
+      _castEdges<EdgeType, NodeType extends Object, IdType extends Object>(
+    List<Edge<EdgeType, IdType>> edges,
+    List<Node<NodeType, IdType>> nodes,
   ) {
-    return edges.map<Edge<T, Node<R>>>(
+    return edges.map<Edge<EdgeType, Node<NodeType, IdType>>>(
       (edge) {
         return edge.cast(
           data: edge.data,
@@ -125,8 +129,8 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
   // TODO: If we need end up creating different types of graphs, we should
   // do so by making factory constructors and initializing them in the
   // initializer list.
-  Graph<EdgeType, NodeType> get graph {
-    return DirectedGraph<EdgeType, NodeType>(
+  Graph<EdgeType, NodeType, IdType> get graph {
+    return DirectedGraph<EdgeType, NodeType, IdType>(
       nodes: nodes,
       edges: _castEdges(edges, nodes),
     );
@@ -137,7 +141,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    (renderObject as RenderSkillTree<EdgeType, NodeType>)
+    (renderObject as RenderSkillTree<EdgeType, NodeType, IdType>)
       .._graph = graph
       .._delegate = delegate;
   }
@@ -151,12 +155,21 @@ class SkillTree<EdgeType extends Object, NodeType extends Object>
 
     final _delegate = delegate;
 
-    if (_delegate is DirectedTreeDelegate) {
-      return RenderDirectedTree(graph: graph, delegate: _delegate);
-    } else if (_delegate is RadialTreeDelegate) {
-      return RenderRadialLayout(graph: graph, delegate: _delegate);
-    } else if (_delegate is LayeredTreeDelegate) {
-      return RenderLayeredLayout(graph: graph, delegate: _delegate);
+    if (_delegate is DirectedTreeDelegate<IdType>) {
+      return RenderDirectedTree<EdgeType, NodeType, IdType>(
+        graph: graph,
+        delegate: _delegate,
+      );
+    } else if (_delegate is RadialTreeDelegate<IdType>) {
+      return RenderRadialLayout<EdgeType, NodeType, IdType>(
+        graph: graph,
+        delegate: _delegate,
+      );
+    } else if (_delegate is LayeredTreeDelegate<IdType>) {
+      return RenderLayeredLayout<EdgeType, NodeType, IdType>(
+        graph: graph,
+        delegate: _delegate,
+      );
     } else {
       throw ArgumentError('Delegate $_delegate is not a supported type.');
     }
