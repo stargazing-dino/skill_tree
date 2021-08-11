@@ -45,31 +45,48 @@ class MyHomePage extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
           ),
-          body: SkillTree<void, void, String>(
-            delegate: LayeredTreeDelegate(
-              layout: [
-                ['0', '1', null],
-                ['2', null, '3'],
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SkillTree<void, void, String>(
+              delegate: LayeredTreeDelegate(
+                mainAxisSpacing: 32.0,
+                crossAxisSpacing: 16.0,
+                layout: [
+                  ['0', '1', null],
+                  ['2', null, '3'],
+                  ['4', '5', '6'],
+                ],
+              ),
+              nodeBuilder: (node) {
+                final photoId = int.parse(node.id) + 1;
+
+                // return SkillNode.fromNode(
+                //   node: node,
+                //   child: const SizedBox(
+                //     height: 48.0,
+                //     child: Placeholder(),
+                //   ),
+                // );
+
+                return SkillNode.fromNode(
+                  node: node,
+                  child: Item(photoNumber: photoId),
+                );
+              },
+              edges: [
+                Edge(from: '0', to: '1'),
+                Edge(from: '0', to: '2'),
+              ],
+              nodes: [
+                Node(id: '0'),
+                Node(id: '1'),
+                Node(id: '2'),
+                Node(id: '3'),
+                Node(id: '4'),
+                Node(id: '5'),
+                Node(id: '6'),
               ],
             ),
-            nodeBuilder: (node) {
-              final photoId = int.parse(node.id) + 1;
-
-              return SkillNode.fromNode(
-                node: node,
-                child: Item(photoNumber: photoId),
-              );
-            },
-            edges: [
-              Edge(from: '0', to: '1'),
-              Edge(from: '0', to: '2'),
-            ],
-            nodes: [
-              Node(id: '0'),
-              Node(id: '1'),
-              Node(id: '2'),
-              Node(id: '3'),
-            ],
           ),
         ),
       ],

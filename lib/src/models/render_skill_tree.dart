@@ -12,7 +12,7 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillNodeParentData> {
   RenderSkillTree({
     required Graph<EdgeType, NodeType, IdType> graph,
-    required SkillTreeDelegate delegate,
+    required SkillTreeDelegate<IdType> delegate,
   })  : _graph = graph,
         _delegate = delegate;
 
@@ -24,9 +24,9 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
     markNeedsLayout();
   }
 
-  SkillTreeDelegate _delegate;
-  SkillTreeDelegate get delegate => _delegate;
-  set delegate(SkillTreeDelegate delegate) {
+  SkillTreeDelegate<IdType> _delegate;
+  SkillTreeDelegate<IdType> get delegate => _delegate;
+  set delegate(SkillTreeDelegate<IdType> delegate) {
     if (_delegate == delegate) return;
     _delegate = delegate;
     markNeedsLayout();
@@ -34,8 +34,8 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
 
   @override
   void setupParentData(covariant RenderObject child) {
-    if (child.parentData is! SkillNodeParentData) {
-      child.parentData = SkillNodeParentData();
+    if (child.parentData is! SkillNodeParentData<IdType>) {
+      child.parentData = SkillNodeParentData<IdType>();
     }
   }
 

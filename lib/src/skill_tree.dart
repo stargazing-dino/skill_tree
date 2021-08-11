@@ -70,15 +70,15 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   final SkillTreeDelegate<IdType> delegate;
 
-  final Function(Map<String, dynamic> json)? onSave;
+  final Function(Map<IdType, dynamic> json)? onSave;
 
-  final Map<String, dynamic> Function(NodeType value)? serializeNode;
+  final Map<IdType, dynamic> Function(NodeType value)? serializeNode;
 
-  final Map<String, dynamic> Function(EdgeType value)? serializeEdge;
+  final Map<IdType, dynamic> Function(EdgeType value)? serializeEdge;
 
-  final NodeType Function(Map<String, dynamic> json)? deserializeNode;
+  final NodeType Function(Map<IdType, dynamic> json)? deserializeNode;
 
-  final EdgeType Function(Map<String, dynamic> json)? deserializeEdge;
+  final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
 
   final SkillEdge<EdgeType, NodeType, IdType> Function(
     Edge<EdgeType, SkillNode<NodeType, IdType>> edge,
@@ -126,9 +126,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     ).toList();
   }
 
-  // TODO: If we need end up creating different types of graphs, we should
-  // do so by making factory constructors and initializing them in the
-  // initializer list.
+  // TODO: Switch on delegate type and provide right graph
   Graph<EdgeType, NodeType, IdType> get graph {
     return DirectedGraph<EdgeType, NodeType, IdType>(
       nodes: nodes,

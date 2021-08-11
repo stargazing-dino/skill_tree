@@ -12,7 +12,7 @@ class RenderRadialLayout<EdgeType, NodeType extends Object,
   }) : super(graph: graph, delegate: delegate);
 
   @override
-  final RadialTreeDelegate delegate;
+  final RadialTreeDelegate<IdType> delegate;
 
   @override
   void performLayout() {

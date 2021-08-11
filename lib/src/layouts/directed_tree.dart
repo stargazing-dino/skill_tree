@@ -12,7 +12,7 @@ class RenderDirectedTree<EdgeType, NodeType extends Object,
   }) : super(graph: graph, delegate: delegate);
 
   @override
-  final DirectedTreeDelegate delegate;
+  final DirectedTreeDelegate<IdType> delegate;
 
   /// This RenderObject works by layers. It passes each layer (including the
   /// min intrinsic width and height of each node) to the [LayoutDelegate]

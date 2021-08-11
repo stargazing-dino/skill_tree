@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
 
+// TODO: Narrow the definition of a graph to only be ONE tree. A graph however
+// can have detached nodes.
+
 // TODO: Can this extend iterable so I iterate over all nodes. Would that be
 // cool? No, instead of Iterable<Whatever> we should do Map<Node, Set<Node>>
 // right?
@@ -73,7 +76,8 @@ abstract class Graph<EdgeType, NodeType extends Object, IdType extends Object> {
   }
 
   Iterable<Node<NodeType, IdType>> nodeDescendents(
-      Node<NodeType, IdType> node) {
+    Node<NodeType, IdType> node,
+  ) {
     return edges.where((edge) => edge.from == node).map((edge) => edge.to);
   }
 
