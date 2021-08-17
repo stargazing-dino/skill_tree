@@ -41,7 +41,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     IdType extends Object> extends MultiChildRenderObjectWidget {
   SkillTree({
     Key? key,
-    required this.edges,
+    required List<Edge<EdgeType, IdType>> edges,
     required this.nodes,
     required this.delegate,
     this.onSave,
@@ -54,17 +54,18 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     this.value,
     this.maxValue,
   })  : assert((value == null || maxValue == null) || value <= maxValue),
+        _edges = _castEdges(edges, nodes),
         super(
           key: key,
-          // TODO: I think we should pass in the edges here too... We would then
-          // figure out whats what in the RenderSkillTree. First we would layout
-          // the nodes and then the nodes
           children: nodes
               .map<Widget>(nodeBuilder?.call ?? defaultSkillNodeBuilder)
               .toList(),
         );
 
-  final List<Edge<EdgeType, IdType>> edges;
+  // ..._castEdges(edges, nodes)
+  //         .map<Widget>(edgeBuilder?.call ?? defaultSkillEdgeBuilder),
+
+  final List<Edge<EdgeType, Node<NodeType, IdType>>> _edges;
 
   final List<Node<NodeType, IdType>> nodes;
 
@@ -81,7 +82,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
   final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
 
   final SkillEdge<EdgeType, NodeType, IdType> Function(
-    Edge<EdgeType, SkillNode<NodeType, IdType>> edge,
+    Edge<EdgeType, Node<NodeType, IdType>> edge,
   )? edgeBuilder;
 
   final SkillNode<NodeType, IdType> Function(Node<NodeType, IdType> node)?
@@ -107,8 +108,44 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     );
   }
 
-  // FIXME: I screwed this
-  /// Takes a list of edges with string ids and maps those ids to nodes. This
+  static SkillEdge<EdgeType, NodeType, IdType> defaultSkillEdgeBuilder<
+      EdgeType extends Object, NodeType extends Object, IdType extends Object>(
+    Edge<EdgeType, Node<NodeType, IdType>> edge,
+  ) {
+    if (edge is SkillEdge<EdgeType, NodeType, IdType>) {
+      return edge;
+    }
+
+    return SkillEdge<EdgeType, NodeType, IdType>.fromEdge(
+      edge: edge,
+      color: Colors.pink,
+      createForegroundPainter: (
+        SkillNode<NodeType, IdType> from,
+        Offset fromOffset,
+        Size fromSize,
+        SkillNode<NodeType, IdType> to,
+        Offset toOffset,
+        Size toSize,
+      ) {
+        throw UnimplementedError();
+      },
+      createPainter: (
+        SkillNode<NodeType, IdType> from,
+        Offset fromOffset,
+        Size fromSize,
+        SkillNode<NodeType, IdType> to,
+        Offset toOffset,
+        Size toSize,
+      ) {
+        throw UnimplementedError();
+      },
+      key: Key('${edge.from.id},${edge.to.id}'),
+      thickness: 2.0,
+      willChange: false,
+    );
+  }
+
+  /// Takes a list of edges with IdTypes and maps those ids to nodes. This
   /// is a convenience method to make things easier to work with.
   static List<Edge<EdgeType, Node<NodeType, IdType>>>
       _castEdges<EdgeType, NodeType extends Object, IdType extends Object>(
@@ -130,7 +167,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
   Graph<EdgeType, NodeType, IdType> get graph {
     return DirectedGraph<EdgeType, NodeType, IdType>(
       nodes: nodes,
-      edges: _castEdges(edges, nodes),
+      edges: _edges,
     );
   }
 

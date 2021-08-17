@@ -18,7 +18,7 @@ class SkillNodeParentData<IdType extends Object>
 
 /// A representation of a node in the skill tree.
 class SkillNode<NodeType extends Object, IdType extends Object>
-    extends ParentDataWidget<SkillNodeParentData>
+    extends ParentDataWidget<SkillNodeParentData<IdType>>
     implements Node<NodeType, IdType> {
   SkillNode({
     Key? key,
@@ -36,17 +36,6 @@ class SkillNode<NodeType extends Object, IdType extends Object>
           ),
         );
 
-  @override
-  final NodeType? data;
-
-  @override
-  final IdType id;
-
-  @override
-  final String? name;
-
-  final int? depth;
-
   factory SkillNode.fromNode({
     required Node<NodeType, IdType> node,
     required Widget child,
@@ -62,9 +51,20 @@ class SkillNode<NodeType extends Object, IdType extends Object>
   }
 
   @override
+  final NodeType? data;
+
+  @override
+  final IdType id;
+
+  @override
+  final String? name;
+
+  final int? depth;
+
+  @override
   void applyParentData(RenderObject renderObject) {
-    assert(renderObject.parentData is SkillNodeParentData);
-    final parentData = renderObject.parentData! as SkillNodeParentData;
+    assert(renderObject.parentData is SkillNodeParentData<IdType>);
+    final parentData = renderObject.parentData! as SkillNodeParentData<IdType>;
     bool needsLayout = false;
 
     if (parentData.depth != depth) {

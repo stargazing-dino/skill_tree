@@ -19,6 +19,7 @@ class RenderLayeredLayout<EdgeType, NodeType extends Object,
 
   @override
   void performLayout() {
+    // Let's layout the nodes first
     // Each child will have 1 / maxLayerFlex of the space
     final crossAxisSpacing = delegate.crossAxisSpacing;
     final mainAxisSpacing = delegate.mainAxisSpacing;

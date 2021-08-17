@@ -8,15 +8,17 @@ import 'package:skill_tree/src/skill_node.dart';
 
 enum EdgeStyle { bold, dotted }
 
+// TODO: Not set in stone. I think it'd also be worth it to look into
+// passing a RenderBox as that has offset and size.
 typedef CreateCustomPainter<NodeType extends Object, IdType extends Object>
-    = CustomPainter Function({
-  required SkillNode<NodeType, IdType> from,
-  required Offset fromOffset,
-  required Size fromSize,
-  required SkillNode<NodeType, IdType> to,
-  required Offset toOffset,
-  required Size toSize,
-});
+    = CustomPainter Function(
+  SkillNode<NodeType, IdType> from,
+  Offset fromOffset,
+  Size fromSize,
+  SkillNode<NodeType, IdType> to,
+  Offset toOffset,
+  Size toSize,
+);
 
 /// This widget is created AFTER the nodes have been laid out. It is given the
 /// [from] and [to] nodes as well as their offsets and sizing.
