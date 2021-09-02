@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
+import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_node.dart';
 
 enum EdgeStyle { bold, dotted }
@@ -20,15 +21,20 @@ typedef CreateCustomPainter<NodeType extends Object, IdType extends Object>
   Size toSize,
 );
 
+// TODO: Does this need a type?
+class SkillEdgeParentData extends SkillParentData {
+  Color? color;
+}
+
 /// This widget is created AFTER the nodes have been laid out. It is given the
 /// [from] and [to] nodes as well as their offsets and sizing.
 class SkillEdge<EdgeType extends Object, NodeType extends Object,
-        IdType extends Object> extends SingleChildRenderObjectWidget
+        IdType extends Object> extends ParentDataWidget<SkillEdgeParentData>
     implements Edge<EdgeType, Node<NodeType, IdType>> {
   const SkillEdge({
-    Widget? child,
     this.data,
     required Key key,
+    required Widget child,
     required this.thickness,
     required this.color,
     required this.from,
@@ -50,6 +56,7 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
     bool isComplex = false,
   }) {
     return SkillEdge(
+      child: const SizedBox(),
       key: key,
       thickness: thickness,
       color: color,
@@ -90,8 +97,28 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
   }
 
   @override
-  RenderObject createRenderObject(BuildContext context) {
-    // TODO: implement createRenderObject
-    throw UnimplementedError();
+  void applyParentData(RenderObject renderObject) {
+    final parentData = renderObject.parentData! as SkillEdgeParentData;
+
+    bool needsLayout = false;
+    bool needsPaint = false;
+
+    if (parentData.color != color) {
+      parentData.color = color;
+      needsPaint = true;
+    }
+
+    if (needsLayout) {
+      final AbstractNode? targetParent = renderObject.parent;
+      if (targetParent is RenderObject) targetParent.markNeedsLayout();
+    }
+
+    if (needsPaint) {
+      final AbstractNode? targetParent = renderObject.parent;
+      if (targetParent is RenderObject) targetParent.markNeedsPaint();
+    }
   }
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => SkillEdge;
 }

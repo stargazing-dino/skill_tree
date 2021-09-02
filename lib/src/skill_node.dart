@@ -2,11 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/models/node.dart';
-import 'package:skill_tree/src/widgets/draggable_skill_node.dart';
+import 'package:skill_tree/src/models/skill_parent_data.dart';
 
 /// This contains information necessary for layout.
-class SkillNodeParentData<IdType extends Object>
-    extends ContainerBoxParentData<RenderBox> {
+class SkillNodeParentData<IdType extends Object> extends SkillParentData {
   /// An override for the depth this node is at. This can be used to place
   /// a node at a specific "level" of the tree without needing N number
   /// ancestors.
@@ -20,7 +19,7 @@ class SkillNodeParentData<IdType extends Object>
 class SkillNode<NodeType extends Object, IdType extends Object>
     extends ParentDataWidget<SkillNodeParentData<IdType>>
     implements Node<NodeType, IdType> {
-  SkillNode({
+  const SkillNode({
     Key? key,
     required Widget child,
     required this.data,
@@ -29,12 +28,14 @@ class SkillNode<NodeType extends Object, IdType extends Object>
     this.name,
   }) : super(
           key: key,
-          child: DragableSkillNode(
-            data: data,
-            id: id,
-            child: child,
-          ),
+          child: child,
         );
+  // This is applied elsewhere
+  // child: DragableSkillNode(
+  //   data: data,
+  //   id: id,
+  //   child: child,
+  // ),
 
   factory SkillNode.fromNode({
     required Node<NodeType, IdType> node,
@@ -63,8 +64,8 @@ class SkillNode<NodeType extends Object, IdType extends Object>
 
   @override
   void applyParentData(RenderObject renderObject) {
-    assert(renderObject.parentData is SkillNodeParentData<IdType>);
     final parentData = renderObject.parentData! as SkillNodeParentData<IdType>;
+
     bool needsLayout = false;
 
     if (parentData.depth != depth) {

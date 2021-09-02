@@ -13,6 +13,7 @@ import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
+import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
 
@@ -57,13 +58,13 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
         _edges = _castEdges(edges, nodes),
         super(
           key: key,
-          children: nodes
-              .map<Widget>(nodeBuilder?.call ?? defaultSkillNodeBuilder)
-              .toList(),
+          children: [
+            ...nodes.map(nodeBuilder?.call ?? defaultSkillNodeBuilder),
+            ..._castEdges(edges, nodes).map(
+              edgeBuilder?.call ?? defaultSkillEdgeBuilder,
+            ),
+          ],
         );
-
-  // ..._castEdges(edges, nodes)
-  //         .map<Widget>(edgeBuilder?.call ?? defaultSkillEdgeBuilder),
 
   final List<Edge<EdgeType, Node<NodeType, IdType>>> _edges;
 
@@ -181,8 +182,8 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       .._delegate = delegate;
   }
 
-  /// We create a render object instead of a [CustomMultiChildLayout]
-  /// because we want to define our own ParentData necessary for the layout.
+  // We create a render object instead of a [CustomMultiChildLayout]
+  // because we want to define our own ParentData necessary for the layout.
   @override
   RenderObject createRenderObject(BuildContext context) {
     // TODO: How do I wrap this render object with a theme?

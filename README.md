@@ -1,6 +1,6 @@
 # skill_tree
 
-## 🚧 This package is in production 🚧
+## 🚧 Do not use. This package is in production. 🚧
 
 A package to build skill trees of any kind. This package differs from `graphview` as it only tries to provide users an interface to make a skill tree rather than a general purpose graph viewer.
 

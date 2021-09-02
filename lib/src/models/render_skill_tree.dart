@@ -8,9 +8,8 @@ part of '../skill_tree.dart';
 abstract class RenderSkillTree<EdgeType, NodeType extends Object,
         IdType extends Object> extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox, SkillNodeParentData<IdType>>,
-        RenderBoxContainerDefaultsMixin<RenderBox,
-            SkillNodeParentData<IdType>> {
+        ContainerRenderObjectMixin<RenderBox, SkillParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData> {
   RenderSkillTree({
     required Graph<EdgeType, NodeType, IdType> graph,
     required SkillTreeDelegate<IdType> delegate,
@@ -35,8 +34,10 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
 
   @override
   void setupParentData(covariant RenderObject child) {
-    if (child.parentData is! SkillNodeParentData<IdType>) {
-      child.parentData = SkillNodeParentData<IdType>();
+    // child.metaData.
+    // child.metaData.widget
+    if (child.parentData is! SkillParentData) {
+      child.parentData = SkillParentData();
     }
   }
 
@@ -52,10 +53,22 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
 
   // TODO: memoize this or something. Don't want to getChildrenAsList every time
   RenderBox childForNode(Node<NodeType, IdType> node) {
-    return getChildrenAsList().singleWhere((child) {
+    return nodeChildren.singleWhere((child) {
       final parentData = child.parentData as SkillNodeParentData<IdType>;
       return parentData.id == node.id;
     });
+  }
+
+  List<RenderBox> get nodeChildren {
+    return getChildrenAsList().where((child) {
+      return child.parentData is SkillNodeParentData<IdType>;
+    }).toList();
+  }
+
+  List<RenderBox> get edgeChildren {
+    return getChildrenAsList().where((child) {
+      return child.parentData is SkillEdgeParentData;
+    }).toList();
   }
 
   // TODO: This is not yet implemented because I currently don't know how I'm
