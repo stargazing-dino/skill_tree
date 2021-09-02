@@ -1,6 +1,6 @@
 name: skill_tree
 description: A package for creating skill trees of any shape and size
-version: 0.0.1
+version: 0.0.1+1
 homepage: https://github.com/Nolence/skill_tree
 
 environment:
