@@ -6,6 +6,8 @@ import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
 import 'package:skill_tree/src/graphs/directed_graph.dart';
+import 'package:skill_tree/src/graphs/layered_graph.dart';
+import 'package:skill_tree/src/graphs/radial_graph.dart';
 import 'package:skill_tree/src/layouts/directed_tree.dart';
 import 'package:skill_tree/src/layouts/layered_tree.dart';
 import 'package:skill_tree/src/layouts/radial_tree.dart';
@@ -58,7 +60,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
         _edges = _castEdges(edges, nodes),
         super(
           key: key,
-          children: [
+          children: <Widget>[
             ...nodes.map(nodeBuilder?.call ?? defaultSkillNodeBuilder),
             ..._castEdges(edges, nodes).map(
               edgeBuilder?.call ?? defaultSkillEdgeBuilder,
@@ -68,6 +70,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   final List<Edge<EdgeType, Node<NodeType, IdType>>> _edges;
 
+  /// The nodes in the graph.
   final List<Node<NodeType, IdType>> nodes;
 
   final SkillTreeDelegate<IdType> delegate;
@@ -166,10 +169,26 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   // TODO: Switch on delegate type and provide right graph
   Graph<EdgeType, NodeType, IdType> get graph {
-    return DirectedGraph<EdgeType, NodeType, IdType>(
-      nodes: nodes,
-      edges: _edges,
-    );
+    if (delegate is DirectedTreeDelegate<IdType>) {
+      return DirectedGraph<EdgeType, NodeType, IdType>(
+        nodes: nodes,
+        edges: _edges,
+      );
+    } else if (delegate is RadialTreeDelegate<IdType>) {
+      return RadialGraph<EdgeType, NodeType, IdType>(
+        nodes: nodes,
+        edges: _edges,
+      );
+    } else if (delegate is LayeredTreeDelegate<IdType>) {
+      return LayeredGraph<EdgeType, NodeType, IdType>(
+        nodes: nodes,
+        edges: _edges,
+      );
+    } else {
+      throw ArgumentError(
+        'No graph could be constructed from delegate $delegate',
+      );
+    }
   }
 
   @override
@@ -186,9 +205,6 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
   // because we want to define our own ParentData necessary for the layout.
   @override
   RenderObject createRenderObject(BuildContext context) {
-    // TODO: How do I wrap this render object with a theme?
-    // final skillThemeData = SkillTreeTheme.of(context);
-
     final _delegate = delegate;
 
     if (_delegate is DirectedTreeDelegate<IdType>) {

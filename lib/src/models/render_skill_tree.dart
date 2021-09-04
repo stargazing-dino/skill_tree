@@ -1,5 +1,8 @@
 part of '../skill_tree.dart';
 
+/// This class provides useful abstractions across both the graph theory model
+/// and the render model.
+///
 /// This class can be considered a sort of [MultiChildLayoutDelegate]. However,
 /// it is not for technical reasons. One of them being that using a
 /// [MultChildCustomLayout] doesn't allow for setting the layout size based
@@ -54,20 +57,27 @@ abstract class RenderSkillTree<EdgeType, NodeType extends Object,
   // TODO: memoize this or something. Don't want to getChildrenAsList every time
   RenderBox childForNode(Node<NodeType, IdType> node) {
     return nodeChildren.singleWhere((child) {
-      final parentData = child.parentData as SkillNodeParentData<IdType>;
-      return parentData.id == node.id;
+      final parentData = child.parentData as SkillParentData;
+      final widget = parentData.skillWidget as SkillNode;
+
+      return widget.id == node.id;
     });
   }
 
   List<RenderBox> get nodeChildren {
     return getChildrenAsList().where((child) {
-      return child.parentData is SkillNodeParentData<IdType>;
+      final parentData = child.parentData as SkillParentData;
+
+      // TODO: Losing so much type info here
+      return parentData.skillWidget is SkillNode;
     }).toList();
   }
 
   List<RenderBox> get edgeChildren {
     return getChildrenAsList().where((child) {
-      return child.parentData is SkillEdgeParentData;
+      final parentData = child.parentData as SkillParentData;
+
+      return parentData.skillWidget is SkillEdge;
     }).toList();
   }
 

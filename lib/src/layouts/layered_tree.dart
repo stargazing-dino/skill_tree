@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
+import 'package:skill_tree/src/models/skill_parent_data.dart';
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
@@ -94,7 +95,7 @@ class RenderLayeredLayout<EdgeType, NodeType extends Object,
 
         if (node != null) {
           final child = childForNode(node);
-          final childParentData = child.parentData as SkillNodeParentData;
+          final childParentData = child.parentData as SkillParentData;
           // final childSize = child.size;
 
           childParentData.offset = Offset(dx, dy);

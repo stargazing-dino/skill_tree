@@ -1,35 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 
-/// This contains information necessary for layout.
-class SkillNodeParentData<IdType extends Object> extends SkillParentData {
-  /// An override for the depth this node is at. This can be used to place
-  /// a node at a specific "level" of the tree without needing N number
-  /// ancestors.
-  int? depth;
+// /// This contains information necessary for layout.
+// class SkillNodeParentData<IdType extends Object> extends SkillParentData {
+//   /// An override for the depth this node is at. This can be used to place
+//   /// a node at a specific "level" of the tree without needing N number
+//   /// ancestors.
+//   int? depth;
 
-  /// Used to match the [RenderBox] to the [SkillNode] when laying out.
-  IdType? id;
-}
+//   /// Used to match the [RenderBox] to the [SkillNode] when laying out.
+//   IdType? id;
+// }
 
 /// A representation of a node in the skill tree.
 class SkillNode<NodeType extends Object, IdType extends Object>
-    extends ParentDataWidget<SkillNodeParentData<IdType>>
-    implements Node<NodeType, IdType> {
+    extends StatelessWidget implements Node<NodeType, IdType> {
   const SkillNode({
     Key? key,
-    required Widget child,
+    required this.child,
     required this.data,
     required this.id,
     required this.depth,
     this.name,
-  }) : super(
-          key: key,
-          child: child,
-        );
+  }) : super(key: key);
   // This is applied elsewhere
   // child: DragableSkillNode(
   //   data: data,
@@ -51,6 +46,8 @@ class SkillNode<NodeType extends Object, IdType extends Object>
     );
   }
 
+  final Widget child;
+
   @override
   final NodeType? data;
 
@@ -63,27 +60,10 @@ class SkillNode<NodeType extends Object, IdType extends Object>
   final int? depth;
 
   @override
-  void applyParentData(RenderObject renderObject) {
-    final parentData = renderObject.parentData! as SkillNodeParentData<IdType>;
-
-    bool needsLayout = false;
-
-    if (parentData.depth != depth) {
-      parentData.depth = depth;
-      needsLayout = true;
-    }
-
-    if (parentData.id != id) {
-      parentData.id = id;
-      needsLayout = true;
-    }
-
-    if (needsLayout) {
-      final AbstractNode? targetParent = renderObject.parent;
-      if (targetParent is RenderObject) targetParent.markNeedsLayout();
-    }
+  Widget build(BuildContext context) {
+    return SkillParentWidget(
+      child: child,
+      skillWidget: this,
+    );
   }
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => SkillNode;
 }

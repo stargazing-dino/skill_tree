@@ -7,8 +7,6 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_node.dart';
 
-enum EdgeStyle { bold, dotted }
-
 // TODO: Not set in stone. I think it'd also be worth it to look into
 // passing a RenderBox as that has offset and size.
 typedef CreateCustomPainter<NodeType extends Object, IdType extends Object>
@@ -21,20 +19,15 @@ typedef CreateCustomPainter<NodeType extends Object, IdType extends Object>
   Size toSize,
 );
 
-// TODO: Does this need a type?
-class SkillEdgeParentData extends SkillParentData {
-  Color? color;
-}
-
 /// This widget is created AFTER the nodes have been laid out. It is given the
 /// [from] and [to] nodes as well as their offsets and sizing.
 class SkillEdge<EdgeType extends Object, NodeType extends Object,
-        IdType extends Object> extends ParentDataWidget<SkillEdgeParentData>
+        IdType extends Object> extends StatelessWidget
     implements Edge<EdgeType, Node<NodeType, IdType>> {
   const SkillEdge({
     this.data,
     required Key key,
-    required Widget child,
+    required this.child,
     required this.thickness,
     required this.color,
     required this.from,
@@ -43,7 +36,7 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
     required this.createForegroundPainter,
     required this.willChange,
     this.isComplex = false,
-  }) : super(key: key, child: child);
+  }) : super(key: key);
 
   factory SkillEdge.fromEdge({
     required Key key,
@@ -68,6 +61,8 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
     );
   }
 
+  final Widget child;
+
   final double thickness;
 
   final Color color;
@@ -90,35 +85,12 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
   final CreateCustomPainter<NodeType, IdType> createForegroundPainter;
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(ColorProperty('color', color));
-    properties.add(DoubleProperty('thickness', thickness));
+  Widget build(BuildContext context) {
+    return SkillParentWidget(
+      child: child,
+      skillWidget: this,
+    );
   }
-
-  @override
-  void applyParentData(RenderObject renderObject) {
-    final parentData = renderObject.parentData! as SkillEdgeParentData;
-
-    bool needsLayout = false;
-    bool needsPaint = false;
-
-    if (parentData.color != color) {
-      parentData.color = color;
-      needsPaint = true;
-    }
-
-    if (needsLayout) {
-      final AbstractNode? targetParent = renderObject.parent;
-      if (targetParent is RenderObject) targetParent.markNeedsLayout();
-    }
-
-    if (needsPaint) {
-      final AbstractNode? targetParent = renderObject.parent;
-      if (targetParent is RenderObject) targetParent.markNeedsPaint();
-    }
-  }
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => SkillEdge;
 }
+
+enum MyType { house, tree }
