@@ -16,8 +16,9 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
-import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
+import 'package:skill_tree/src/widgets/draggable_edge.dart';
+import 'package:skill_tree/src/widgets/skill_edge.dart';
 
 part 'models/render_skill_tree.dart';
 
@@ -52,8 +53,8 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     this.serializeEdge,
     this.deserializeNode,
     this.deserializeEdge,
-    this.edgeBuilder,
     this.nodeBuilder,
+    this.edgeBuilder,
     this.value,
     this.maxValue,
   })  : assert((value == null || maxValue == null) || value <= maxValue),
@@ -85,12 +86,14 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
 
-  final SkillEdge<EdgeType, NodeType, IdType> Function(
-    Edge<EdgeType, Node<NodeType, IdType>> edge,
-  )? edgeBuilder;
+  // final EdgeBuilderDelegate<EdgeType, NodeType, IdType>? edgeBuilderDelegate;
 
   final SkillNode<NodeType, IdType> Function(Node<NodeType, IdType> node)?
       nodeBuilder;
+
+  final SkillEdge<EdgeType, NodeType, IdType> Function(
+    Edge<EdgeType, Node<NodeType, IdType>> edge,
+  )? edgeBuilder;
 
   final int? value;
 
@@ -120,39 +123,18 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       return edge;
     }
 
-    return SkillEdge<EdgeType, NodeType, IdType>.fromEdge(
-      edge: edge,
-      color: Colors.pink,
-      createForegroundPainter: (
-        SkillNode<NodeType, IdType> from,
-        Offset fromOffset,
-        Size fromSize,
-        SkillNode<NodeType, IdType> to,
-        Offset toOffset,
-        Size toSize,
-      ) {
-        throw UnimplementedError();
-      },
-      createPainter: (
-        SkillNode<NodeType, IdType> from,
-        Offset fromOffset,
-        Size fromSize,
-        SkillNode<NodeType, IdType> to,
-        Offset toOffset,
-        Size toSize,
-      ) {
-        throw UnimplementedError();
-      },
-      key: Key('${edge.from.id},${edge.to.id}'),
-      thickness: 2.0,
-      willChange: false,
+    return SkillEdge<EdgeType, NodeType, IdType>(
+      data: edge.data,
+      from: edge.from,
+      id: edge.id,
+      to: edge.to,
     );
   }
 
   /// Takes a list of edges with IdTypes and maps those ids to nodes. This
   /// is a convenience method to make things easier to work with.
-  static List<Edge<EdgeType, Node<NodeType, IdType>>>
-      _castEdges<EdgeType, NodeType extends Object, IdType extends Object>(
+  static List<Edge<EdgeType, Node<NodeType, IdType>>> _castEdges<
+      EdgeType extends Object, NodeType extends Object, IdType extends Object>(
     List<Edge<EdgeType, IdType>> edges,
     List<Node<NodeType, IdType>> nodes,
   ) {

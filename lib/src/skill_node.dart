@@ -25,12 +25,6 @@ class SkillNode<NodeType extends Object, IdType extends Object>
     required this.depth,
     this.name,
   }) : super(key: key);
-  // This is applied elsewhere
-  // child: DragableSkillNode(
-  //   data: data,
-  //   id: id,
-  //   child: child,
-  // ),
 
   factory SkillNode.fromNode({
     required Node<NodeType, IdType> node,
@@ -61,6 +55,12 @@ class SkillNode<NodeType extends Object, IdType extends Object>
 
   @override
   Widget build(BuildContext context) {
+    // TODO: the four sides of the node should have
+    // a DragTarget for the [EdgePoint] to be connected to.
+    // I would honestly like to do four triangles whose
+    // inner vertices meet in the center
+    // https://stackoverflow.com/questions/56930636/flutter-button-with-custom-shape-triangle
+
     return SkillParentWidget(
       child: child,
       skillWidget: this,

@@ -5,9 +5,10 @@ import 'package:meta/meta.dart';
 // Edge.
 /// T goes from being an `IdType` to being a `Node<NodeType, IdType>` when
 /// imeplemented by `SkillEdge` hence the ambiguous T here.
+@immutable
 @sealed
-class Edge<EdgeType, T> {
-  Edge({
+class Edge<EdgeType, IdType> {
+  const Edge({
     this.data,
     required this.from,
     required this.to,
@@ -15,9 +16,27 @@ class Edge<EdgeType, T> {
 
   final EdgeType? data;
 
-  final T from;
+  final IdType from;
 
-  final T to;
+  final IdType to;
+
+  String get id => '$from-$to';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Edge<EdgeType, IdType> &&
+        other.data == data &&
+        other.from == from &&
+        other.to == to;
+  }
+
+  @override
+  int get hashCode => data.hashCode ^ from.hashCode ^ to.hashCode;
+
+  @override
+  String toString() => 'Edge(data: $data, from: $from, to: $to)';
 }
 
 extension CastEdge<EdgeType, NodeType> on Edge<EdgeType, NodeType> {

@@ -60,24 +60,16 @@ class MyHomePage extends StatelessWidget {
               nodeBuilder: (node) {
                 final photoId = int.parse(node.id) + 1;
 
-                // return SkillNode.fromNode(
-                //   node: node,
-                //   child: const SizedBox(
-                //     height: 48.0,
-                //     child: Placeholder(),
-                //   ),
-                // );
-
                 return SkillNode.fromNode(
                   node: node,
-                  child: Item(photoNumber: photoId),
+                  child: Center(child: Item(photoNumber: photoId)),
                 );
               },
-              edges: [
+              edges: const [
                 Edge(from: '0', to: '1'),
                 Edge(from: '0', to: '2'),
               ],
-              nodes: [
+              nodes: const [
                 Node(id: '0'),
                 Node(id: '1'),
                 Node(id: '2'),

@@ -14,7 +14,7 @@ import 'package:skill_tree/src/models/node.dart';
 /// and should NOT be in any way related to UI or rendering.
 abstract class Graph<EdgeType, NodeType extends Object, IdType extends Object> {
   Graph() {
-    /// This run on subclasses
+    /// This runs on subclasses
     assert(debugCheckGraph(edges: edges, nodes: nodes));
   }
 

@@ -3,9 +3,10 @@ import 'package:meta/meta.dart';
 /// A [Node] is a node in the [SkillTree]. Parent and child information is
 /// not stored here but in the edges. This is done to keep cyclic graphs
 /// possible.
+@immutable
 @sealed
 class Node<NodeType extends Object, IdType extends Object> {
-  Node({
+  const Node({
     required this.id,
     this.data,
     this.name,
@@ -37,6 +38,9 @@ class Node<NodeType extends Object, IdType extends Object> {
   int get hashCode {
     return data.hashCode ^ id.hashCode ^ name.hashCode;
   }
+
+  @override
+  String toString() => 'Node(data: $data, id: $id, name: $name)';
 }
 
 // TODO: This stuff would be internal to the graph and we'd need another Node

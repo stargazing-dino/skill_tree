@@ -8,18 +8,21 @@ import 'package:skill_tree/src/models/skill_parent_data.dart';
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
-class RenderLayeredLayout<EdgeType, NodeType extends Object,
+class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
     IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderLayeredLayout({
     required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,
-  }) : super(graph: graph, delegate: delegate);
+  }) : super(
+          graph: graph,
+          delegate: delegate,
+        );
 
   @override
   final LayeredTreeDelegate<IdType> delegate;
 
   @override
-  void performLayout() {
+  void layoutNodes() {
     // Let's layout the nodes first
     // Each child will have 1 / maxLayerFlex of the space
     final crossAxisSpacing = delegate.crossAxisSpacing;
@@ -109,5 +112,10 @@ class RenderLayeredLayout<EdgeType, NodeType extends Object,
       constraints.maxWidth,
       layerHeights.fold(0.0, (acc, element) => acc += element),
     );
+  }
+
+  @override
+  void layoutEdges() {
+    // TODO: implement layoutEdges
   }
 }
