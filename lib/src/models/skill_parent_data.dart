@@ -26,6 +26,8 @@ class SkillParentWidget extends ParentDataWidget<SkillParentData> {
     final parentData = renderObject.parentData! as SkillParentData;
 
     if (parentData.skillWidget != skillWidget) {
+      parentData.skillWidget = skillWidget;
+
       bool needsLayout = false;
       bool needsPaint = false;
 

@@ -16,9 +16,10 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
-import 'package:skill_tree/src/skill_node.dart';
+import 'package:skill_tree/src/utils/get_largest_bounding_rect.dart';
 import 'package:skill_tree/src/widgets/draggable_edge.dart';
 import 'package:skill_tree/src/widgets/skill_edge.dart';
+import 'package:skill_tree/src/widgets/skill_node.dart';
 
 part 'models/render_skill_tree.dart';
 

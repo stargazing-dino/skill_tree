@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:skill_tree/src/skill_node.dart';
 import 'package:skill_tree/src/widgets/draggable_point.dart';
+import 'package:skill_tree/src/widgets/skill_node.dart';
+
+class PointParentData extends ContainerBoxParentData<RenderBox> {}
 
 class DraggableEdge<NodeType extends Object, IdType extends Object>
     extends MultiChildRenderObjectWidget {
@@ -23,64 +25,75 @@ class DraggableEdge<NodeType extends Object, IdType extends Object>
 class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
     extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox,
-            ContainerBoxParentData<RenderBox>>,
-        RenderBoxContainerDefaultsMixin<RenderBox,
-            ContainerBoxParentData<RenderBox>> {
-  late SkillNode<NodeType, IdType> _to;
-  SkillNode<NodeType, IdType> get to => _to;
-  set to(SkillNode<NodeType, IdType> to) {
+        ContainerRenderObjectMixin<RenderBox, PointParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, PointParentData>,
+        DebugOverflowIndicatorMixin {
+  /// This needs to be laid out after we have all the information available
+  /// so we'll delay until then and call [initialize] at that time.
+  void initialize({
+    required SkillNode<NodeType, IdType> to,
+    required Rect toRect,
+    required SkillNode<NodeType, IdType> from,
+    required Rect fromRect,
+  }) {
+    _to = to;
+    _toRect = toRect;
+    _from = from;
+    _fromRect = fromRect;
+  }
+
+  SkillNode<NodeType, IdType>? _to;
+  SkillNode<NodeType, IdType>? get to => _to;
+  set to(SkillNode<NodeType, IdType>? to) {
     if (_to == to) return;
     _to = to;
     markNeedsLayout();
   }
 
-  late Rect _toRect;
-  Rect get toRect => _toRect;
-  set toRect(Rect toRect) {
+  Rect? _toRect;
+  Rect? get toRect => _toRect;
+  set toRect(Rect? toRect) {
     if (_toRect == toRect) return;
     _toRect = toRect;
     markNeedsLayout();
   }
 
-  late SkillNode<NodeType, IdType> _from;
-  SkillNode<NodeType, IdType> get from => _from;
-  set from(SkillNode<NodeType, IdType> from) {
+  SkillNode<NodeType, IdType>? _from;
+  SkillNode<NodeType, IdType>? get from => _from;
+  set from(SkillNode<NodeType, IdType>? from) {
     if (_from == from) return;
     _from = from;
     markNeedsLayout();
   }
 
-  late Rect _fromRect;
-  Rect get fromRect => _fromRect;
-  set fromRect(Rect fromRect) {
+  Rect? _fromRect;
+  Rect? get fromRect => _fromRect;
+  set fromRect(Rect? fromRect) {
     if (_fromRect == fromRect) return;
     _fromRect = fromRect;
     markNeedsLayout();
   }
 
   @override
-  void debugAssertDoesMeetConstraints() {
-    // TODO: implement debugAssertDoesMeetConstraints
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! PointParentData) {
+      child.parentData = PointParentData();
+    }
   }
-
-  @override
-  // TODO: implement paintBounds
-  Rect get paintBounds => throw UnimplementedError();
 
   @override
   void performLayout() {
-    // TODO: implement performLayout
-  }
+    final children = getChildrenAsList();
 
-  @override
-  void performResize() {
-    // TODO: implement performResize
-  }
+    for (final child in children) {
+      child.layout(constraints, parentUsesSize: false);
+    }
 
-  @override
-  // TODO: implement semanticBounds
-  Rect get semanticBounds => throw UnimplementedError();
+    size = Size(
+      constraints.maxWidth,
+      constraints.maxHeight,
+    );
+  }
 
   @override
   void paint(PaintingContext context, Offset offset) {

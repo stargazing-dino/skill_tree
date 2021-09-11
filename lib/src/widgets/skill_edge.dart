@@ -33,9 +33,9 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
   Widget build(BuildContext context) {
     return SkillParentWidget(
       skillWidget: this,
-      child: DraggableEdge(
-        toPoint: const DraggablePoint(),
-        fromPoint: const DraggablePoint(),
+      child: DraggableEdge<NodeType, IdType>(
+        toPoint: const DraggablePoint(child: SizedBox()),
+        fromPoint: const DraggablePoint(child: SizedBox()),
       ),
     );
   }

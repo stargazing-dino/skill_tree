@@ -22,11 +22,6 @@ class RenderDirectedTree<EdgeType extends Object, NodeType extends Object,
   final DirectedTreeDelegate<IdType> delegate;
 
   @override
-  void layoutEdges() {
-    // TODO: implement layoutEdges
-  }
-
-  @override
   void layoutNodes() {
     // TODO: implement layoutNodes
   }

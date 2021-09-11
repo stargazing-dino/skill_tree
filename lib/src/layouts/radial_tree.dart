@@ -18,11 +18,6 @@ class RenderRadialLayout<EdgeType extends Object, NodeType extends Object,
   final RadialTreeDelegate<IdType> delegate;
 
   @override
-  void layoutEdges() {
-    // TODO: implement layoutEdges
-  }
-
-  @override
   void layoutNodes() {
     // TODO: implement layoutNodes
   }

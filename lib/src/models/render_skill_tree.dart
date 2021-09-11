@@ -12,7 +12,8 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
         IdType extends Object> extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData> {
+        RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,
+        DebugOverflowIndicatorMixin {
   RenderSkillTree({
     required Graph<EdgeType, NodeType, IdType> graph,
     required SkillTreeDelegate<IdType> delegate,
@@ -44,18 +45,13 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
 
   void layoutNodes();
 
-  void layoutEdges();
-
   @override
   void performLayout() {
     layoutNodes();
 
     // We are going to create our [DraggableEdge]'s here with the proper layout.
     for (final edge in graph.edges) {
-      final child = childForEdge(edge);
-      final renderDraggableEdge =
-          child as RenderDraggableEdge<NodeType, IdType>;
-
+      final child = childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
       final childParentData = child.parentData as SkillParentData;
       final to = childForNode(edge.to);
       final from = childForNode(edge.from);
@@ -64,31 +60,21 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
       final toRect = toParentData.offset & to.size;
       final fromRect = fromParentData.offset & from.size;
 
-      // renderDraggableEdge.from = toParentData.skillWidget! as SkillNode;
-      renderDraggableEdge.fromRect = fromRect;
-      renderDraggableEdge.toRect = toRect;
-
       assert(toRect.intersect(fromRect).isEmpty);
 
-      // final child = _edgeBuilder(
-      //   toParentData.skillWidget,
-      //   toRect,
-      //   fromParentData.skillWidget,
-      //   fromRect,
-      // );
+      child.initialize(
+        to: toParentData.skillWidget as SkillNode<NodeType, IdType>,
+        toRect: toRect,
+        from: fromParentData.skillWidget as SkillNode<NodeType, IdType>,
+        fromRect: fromRect,
+      );
 
-      // final boundingRect = getLargestBoundingRect(toRect, fromRect);
+      final boundingRect = getLargestBoundingRect(toRect, fromRect);
 
-      // childParentData.offset = boundingRect.topLeft;
+      childParentData.offset = boundingRect.topLeft;
 
-      // child.layout(
-      //   BoxConstraints.tight(boundingRect.size),
-      // );
+      child.layout(BoxConstraints.tight(boundingRect.size));
     }
-
-    layoutEdges();
-
-    super.performLayout();
   }
 
   @override
@@ -96,14 +82,6 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
     for (final edge in graph.edges) {
       final child = childForEdge(edge);
       final childParentData = child.parentData as SkillParentData;
-      final to = childForNode(edge.to);
-      final from = childForNode(edge.from);
-      final toParentData = to.parentData as SkillParentData;
-      final fromParentData = from.parentData as SkillParentData;
-      final toRect = toParentData.offset & to.size;
-      final fromRect = fromParentData.offset & from.size;
-      final skillEdge =
-          childParentData.skillWidget as SkillEdge<EdgeType, NodeType, IdType>;
 
       context.paintChild(child, childParentData.offset + offset);
     }
@@ -111,6 +89,7 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
     for (final node in graph.nodes) {
       final child = childForNode(node);
       final childParentData = child.parentData as SkillParentData;
+
       context.paintChild(child, childParentData.offset + offset);
     }
   }

@@ -23,7 +23,6 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
 
   @override
   void layoutNodes() {
-    // Let's layout the nodes first
     // Each child will have 1 / maxLayerFlex of the space
     final crossAxisSpacing = delegate.crossAxisSpacing;
     final mainAxisSpacing = delegate.mainAxisSpacing;
@@ -40,42 +39,32 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
       /// We iterate through the layer and get the approximate layer height
       /// based on the largest child height.
       for (final id in layer) {
-        final node = id == null
-            ? null
-            : graph.nodes.singleWhere((node) => node.id == id);
+        if (id == null) continue;
 
-        if (node == null) {
-          // Do nothing.
-        } else {
-          final child = childForNode(node);
-          final maxWidth = maxChildWidth;
-          final height = child.computeMaxIntrinsicHeight(maxWidth);
+        final node = graph.nodes.singleWhere((node) => node.id == id);
+        final child = childForNode(node);
+        final maxWidth = maxChildWidth;
+        final height = child.computeMaxIntrinsicHeight(maxWidth);
 
-          layerHeight = max(height, layerHeight);
-        }
+        layerHeight = max(height, layerHeight);
       }
 
       layerHeights.add(layerHeight + mainAxisSpacing);
 
       /// Layout the children of this layer
       for (final id in layer) {
-        final node = id == null
-            ? null
-            : graph.nodes.singleWhere((node) => node.id == id);
+        if (id == null) continue;
 
-        if (node == null) {
-          // Do Nothing.
-        } else {
-          final child = childForNode(node);
+        final node = graph.nodes.singleWhere((node) => node.id == id);
+        final child = childForNode(node);
 
-          child.layout(
-            constraints.copyWith(
-              maxWidth: maxChildWidth,
-              maxHeight: layerHeight,
-            ),
-            parentUsesSize: true,
-          );
-        }
+        child.layout(
+          constraints.copyWith(
+            maxWidth: maxChildWidth,
+            maxHeight: layerHeight,
+          ),
+          parentUsesSize: true,
+        );
       }
     }
 
@@ -92,17 +81,15 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
         dx += delegate.crossAxisSpacing * j;
 
         final id = layer[j];
-        final node = id == null
-            ? null
-            : graph.nodes.singleWhere((node) => node.id == id);
 
-        if (node != null) {
-          final child = childForNode(node);
-          final childParentData = child.parentData as SkillParentData;
-          // final childSize = child.size;
+        if (id == null) continue;
 
-          childParentData.offset = Offset(dx, dy);
-        }
+        final node = graph.nodes.singleWhere((node) => node.id == id);
+        final child = childForNode(node);
+        final childParentData = child.parentData as SkillParentData;
+        // final childSize = child.size;
+
+        childParentData.offset = Offset(dx, dy);
       }
 
       dy += layerHeight;
@@ -112,10 +99,5 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
       constraints.maxWidth,
       layerHeights.fold(0.0, (acc, element) => acc += element),
     );
-  }
-
-  @override
-  void layoutEdges() {
-    // TODO: implement layoutEdges
   }
 }
