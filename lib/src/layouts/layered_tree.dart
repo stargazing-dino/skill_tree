@@ -57,12 +57,13 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
 
         final node = graph.nodes.singleWhere((node) => node.id == id);
         final child = childForNode(node);
+        final childConstraints = constraints.loosen().copyWith(
+              maxWidth: maxChildWidth,
+              maxHeight: layerHeight,
+            );
 
         child.layout(
-          constraints.copyWith(
-            maxWidth: maxChildWidth,
-            maxHeight: layerHeight,
-          ),
+          childConstraints,
           parentUsesSize: true,
         );
       }
@@ -87,9 +88,11 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
         final node = graph.nodes.singleWhere((node) => node.id == id);
         final child = childForNode(node);
         final childParentData = child.parentData as SkillParentData;
-        // final childSize = child.size;
 
-        childParentData.offset = Offset(dx, dy);
+        childParentData.offset = Offset(
+          dx,
+          dy,
+        );
       }
 
       dy += layerHeight;

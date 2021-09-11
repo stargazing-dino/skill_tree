@@ -50,7 +50,7 @@ class MyHomePage extends StatelessWidget {
             child: SkillTree<void, void, String>(
               delegate: LayeredTreeDelegate(
                 mainAxisSpacing: 32.0,
-                crossAxisSpacing: 16.0,
+                crossAxisSpacing: 48.0,
                 layout: [
                   ['0', '1', null],
                   ['2', null, '3'],
@@ -62,12 +62,19 @@ class MyHomePage extends StatelessWidget {
 
                 return SkillNode.fromNode(
                   node: node,
-                  child: Center(child: Item(photoNumber: photoId)),
+                  child: Container(
+                    color: Colors.blue.withOpacity(.3),
+                    child: Center(
+                      child: Item(photoNumber: photoId),
+                    ),
+                  ),
                 );
               },
               edges: const [
-                Edge(from: '0', to: '1'),
+                Edge(from: '0', to: '3'),
                 Edge(from: '0', to: '2'),
+                Edge(from: '4', to: '2'),
+                Edge(from: '3', to: '4'),
               ],
               nodes: const [
                 Node(id: '0'),

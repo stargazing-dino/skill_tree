@@ -34,8 +34,23 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
     return SkillParentWidget(
       skillWidget: this,
       child: DraggableEdge<NodeType, IdType>(
-        toPoint: const DraggablePoint(child: SizedBox()),
-        fromPoint: const DraggablePoint(child: SizedBox()),
+        toPoint: DraggablePoint.to(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.green.withOpacity(.5),
+            ),
+            height: 12,
+            width: 12,
+          ),
+        ),
+        fromPoint: DraggablePoint.from(
+          child: Container(
+            color: Colors.red.withOpacity(.5),
+            height: 12,
+            width: 12,
+          ),
+        ),
       ),
     );
   }

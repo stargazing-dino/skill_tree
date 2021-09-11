@@ -51,29 +51,43 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
 
     // We are going to create our [DraggableEdge]'s here with the proper layout.
     for (final edge in graph.edges) {
-      final child = childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
-      final childParentData = child.parentData as SkillParentData;
-      final to = childForNode(edge.to);
-      final from = childForNode(edge.from);
-      final toParentData = to.parentData as SkillParentData;
-      final fromParentData = from.parentData as SkillParentData;
-      final toRect = toParentData.offset & to.size;
-      final fromRect = fromParentData.offset & from.size;
+      final draggableEdgeChild =
+          childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
+      final draggableEdgeParentData =
+          draggableEdgeChild.parentData as SkillParentData;
+      final children = draggableEdgeChild.getChildrenAsList();
+      final toChildParentData = children.singleWhere((child) {
+        final parentData =
+            child.parentData as PointParentData<NodeType, IdType>;
 
+        return parentData.isTo!;
+      }).parentData as PointParentData<NodeType, IdType>;
+      final fromChildParentData = children.singleWhere((child) {
+        final parentData =
+            child.parentData as PointParentData<NodeType, IdType>;
+
+        return !parentData.isTo!;
+      }).parentData as PointParentData<NodeType, IdType>;
+      final to = childForNode(edge.to);
+      final toParentData = to.parentData as SkillParentData;
+      final toRect = toParentData.offset & to.size;
+      final from = childForNode(edge.from);
+      final fromParentData = from.parentData as SkillParentData;
+      final fromRect = fromParentData.offset & from.size;
+      final toSkillNode =
+          toParentData.skillWidget as SkillNode<NodeType, IdType>;
+      final fromSkillNode =
+          fromParentData.skillWidget as SkillNode<NodeType, IdType>;
       assert(toRect.intersect(fromRect).isEmpty);
 
-      child.initialize(
-        to: toParentData.skillWidget as SkillNode<NodeType, IdType>,
-        toRect: toRect,
-        from: fromParentData.skillWidget as SkillNode<NodeType, IdType>,
-        fromRect: fromRect,
-      );
+      toChildParentData.addPositionData(node: toSkillNode, rect: toRect);
+      fromChildParentData.addPositionData(node: fromSkillNode, rect: fromRect);
 
       final boundingRect = getLargestBoundingRect(toRect, fromRect);
 
-      childParentData.offset = boundingRect.topLeft;
+      draggableEdgeParentData.offset = boundingRect.topLeft;
 
-      child.layout(BoxConstraints.tight(boundingRect.size));
+      draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
     }
   }
 
