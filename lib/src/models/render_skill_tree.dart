@@ -74,6 +74,7 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
       final from = childForNode(edge.from);
       final fromParentData = from.parentData as SkillParentData;
       final fromRect = fromParentData.offset & from.size;
+      print('fromRect:        $fromRect         toRect:        $toRect');
       final toSkillNode =
           toParentData.skillWidget as SkillNode<NodeType, IdType>;
       final fromSkillNode =
@@ -84,8 +85,6 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
       fromChildParentData.addPositionData(node: fromSkillNode, rect: fromRect);
 
       final boundingRect = getLargestBoundingRect(toRect, fromRect);
-
-      draggableEdgeParentData.offset = boundingRect.topLeft;
 
       draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
     }

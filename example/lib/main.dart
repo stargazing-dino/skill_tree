@@ -71,10 +71,15 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               edges: const [
-                Edge(from: '0', to: '3'),
-                Edge(from: '0', to: '2'),
-                Edge(from: '4', to: '2'),
-                Edge(from: '3', to: '4'),
+                Edge(from: '0', to: '1'),
+                Edge(from: '2', to: '1'),
+                // Edge(from: '4', to: '6'),
+
+                Edge(from: '3', to: '1'),
+                // Edge(from: '3', to: '4'),
+                // Edge(from: '0', to: '3'),
+                // Edge(from: '0', to: '2'),
+                // Edge(from: '4', to: '2'),
               ],
               nodes: const [
                 Node(id: '0'),

@@ -92,6 +92,7 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
     // right.
     final AxisDirection axisDirection;
 
+    // TODO: Revisit this. I'm not sure what's pointing where
     if (toRect.left > fromRect.right) {
       axisDirection = AxisDirection.right;
     } else if (toRect.right < fromRect.left) {
@@ -111,8 +112,6 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
     switch (axis) {
       case Axis.horizontal:
         {
-          // TODO: We need to know which side the point is on. Otherwise we
-          // don't know whether we should use centerRight, centerLeft, etc.
           final widthBetween =
               constraints.maxWidth - toRect.width - fromRect.width;
           final widthAvailable = widthBetween / 2;
@@ -210,14 +209,14 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
               -toChildSize.height,
             );
           } else {
-            fromChildParentData.offset = fromRect.bottomCenter.translate(
+            fromChildParentData.offset = fromRect.topCenter.translate(
               -fromChildSize.width / 2,
-              0,
+              -fromChildSize.height,
             );
 
-            toChildParentData.offset = toRect.topCenter.translate(
+            toChildParentData.offset = toRect.bottomCenter.translate(
               -toChildSize.width / 2,
-              -toChildSize.height,
+              0,
             );
           }
 
@@ -242,11 +241,14 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
 
     context.canvas.translate(offset.dx, offset.dy);
 
-    context.canvas.drawLine(
-      fromCenter!,
-      toCenter!,
-      paint,
-    );
+    // final path = Path()
+    //   ..moveTo(fromCenter!.dx, fromCenter!.dy)
+    //   ..lineTo(toCenter!.dx, toCenter!.dy);
+    // // ..quadraticBezierTo(x1, y1, toCenter!.dx, toCenter!.dy);
+
+    // context.canvas.drawPath(path, paint);
+
+    context.canvas.drawLine(fromCenter!, toCenter!, paint);
 
     context.canvas.restore();
 
