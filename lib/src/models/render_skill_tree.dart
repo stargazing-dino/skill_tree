@@ -43,13 +43,14 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
     }
   }
 
+  Offset? edgeOffset;
+
   void layoutNodes();
 
   @override
   void performLayout() {
     layoutNodes();
 
-    // We are going to create our [DraggableEdge]'s here with the proper layout.
     for (final edge in graph.edges) {
       final draggableEdgeChild =
           childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
@@ -57,34 +58,35 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
           draggableEdgeChild.parentData as SkillParentData;
       final children = draggableEdgeChild.getChildrenAsList();
       final toChildParentData = children.singleWhere((child) {
-        final parentData =
-            child.parentData as PointParentData<NodeType, IdType>;
+        final parentData = child.parentData as VertexParentData;
 
         return parentData.isTo!;
-      }).parentData as PointParentData<NodeType, IdType>;
+      }).parentData as VertexParentData;
       final fromChildParentData = children.singleWhere((child) {
-        final parentData =
-            child.parentData as PointParentData<NodeType, IdType>;
+        final parentData = child.parentData as VertexParentData;
 
         return !parentData.isTo!;
-      }).parentData as PointParentData<NodeType, IdType>;
+      }).parentData as VertexParentData;
       final to = childForNode(edge.to);
       final toParentData = to.parentData as SkillParentData;
       final toRect = toParentData.offset & to.size;
       final from = childForNode(edge.from);
       final fromParentData = from.parentData as SkillParentData;
       final fromRect = fromParentData.offset & from.size;
-      print('fromRect:        $fromRect         toRect:        $toRect');
-      final toSkillNode =
-          toParentData.skillWidget as SkillNode<NodeType, IdType>;
-      final fromSkillNode =
-          fromParentData.skillWidget as SkillNode<NodeType, IdType>;
       assert(toRect.intersect(fromRect).isEmpty);
 
-      toChildParentData.addPositionData(node: toSkillNode, rect: toRect);
-      fromChildParentData.addPositionData(node: fromSkillNode, rect: fromRect);
-
       final boundingRect = getLargestBoundingRect(toRect, fromRect);
+
+      // Right now toRect and fromRect are in global coordinates from inside
+      // this render object. We need to convert them to local coordinates by
+      // subtracting the largest bounding box top-left corner.
+
+      final edgeOffset = boundingRect.topLeft;
+
+      toChildParentData.addPositionData(toRect.shift(-edgeOffset));
+      fromChildParentData.addPositionData(fromRect.shift(-edgeOffset));
+
+      draggableEdgeParentData.offset = edgeOffset;
 
       draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
     }
@@ -96,7 +98,10 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
       final child = childForEdge(edge);
       final childParentData = child.parentData as SkillParentData;
 
-      context.paintChild(child, childParentData.offset + offset);
+      context.paintChild(
+        child,
+        childParentData.offset + offset,
+      );
     }
 
     for (final node in graph.nodes) {
@@ -105,6 +110,11 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
 
       context.paintChild(child, childParentData.offset + offset);
     }
+  }
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    return defaultComputeDistanceToHighestActualBaseline(baseline);
   }
 
   @override

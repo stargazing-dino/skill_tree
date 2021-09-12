@@ -4,7 +4,7 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/widgets/draggable_edge.dart';
-import 'package:skill_tree/src/widgets/draggable_point.dart';
+import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 class SkillEdge<EdgeType extends Object, NodeType extends Object,
         IdType extends Object> extends StatelessWidget
@@ -31,20 +31,22 @@ class SkillEdge<EdgeType extends Object, NodeType extends Object,
 
   @override
   Widget build(BuildContext context) {
-    return SkillParentWidget(
+    final draggingChild = Container(
+      color: Colors.blue,
+      width: 20,
+      height: 20,
+    );
+
+    return SkillParentWidget<EdgeType, NodeType, IdType>(
       skillWidget: this,
       child: DraggableEdge<NodeType, IdType>(
-        toPoint: DraggablePoint.to(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.green.withOpacity(.5),
-            ),
-            height: 12,
-            width: 12,
+        toVertex: SkillVertex.to(
+          child: Draggable(
+            child: draggingChild,
+            feedback: Opacity(opacity: .5, child: draggingChild),
           ),
         ),
-        fromPoint: DraggablePoint.from(
+        fromVertex: SkillVertex.from(
           child: Container(
             color: Colors.red.withOpacity(.5),
             height: 12,

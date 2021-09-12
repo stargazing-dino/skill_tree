@@ -71,15 +71,8 @@ class MyHomePage extends StatelessWidget {
                 );
               },
               edges: const [
-                Edge(from: '0', to: '1'),
-                Edge(from: '2', to: '1'),
-                // Edge(from: '4', to: '6'),
-
-                Edge(from: '3', to: '1'),
-                // Edge(from: '3', to: '4'),
-                // Edge(from: '0', to: '3'),
-                // Edge(from: '0', to: '2'),
-                // Edge(from: '4', to: '2'),
+                Edge(from: '2', to: '5'),
+                Edge(from: '0', to: '3'),
               ],
               nodes: const [
                 Node(id: '0'),
@@ -105,7 +98,7 @@ class Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final child = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
@@ -129,6 +122,14 @@ class Item extends StatelessWidget {
           width: 64.0,
         ),
       ),
+    );
+
+    return Draggable(
+      feedback: Opacity(
+        opacity: 0.5,
+        child: child,
+      ),
+      child: child,
     );
   }
 }

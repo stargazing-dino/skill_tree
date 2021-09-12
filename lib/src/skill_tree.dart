@@ -28,9 +28,6 @@ part 'models/render_skill_tree.dart';
 
 // TODO: What do we do with self-directed edges? Do we allow them?
 
-// TODO: In technical terms, isn't this a forest, which is a set of trees?
-// Because I want to allow multiple root nodes and leaf nodes?
-
 /// A widget to create a skill tree. This assumes a digraph structure. That is,
 /// edges are directed.
 ///
@@ -72,7 +69,6 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   final List<Edge<EdgeType, Node<NodeType, IdType>>> _edges;
 
-  /// The nodes in the graph.
   final List<Node<NodeType, IdType>> nodes;
 
   final SkillTreeDelegate<IdType> delegate;
@@ -86,8 +82,6 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
   final NodeType Function(Map<IdType, dynamic> json)? deserializeNode;
 
   final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
-
-  // final EdgeBuilderDelegate<EdgeType, NodeType, IdType>? edgeBuilderDelegate;
 
   final SkillNode<NodeType, IdType> Function(Node<NodeType, IdType> node)?
       nodeBuilder;
@@ -143,8 +137,18 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       (edge) {
         return edge.cast(
           data: edge.data,
-          from: nodes.singleWhere((node) => node.id == edge.from),
-          to: nodes.singleWhere((node) => node.id == edge.to),
+          from: nodes.singleWhere(
+            (node) => node.id == edge.from,
+            orElse: () => throw StateError(
+              'No node with id ${edge.from} to construct edge $edge',
+            ),
+          ),
+          to: nodes.singleWhere(
+            (node) => node.id == edge.to,
+            orElse: () => throw StateError(
+              'No node with id ${edge.to} to construct edge $edge',
+            ),
+          ),
         );
       },
     ).toList();

@@ -22,7 +22,6 @@ class SkillNode<NodeType extends Object, IdType extends Object>
     required this.child,
     required this.data,
     required this.id,
-    required this.depth,
     this.name,
   }) : super(key: key);
 
@@ -36,7 +35,6 @@ class SkillNode<NodeType extends Object, IdType extends Object>
       data: node.data,
       id: node.id,
       child: child,
-      depth: depth,
     );
   }
 
@@ -50,8 +48,6 @@ class SkillNode<NodeType extends Object, IdType extends Object>
 
   @override
   final String? name;
-
-  final int? depth;
 
   @override
   Widget build(BuildContext context) {

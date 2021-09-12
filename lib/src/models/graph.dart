@@ -10,6 +10,7 @@ import 'package:skill_tree/src/models/node.dart';
 // TODO: Can this extend iterable so I iterate over all nodes. Would that be
 // cool? No, instead of Iterable<Whatever> we should do Map<Node, Set<Node>>
 // right?
+
 /// This a class to hold logic related to an abstract graph and its operations
 /// and should NOT be in any way related to UI or rendering.
 abstract class Graph<EdgeType, NodeType extends Object, IdType extends Object> {

@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:skill_tree/src/widgets/draggable_point.dart';
-import 'package:skill_tree/src/widgets/skill_node.dart';
+import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
-class PointParentData<NodeType extends Object, IdType extends Object>
-    extends ContainerBoxParentData<RenderBox> {
-  void addPositionData({
-    required SkillNode<NodeType, IdType> node,
-    required Rect rect,
-  }) {
-    this.node = node;
+// TODO: Maybe two classes one for from and the other for to
+class VertexParentData extends ContainerBoxParentData<RenderBox> {
+  void addPositionData(Rect rect) {
     this.rect = rect;
   }
 
-  /// In case of an advanced layout, you can query this node to perform
-  /// additional layout logic.
-  ///
-  /// This is initialized late
-  SkillNode<NodeType, IdType>? node;
-
-  /// This is the rect of the node. The point should position and
+  /// This is the rect of the node. The vertex should position and
   /// itself based off of this.
   ///
   /// This is initialized late
@@ -36,9 +25,9 @@ class DraggableEdge<NodeType extends Object, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   DraggableEdge({
     Key? key,
-    required DraggablePoint toPoint,
-    required DraggablePoint fromPoint,
-  }) : super(key: key, children: [toPoint, fromPoint]);
+    required SkillVertex toVertex,
+    required SkillVertex fromVertex,
+  }) : super(key: key, children: [toVertex, fromVertex]);
 
   @override
   RenderBox createRenderObject(BuildContext context) {
@@ -51,15 +40,13 @@ class DraggableEdge<NodeType extends Object, IdType extends Object>
 class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
     extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox,
-            PointParentData<NodeType, IdType>>,
-        RenderBoxContainerDefaultsMixin<RenderBox,
-            PointParentData<NodeType, IdType>>,
+        ContainerRenderObjectMixin<RenderBox, VertexParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, VertexParentData>,
         DebugOverflowIndicatorMixin {
   @override
   void setupParentData(RenderBox child) {
-    if (child.parentData is! PointParentData<NodeType, IdType>) {
-      child.parentData = PointParentData<NodeType, IdType>();
+    if (child.parentData is! VertexParentData) {
+      child.parentData = VertexParentData();
     }
   }
 
@@ -71,19 +58,17 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
   void performLayout() {
     final children = getChildrenAsList();
     final toChild = children.singleWhere((child) {
-      final parentData = child.parentData as PointParentData<NodeType, IdType>;
+      final parentData = child.parentData as VertexParentData;
 
       return parentData.isTo!;
     });
     final fromChild = children.singleWhere((child) {
-      final parentData = child.parentData as PointParentData<NodeType, IdType>;
+      final parentData = child.parentData as VertexParentData;
 
       return !parentData.isTo!;
     });
-    final toChildParentData =
-        toChild.parentData as PointParentData<NodeType, IdType>;
-    final fromChildParentData =
-        fromChild.parentData as PointParentData<NodeType, IdType>;
+    final toChildParentData = toChild.parentData as VertexParentData;
+    final fromChildParentData = fromChild.parentData as VertexParentData;
     final toRect = toChildParentData.rect!;
     final fromRect = fromChildParentData.rect!;
 
@@ -231,28 +216,46 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
   }
 
   @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    return defaultHitTestChildren(result, position: position);
+  }
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    return defaultComputeDistanceToHighestActualBaseline(baseline);
+  }
+
+  @override
   void paint(PaintingContext context, Offset offset) {
     /// Draw the lines between the points
     final paint = Paint()
       ..color = Colors.black
-      ..strokeWidth = 3;
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
 
     context.canvas.save();
 
     context.canvas.translate(offset.dx, offset.dy);
 
-    // final path = Path()
-    //   ..moveTo(fromCenter!.dx, fromCenter!.dy)
-    //   ..lineTo(toCenter!.dx, toCenter!.dy);
-    // // ..quadraticBezierTo(x1, y1, toCenter!.dx, toCenter!.dy);
+    // TODO: An edge needs to know the layout of the graph in order to correctly
+    // avoid the nodes in its path from vertex to vertex.
+    // final getNodesInPath =
 
-    // context.canvas.drawPath(path, paint);
+    final path = Path()
+      ..moveTo(fromCenter!.dx, fromCenter!.dy)
+      ..lineTo(toCenter!.dx, toCenter!.dy);
+    // ..quadraticBezierTo(
+    //   toCenter!.dx - 20,
+    //   toCenter!.dy + 20,
+    //   toCenter!.dx,
+    //   toCenter!.dy,
+    // );
 
-    context.canvas.drawLine(fromCenter!, toCenter!, paint);
+    context.canvas.drawPath(path, paint);
 
     context.canvas.restore();
 
-    /// Draw the points
+    /// Draw the vertices
     defaultPaint(context, offset);
   }
 }

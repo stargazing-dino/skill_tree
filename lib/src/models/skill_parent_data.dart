@@ -11,8 +11,8 @@ class SkillParentData extends ContainerBoxParentData<RenderBox> {
   Widget? skillWidget;
 }
 
-// TODO: We should pass through types here
-class SkillParentWidget extends ParentDataWidget<SkillParentData> {
+class SkillParentWidget<EdgeType extends Object, NodeType extends Object,
+    IdType extends Object> extends ParentDataWidget<SkillParentData> {
   const SkillParentWidget({
     Key? key,
     required Widget child,
@@ -33,13 +33,11 @@ class SkillParentWidget extends ParentDataWidget<SkillParentData> {
 
       final _skillWidget = parentData.skillWidget;
 
-      if (_skillWidget is SkillNode) {
-        assert(skillWidget is SkillNode);
-        final skillNode = skillWidget as SkillNode;
+      if (_skillWidget is SkillNode<NodeType, IdType>) {
+        assert(skillWidget is SkillNode<NodeType, IdType>);
+        final skillNode = skillWidget as SkillNode<NodeType, IdType>;
 
-        if (_skillWidget.depth != skillNode.depth) {
-          needsLayout = true;
-        } else if (_skillWidget.name != skillNode.name) {
+        if (_skillWidget.name != skillNode.name) {
           needsPaint = true;
         } else if (_skillWidget.data != skillNode.data) {
           needsLayout = true;
@@ -48,10 +46,10 @@ class SkillParentWidget extends ParentDataWidget<SkillParentData> {
         } else if (_skillWidget.child != skillNode.child) {
           needsLayout = true;
         }
-      } else if (_skillWidget is SkillEdge) {
-        assert(skillWidget is SkillEdge);
+      } else if (_skillWidget is SkillEdge<EdgeType, NodeType, IdType>) {
+        assert(skillWidget is SkillEdge<EdgeType, NodeType, IdType>);
 
-        final skillEdge = skillWidget as SkillEdge;
+        final skillEdge = skillWidget as SkillEdge<EdgeType, NodeType, IdType>;
 
         if (_skillWidget.from != skillEdge.from) {
           needsLayout = true;

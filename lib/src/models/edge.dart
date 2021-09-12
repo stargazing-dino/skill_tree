@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 // TODO: This assumes a directed graph. Is that a problem? Aren't most skill
 // trees directed? I can also make an undirected graph and have a super type of
 // Edge.
+
 /// T goes from being an `IdType` to being a `Node<NodeType, IdType>` when
 /// imeplemented by `SkillEdge` hence the ambiguous T here.
 @immutable

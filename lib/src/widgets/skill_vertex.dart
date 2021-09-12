@@ -3,14 +3,14 @@ import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/widgets/draggable_edge.dart';
 
 // TODO: Allow for builder to be passed in instead of this
-class DraggablePoint extends ParentDataWidget<PointParentData> {
-  const DraggablePoint.to({
+class SkillVertex extends ParentDataWidget<VertexParentData> {
+  const SkillVertex.to({
     Key? key,
     required Widget child,
   })  : isTo = true,
         super(key: key, child: child);
 
-  const DraggablePoint.from({
+  const SkillVertex.from({
     Key? key,
     required Widget child,
   })  : isTo = false,
@@ -23,8 +23,8 @@ class DraggablePoint extends ParentDataWidget<PointParentData> {
 
   @override
   void applyParentData(RenderObject renderObject) {
-    assert(renderObject.parentData is PointParentData);
-    final parentData = renderObject.parentData as PointParentData;
+    assert(renderObject.parentData is VertexParentData);
+    final parentData = renderObject.parentData as VertexParentData;
 
     if (parentData.isTo != isTo) {
       parentData.isTo = isTo;
