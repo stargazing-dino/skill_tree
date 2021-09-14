@@ -3,7 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
-// TODO: Maybe two classes one for from and the other for to
+// TODO: Maybe two classes one for from and the other for to and
+// then we can delete isTo
 class VertexParentData extends ContainerBoxParentData<RenderBox> {
   void addPositionData(Rect rect) {
     this.rect = rect;
@@ -21,6 +22,7 @@ class VertexParentData extends ContainerBoxParentData<RenderBox> {
   // Axis? preferredAxis;
 }
 
+// TODO: Rename this. It doesn't hold the logic for dragging
 class DraggableEdge<NodeType extends Object, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   DraggableEdge({

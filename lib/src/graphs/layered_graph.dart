@@ -2,8 +2,8 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 
-class LayeredGraph<EdgeType, NodeType extends Object, IdType extends Object>
-    extends Graph<EdgeType, NodeType, IdType> {
+class LayeredGraph<EdgeType extends Object, NodeType extends Object,
+    IdType extends Object> extends Graph<EdgeType, NodeType, IdType> {
   LayeredGraph({
     required this.edges,
     required this.nodes,
