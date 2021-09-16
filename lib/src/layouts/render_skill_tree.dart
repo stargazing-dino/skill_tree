@@ -56,6 +56,10 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
           childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
       final draggableEdgeParentData =
           draggableEdgeChild.parentData as SkillParentData;
+
+      /// The positions of every node are needed
+      draggableEdgeParentData.nodePositions = nodeChildren;
+
       final children = draggableEdgeChild.getChildrenAsList();
       final toChildParentData = children.singleWhere((child) {
         final parentData = child.parentData as VertexParentData;

@@ -21,7 +21,7 @@ import 'package:skill_tree/src/widgets/draggable_edge.dart';
 import 'package:skill_tree/src/widgets/skill_edge.dart';
 import 'package:skill_tree/src/widgets/skill_node.dart';
 
-part 'models/render_skill_tree.dart';
+part 'layouts/render_skill_tree.dart';
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.

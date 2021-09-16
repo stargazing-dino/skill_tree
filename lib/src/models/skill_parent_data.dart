@@ -3,12 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
 
+// TODO: This one decision has guided a lot of bad code. In the future, I want
+// there to be two classes of SkillParentData -> One for nodes and one for
+// edges. I've tried a few times myself but every time I did I got some random
+// assertion error or something.
+
 /// This is the parent class of [SkillEdgeParentData] and [SkillNodeChildData].
 /// It's an almost pointless class other than to provide a common base for
 /// ParentDataWidget<T> which was not designed to work with mutliple types
 /// of data.
 class SkillParentData extends ContainerBoxParentData<RenderBox> {
   Widget? skillWidget;
+
+  /// Only available when the skillWidget is a [SkillEdge]
+  List<RenderBox>? nodePositions;
 }
 
 class SkillParentWidget<EdgeType extends Object, NodeType extends Object,
