@@ -53,9 +53,9 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
 
     for (final edge in graph.edges) {
       final draggableEdgeChild =
-          childForEdge(edge) as RenderDraggableEdge<NodeType, IdType>;
+          childForEdge(edge) as RenderDraggableEdge<EdgeType, NodeType, IdType>;
       final draggableEdgeParentData =
-          draggableEdgeChild.parentData as SkillParentData;
+          draggableEdgeChild.parentData as SkillEdgeParentData;
 
       /// The positions of every node are needed
       draggableEdgeParentData.nodePositions = nodeChildren;
@@ -100,7 +100,8 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
   void paint(PaintingContext context, Offset offset) {
     for (final edge in graph.edges) {
       final child = childForEdge(edge);
-      final childParentData = child.parentData as SkillParentData;
+      final childParentData =
+          child.parentData as SkillEdgeParentData<EdgeType, NodeType, IdType>;
 
       context.paintChild(
         child,
@@ -110,9 +111,13 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
 
     for (final node in graph.nodes) {
       final child = childForNode(node);
-      final childParentData = child.parentData as SkillParentData;
+      final childParentData =
+          child.parentData as SkillNodeParentData<NodeType, IdType>;
 
-      context.paintChild(child, childParentData.offset + offset);
+      context.paintChild(
+        child,
+        childParentData.offset + offset,
+      );
     }
   }
 
@@ -129,36 +134,32 @@ abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
   // TODO: memoize this or something. Don't want to getChildrenAsList every time
   RenderBox childForNode(Node<NodeType, IdType> node) {
     return nodeChildren.singleWhere((child) {
-      final parentData = child.parentData as SkillParentData;
-      final widget = parentData.skillWidget as SkillNode<NodeType, IdType>;
+      final parentData =
+          child.parentData as SkillNodeParentData<NodeType, IdType>;
 
-      return widget.id == node.id;
+      return parentData.id == node.id;
     });
   }
 
   RenderBox childForEdge(Edge<EdgeType, Node<NodeType, IdType>> edge) {
     return edgeChildren.singleWhere((child) {
-      final parentData = child.parentData as SkillParentData;
-      final widget =
-          parentData.skillWidget as SkillEdge<EdgeType, NodeType, IdType>;
+      final parentData =
+          child.parentData as SkillEdgeParentData<EdgeType, NodeType, IdType>;
 
-      return widget.id == edge.id;
+      return parentData.id == edge.id;
     });
   }
 
   List<RenderBox> get nodeChildren {
     return getChildrenAsList().where((child) {
-      final parentData = child.parentData as SkillParentData;
-
-      return parentData.skillWidget is SkillNode<NodeType, IdType>;
+      return child.parentData is SkillNodeParentData<NodeType, IdType>;
     }).toList();
   }
 
   List<RenderBox> get edgeChildren {
     return getChildrenAsList().where((child) {
-      final parentData = child.parentData as SkillParentData;
-
-      return parentData.skillWidget is SkillEdge<EdgeType, NodeType, IdType>;
+      return child.parentData
+          is SkillEdgeParentData<EdgeType, NodeType, IdType>;
     }).toList();
   }
 }

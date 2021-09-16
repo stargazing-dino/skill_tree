@@ -87,7 +87,7 @@ class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
 
         final node = graph.nodes.singleWhere((node) => node.id == id);
         final child = childForNode(node);
-        final childParentData = child.parentData as SkillParentData;
+        final childParentData = child.parentData as SkillNodeParentData;
 
         childParentData.offset = Offset(
           dx,

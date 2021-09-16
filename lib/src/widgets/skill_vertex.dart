@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:skill_tree/src/widgets/draggable_edge.dart';
+import 'package:skill_tree/src/widgets/edge_line.dart';
 
 // TODO: Allow for builder to be passed in instead of this
 class SkillVertex extends ParentDataWidget<VertexParentData> {
@@ -19,7 +19,7 @@ class SkillVertex extends ParentDataWidget<VertexParentData> {
   final bool isTo;
 
   @override
-  Type get debugTypicalAncestorWidgetClass => DraggableEdge;
+  Type get debugTypicalAncestorWidgetClass => EdgeLine;
 
   @override
   void applyParentData(RenderObject renderObject) {

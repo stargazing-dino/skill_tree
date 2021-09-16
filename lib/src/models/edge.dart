@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 class Edge<EdgeType, IdType> {
   const Edge({
     this.data,
+    this.name,
     required this.from,
     required this.to,
   });
@@ -21,6 +22,8 @@ class Edge<EdgeType, IdType> {
 
   final IdType to;
 
+  final String? name;
+
   String get id => '$from-$to';
 
   @override
@@ -29,6 +32,7 @@ class Edge<EdgeType, IdType> {
 
     return other is Edge<EdgeType, IdType> &&
         other.data == data &&
+        other.name == name &&
         other.from == from &&
         other.to == to;
   }
@@ -37,17 +41,19 @@ class Edge<EdgeType, IdType> {
   int get hashCode => data.hashCode ^ from.hashCode ^ to.hashCode;
 
   @override
-  String toString() => 'Edge(data: $data, from: $from, to: $to)';
+  String toString() => 'Edge(data: $data, name: $name, from: $from, to: $to)';
 }
 
 extension CastEdge<EdgeType, NodeType> on Edge<EdgeType, NodeType> {
   Edge<T, R> cast<T, R>({
     required T? data,
+    required String? name,
     required R from,
     required R to,
   }) {
     return Edge<T, R>(
       data: data,
+      name: name,
       from: from,
       to: to,
     );

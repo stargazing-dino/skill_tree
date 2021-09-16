@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:skill_tree/src/models/skill_parent_data.dart';
+import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 // TODO: Maybe two classes one for from and the other for to and
@@ -23,9 +26,9 @@ class VertexParentData extends ContainerBoxParentData<RenderBox> {
 }
 
 // TODO: Rename this. It doesn't hold the logic for dragging
-class DraggableEdge<NodeType extends Object, IdType extends Object>
-    extends MultiChildRenderObjectWidget {
-  DraggableEdge({
+class EdgeLine<EdgeType extends Object, NodeType extends Object,
+    IdType extends Object> extends MultiChildRenderObjectWidget {
+  EdgeLine({
     Key? key,
     required SkillVertex toVertex,
     required SkillVertex fromVertex,
@@ -33,14 +36,14 @@ class DraggableEdge<NodeType extends Object, IdType extends Object>
 
   @override
   RenderBox createRenderObject(BuildContext context) {
-    return RenderDraggableEdge<NodeType, IdType>();
+    return RenderDraggableEdge<EdgeType, NodeType, IdType>();
   }
 }
 
 /// The fields of this [RenderObject] are initialized in the layout phase.
 /// This is because we must first know the size of the node widgets.
-class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
-    extends RenderBox
+class RenderDraggableEdge<EdgeType extends Object, NodeType extends Object,
+        IdType extends Object> extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, VertexParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, VertexParentData>,
@@ -229,6 +232,18 @@ class RenderDraggableEdge<NodeType extends Object, IdType extends Object>
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    final firstChild = getChildrenAsList().first;
+    final skillEdgeParentData =
+        getParentDataOfType<SkillEdgeParentData<EdgeType, NodeType, IdType>>(
+      firstChild,
+    );
+    if (skillEdgeParentData == null) {
+      throw StateError('SkillEdgeParentData is null');
+    }
+
+    final nodePositions = skillEdgeParentData.nodePositions;
+    // TODO: Properly layout the edge with the knowledge of where the nodes are
+
     /// Draw the lines between the points
     final paint = Paint()
       ..color = Colors.black

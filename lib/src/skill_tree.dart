@@ -16,10 +16,11 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
+import 'package:skill_tree/src/skill_edge.dart';
+import 'package:skill_tree/src/skill_node.dart';
 import 'package:skill_tree/src/utils/get_largest_bounding_rect.dart';
-import 'package:skill_tree/src/widgets/draggable_edge.dart';
-import 'package:skill_tree/src/widgets/skill_edge.dart';
-import 'package:skill_tree/src/widgets/skill_node.dart';
+import 'package:skill_tree/src/widgets/edge_line.dart';
+import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 part 'layouts/render_skill_tree.dart';
 
@@ -102,6 +103,11 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       return node;
     }
 
+    // TODO: the four sides of the node should have
+    // a DragTarget for the [EdgePoint] to be connected to.
+    // I would honestly like to do four triangles whose
+    // inner vertices meet in the center
+    // https://stackoverflow.com/questions/56930636/flutter-button-with-custom-shape-triangle
     return SkillNode<NodeType, IdType>.fromNode(
       child: Text(node.id.toString()),
       node: node,
@@ -118,7 +124,29 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       return edge;
     }
 
+    final draggingChild = Container(
+      color: Colors.blue,
+      width: 20,
+      height: 20,
+    );
+
     return SkillEdge<EdgeType, NodeType, IdType>(
+      child: EdgeLine<EdgeType, NodeType, IdType>(
+        toVertex: SkillVertex.to(
+          child: Draggable(
+            child: draggingChild,
+            feedback: Opacity(opacity: .5, child: draggingChild),
+          ),
+        ),
+        fromVertex: SkillVertex.from(
+          child: Container(
+            color: Colors.red.withOpacity(.5),
+            height: 12,
+            width: 12,
+          ),
+        ),
+      ),
+      name: edge.name,
       data: edge.data,
       from: edge.from,
       id: edge.id,
@@ -137,6 +165,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
       (edge) {
         return edge.cast(
           data: edge.data,
+          name: edge.name,
           from: nodes.singleWhere(
             (node) => node.id == edge.from,
             orElse: () => throw StateError(
@@ -154,7 +183,6 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     ).toList();
   }
 
-  // TODO: Switch on delegate type and provide right graph
   Graph<EdgeType, NodeType, IdType> get graph {
     if (delegate is DirectedTreeDelegate<IdType>) {
       return DirectedGraph<EdgeType, NodeType, IdType>(
