@@ -13,8 +13,7 @@ import 'package:skill_tree/src/models/node.dart';
 
 /// This a class to hold logic related to an abstract graph and its operations
 /// and should NOT be in any way related to UI or rendering.
-abstract class Graph<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> {
+abstract class Graph<EdgeType, NodeType, IdType extends Object> {
   Graph() {
     /// This runs on subclasses
     assert(debugCheckGraph(edges: edges, nodes: nodes));

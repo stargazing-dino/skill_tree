@@ -8,8 +8,8 @@ import 'package:skill_tree/src/models/skill_parent_data.dart';
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
-class RenderLayeredLayout<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
+class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
+    extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderLayeredLayout({
     required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,

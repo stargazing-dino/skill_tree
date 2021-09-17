@@ -6,8 +6,6 @@ import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
-// TODO: Maybe two classes one for from and the other for to and
-// then we can delete isTo
 class VertexParentData extends ContainerBoxParentData<RenderBox> {
   void addPositionData(Rect rect) {
     this.rect = rect;
@@ -25,9 +23,8 @@ class VertexParentData extends ContainerBoxParentData<RenderBox> {
   // Axis? preferredAxis;
 }
 
-// TODO: Rename this. It doesn't hold the logic for dragging
-class EdgeLine<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends MultiChildRenderObjectWidget {
+class EdgeLine<EdgeType, NodeType, IdType extends Object>
+    extends MultiChildRenderObjectWidget {
   EdgeLine({
     Key? key,
     required SkillVertex toVertex,
@@ -42,8 +39,8 @@ class EdgeLine<EdgeType extends Object, NodeType extends Object,
 
 /// The fields of this [RenderObject] are initialized in the layout phase.
 /// This is because we must first know the size of the node widgets.
-class RenderDraggableEdge<EdgeType extends Object, NodeType extends Object,
-        IdType extends Object> extends RenderBox
+class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
+    extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, VertexParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, VertexParentData>,
@@ -238,7 +235,10 @@ class RenderDraggableEdge<EdgeType extends Object, NodeType extends Object,
       firstChild,
     );
     if (skillEdgeParentData == null) {
-      throw StateError('SkillEdgeParentData is null');
+      throw StateError(
+        'SkillEdgeParentData is null. Are you sure there is a SkillEdge above'
+        'this EdgeLine?',
+      );
     }
 
     final nodePositions = skillEdgeParentData.nodePositions;

@@ -2,8 +2,8 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 
-class RadialGraph<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends Graph<EdgeType, NodeType, IdType> {
+class RadialGraph<EdgeType, NodeType, IdType extends Object>
+    extends Graph<EdgeType, NodeType, IdType> {
   RadialGraph({
     required this.edges,
     required this.nodes,

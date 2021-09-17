@@ -13,8 +13,8 @@ import 'package:skill_tree/src/models/node.dart';
 /// of data.
 class SkillParentData extends ContainerBoxParentData<RenderBox> {}
 
-class SkillEdgeParentData<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends SkillParentData {
+class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
+    extends SkillParentData {
   EdgeType? data;
 
   String? name;
@@ -28,7 +28,7 @@ class SkillEdgeParentData<EdgeType extends Object, NodeType extends Object,
   List<RenderBox>? nodePositions;
 }
 
-class SkillNodeParentData<NodeType extends Object, IdType extends Object>
+class SkillNodeParentData<NodeType, IdType extends Object>
     extends SkillParentData {
   NodeType? data;
 
@@ -37,7 +37,7 @@ class SkillNodeParentData<NodeType extends Object, IdType extends Object>
   String? name;
 }
 
-// class SkillParentWidget<EdgeType extends Object, NodeType extends Object,
+// class SkillParentWidget<EdgeType, NodeType,
 //     IdType extends Object> extends ParentDataWidget<SkillParentData> {
 //   const SkillParentWidget({
 //     Key? key,

@@ -8,8 +8,8 @@ import 'package:skill_tree/src/models/graph.dart';
 /// This RenderObject works by layers. It passes each layer (including the
 /// min intrinsic width and height of each node) to the [LayoutDelegate]
 /// `layoutLayer` where the sizes and postions of each node must be returned.
-class RenderDirectedTree<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
+class RenderDirectedTree<EdgeType, NodeType, IdType extends Object>
+    extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderDirectedTree({
     required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,

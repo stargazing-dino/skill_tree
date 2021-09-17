@@ -9,8 +9,8 @@ typedef WrapWidget = Widget Function(BuildContext context, Widget child);
 
 /// This class is wrapped by a SkillNode and provides a draggable interface for
 /// nodes. The update strategy for moving nodes is determined by the user.
-class DragableSkillNode<NodeType extends Object, IdType extends Object>
-    extends StatelessWidget implements Node<NodeType, IdType> {
+class DragableSkillNode<NodeType, IdType extends Object> extends StatelessWidget
+    implements Node<NodeType, IdType> {
   const DragableSkillNode({
     Key? key,
     required this.child,

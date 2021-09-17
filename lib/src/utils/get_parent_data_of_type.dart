@@ -1,5 +1,7 @@
 import 'package:flutter/rendering.dart';
 
+/// Walks up the child parent tree looking for a [RenderObjectElement] that
+/// is of type [ParentDataType], returning null if none is found.
 ParentDataType? getParentDataOfType<ParentDataType extends ParentData>(
   RenderBox child,
 ) {

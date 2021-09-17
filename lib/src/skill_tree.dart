@@ -40,8 +40,8 @@ part 'layouts/render_skill_tree.dart';
 /// the UI and are in the form of Edge and Node. They are then transformed into
 /// [SkillEdge] and [SkillNode] via the `builders`. These are then passed
 /// through to [RenderSkillTree] where they are laid out and rendered.
-class SkillTree<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends MultiChildRenderObjectWidget {
+class SkillTree<EdgeType, NodeType, IdType extends Object>
+    extends MultiChildRenderObjectWidget {
   SkillTree({
     Key? key,
     required List<Edge<EdgeType, IdType>> edges,
@@ -96,7 +96,7 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
   final int? maxValue;
 
   static SkillNode<NodeType, IdType>
-      defaultSkillNodeBuilder<NodeType extends Object, IdType extends Object>(
+      defaultSkillNodeBuilder<NodeType, IdType extends Object>(
     Node<NodeType, IdType> node,
   ) {
     if (node is SkillNode<NodeType, IdType>) {
@@ -116,8 +116,8 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
     );
   }
 
-  static SkillEdge<EdgeType, NodeType, IdType> defaultSkillEdgeBuilder<
-      EdgeType extends Object, NodeType extends Object, IdType extends Object>(
+  static SkillEdge<EdgeType, NodeType, IdType>
+      defaultSkillEdgeBuilder<EdgeType, NodeType, IdType extends Object>(
     Edge<EdgeType, Node<NodeType, IdType>> edge,
   ) {
     if (edge is SkillEdge<EdgeType, NodeType, IdType>) {
@@ -156,8 +156,8 @@ class SkillTree<EdgeType extends Object, NodeType extends Object,
 
   /// Takes a list of edges with IdTypes and maps those ids to nodes. This
   /// is a convenience method to make things easier to work with.
-  static List<Edge<EdgeType, Node<NodeType, IdType>>> _castEdges<
-      EdgeType extends Object, NodeType extends Object, IdType extends Object>(
+  static List<Edge<EdgeType, Node<NodeType, IdType>>>
+      _castEdges<EdgeType, NodeType, IdType extends Object>(
     List<Edge<EdgeType, IdType>> edges,
     List<Node<NodeType, IdType>> nodes,
   ) {

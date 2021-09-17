@@ -5,7 +5,7 @@ import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 
 /// A representation of a node in the skill tree.
-class SkillNode<NodeType extends Object, IdType extends Object>
+class SkillNode<NodeType, IdType extends Object>
     extends ParentDataWidget<SkillNodeParentData<NodeType, IdType>>
     implements Node<NodeType, IdType> {
   const SkillNode({

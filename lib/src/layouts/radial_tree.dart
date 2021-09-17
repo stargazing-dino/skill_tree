@@ -4,8 +4,8 @@ import 'package:skill_tree/src/models/graph.dart';
 
 // A circular skill tree. I know there's a game that does this, but I'm not
 // sure which.
-class RenderRadialLayout<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends RenderSkillTree<EdgeType, NodeType, IdType> {
+class RenderRadialLayout<EdgeType, NodeType, IdType extends Object>
+    extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderRadialLayout({
     required Graph<EdgeType, NodeType, IdType> graph,
     required this.delegate,

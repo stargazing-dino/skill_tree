@@ -8,8 +8,8 @@ part of '../skill_tree.dart';
 /// [MultChildCustomLayout] doesn't allow for setting the layout size based
 /// on the sizes of the children. Instead of that, therefore, we just define new
 /// layouts by implementing this class and creating a custom [RenderBox]
-abstract class RenderSkillTree<EdgeType extends Object, NodeType extends Object,
-        IdType extends Object> extends RenderBox
+abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
+    extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,

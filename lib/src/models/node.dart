@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 /// possible.
 @immutable
 @sealed
-class Node<NodeType extends Object, IdType extends Object> {
+class Node<NodeType, IdType extends Object> {
   const Node({
     required this.id,
     this.data,

@@ -2,8 +2,8 @@ import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 
-class DirectedGraph<EdgeType extends Object, NodeType extends Object,
-    IdType extends Object> extends Graph<EdgeType, NodeType, IdType> {
+class DirectedGraph<EdgeType, NodeType, IdType extends Object>
+    extends Graph<EdgeType, NodeType, IdType> {
   DirectedGraph({
     required this.edges,
     required this.nodes,

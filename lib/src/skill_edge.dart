@@ -5,8 +5,7 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 
-class SkillEdge<EdgeType extends Object, NodeType extends Object,
-        IdType extends Object>
+class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
     implements Edge<EdgeType, Node<NodeType, IdType>> {
   const SkillEdge({
