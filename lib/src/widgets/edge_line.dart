@@ -2,9 +2,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
+import 'package:skill_tree/src/skill_tree.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
+import 'package:skill_tree/src/utils/get_parent_of_type.dart';
+import 'package:skill_tree/src/utils/path_intersects_rect.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
+
+typedef EdgePainter = void Function({
+  required Offset toNodeCenter,
+  required Offset fromNodeCenter,
+  required List<Rect> allNodesRects,
+  required List<Rect> intersectingNodeRects,
+  required Canvas canvas,
+});
 
 class VertexParentData extends ContainerBoxParentData<RenderBox> {
   void addPositionData(Rect rect) {
@@ -23,17 +35,30 @@ class VertexParentData extends ContainerBoxParentData<RenderBox> {
   // Axis? preferredAxis;
 }
 
+class NodeInfo<NodeType, IdType extends Object> {
+  const NodeInfo(this.rect, this.node);
+
+  final Rect rect;
+
+  final Node<NodeType, IdType> node;
+}
+
 class EdgeLine<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   EdgeLine({
     Key? key,
     required SkillVertex toVertex,
     required SkillVertex fromVertex,
+    required this.edgePainter,
   }) : super(key: key, children: [toVertex, fromVertex]);
+
+  final EdgePainter edgePainter;
 
   @override
   RenderBox createRenderObject(BuildContext context) {
-    return RenderDraggableEdge<EdgeType, NodeType, IdType>();
+    return RenderDraggableEdge<EdgeType, NodeType, IdType>(
+      edgePainter: edgePainter,
+    );
   }
 }
 
@@ -45,6 +70,18 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
         ContainerRenderObjectMixin<RenderBox, VertexParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, VertexParentData>,
         DebugOverflowIndicatorMixin {
+  RenderDraggableEdge({
+    required EdgePainter edgePainter,
+  }) : _edgePainter = edgePainter;
+
+  EdgePainter _edgePainter;
+  EdgePainter get edgePainter => _edgePainter;
+  set edgePainter(EdgePainter edgePainter) {
+    if (_edgePainter == edgePainter) return;
+    _edgePainter = edgePainter;
+    markNeedsLayout();
+  }
+
   @override
   void setupParentData(RenderBox child) {
     if (child.parentData is! VertexParentData) {
@@ -229,48 +266,63 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    final _fromCenter = fromCenter! + offset;
+    final _toCenter = toCenter! + offset;
+
     final firstChild = getChildrenAsList().first;
+    final skillTreeParent =
+        getParentOfType<RenderSkillTree<EdgeType, NodeType, IdType>>(
+      firstChild,
+    );
+    if (skillTreeParent == null) {
+      throw StateError(
+        'skillTreeParent is null. Are you sure there is a RenderSkillTree above'
+        'this EdgeLine?',
+      );
+    }
     final skillEdgeParentData =
         getParentDataOfType<SkillEdgeParentData<EdgeType, NodeType, IdType>>(
       firstChild,
     );
-    if (skillEdgeParentData == null) {
-      throw StateError(
-        'SkillEdgeParentData is null. Are you sure there is a SkillEdge above'
-        'this EdgeLine?',
-      );
+
+    final straightLinePath = Path()
+      ..moveTo(_fromCenter.dx, _fromCenter.dy)
+      ..lineTo(_toCenter.dx + 1, _toCenter.dy)
+      ..lineTo(_toCenter.dx, _toCenter.dy)
+      ..close();
+
+    final intersectingNodeRects = <Rect>[];
+    final allNodeRects = <Rect>[];
+    final constraintsRect = offset & constraints.biggest;
+
+    for (final nodeBox in skillTreeParent.nodeChildren) {
+      final nodeParentData =
+          nodeBox.parentData as SkillNodeParentData<NodeType, IdType>;
+
+      if (nodeParentData.id == skillEdgeParentData!.to!.id ||
+          nodeParentData.id == skillEdgeParentData.from!.id) {
+        continue;
+      }
+
+      final nodeRect =
+          (nodeParentData.offset + skillTreeParent.paintOffset! & nodeBox.size);
+
+      allNodeRects.add(nodeRect);
+
+      if (constraintsRect.overlaps(nodeRect)) {
+        if (pathIntersectsRect(straightLinePath, nodeRect)) {
+          intersectingNodeRects.add(nodeRect);
+        }
+      }
     }
 
-    final nodePositions = skillEdgeParentData.nodePositions;
-    // TODO: Properly layout the edge with the knowledge of where the nodes are
-
-    /// Draw the lines between the points
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    context.canvas.save();
-
-    context.canvas.translate(offset.dx, offset.dy);
-
-    // TODO: An edge needs to know the layout of the graph in order to correctly
-    // avoid the nodes in its path from vertex to vertex.
-    // final getNodesInPath =
-
-    final path = Path()
-      ..moveTo(fromCenter!.dx, fromCenter!.dy)
-      ..lineTo(toCenter!.dx, toCenter!.dy);
-    // ..quadraticBezierTo(
-    //   toCenter!.dx - 20,
-    //   toCenter!.dy + 20,
-    //   toCenter!.dx,
-    //   toCenter!.dy,
-    // );
-
-    context.canvas.drawPath(path, paint);
-
-    context.canvas.restore();
+    edgePainter(
+      toNodeCenter: _toCenter,
+      fromNodeCenter: _fromCenter,
+      intersectingNodeRects: intersectingNodeRects,
+      canvas: context.canvas,
+      allNodesRects: allNodeRects,
+    );
 
     /// Draw the vertices
     defaultPaint(context, offset);

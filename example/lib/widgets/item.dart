@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 
 class Item extends StatelessWidget {
-  final int photoNumber;
-
   const Item({
     Key? key,
     required this.photoNumber,
+    required this.seed,
   }) : super(key: key);
+
+  final int photoNumber;
+
+  final int seed;
 
   @override
   Widget build(BuildContext context) {
+    const totalNumberOfPhotos = 130;
+    final _photoNumber = (photoNumber * seed) % (totalNumberOfPhotos - 1) + 1;
+
     final child = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0),
@@ -29,7 +35,7 @@ class Item extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16.0),
         child: Image.asset(
-          'assets/icons_512x512/$photoNumber.png',
+          'assets/icons_512x512/$_photoNumber.png',
           fit: BoxFit.cover,
           height: 64.0,
           width: 64.0,

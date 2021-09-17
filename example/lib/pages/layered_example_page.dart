@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:example/widgets/item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ class LayeredExamplePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final seed = Random().nextInt(5000);
 
     return Stack(
       fit: StackFit.passthrough,
@@ -48,7 +51,10 @@ class LayeredExamplePage extends StatelessWidget {
                 return SkillNode.fromNode(
                   node: node,
                   child: Center(
-                    child: Item(photoNumber: photoId),
+                    child: Item(
+                      photoNumber: photoId,
+                      seed: seed,
+                    ),
                   ),
                 );
               },
@@ -56,6 +62,7 @@ class LayeredExamplePage extends StatelessWidget {
                 Edge(from: '7', to: '9'),
                 Edge(from: '10', to: '14'),
                 Edge(from: '12', to: '15'),
+                // Edge(from: '12', to: '13'),
               ],
               nodes: const [
                 Node(id: '0'),

@@ -2,6 +2,12 @@
 
 ## 🚧 Do not use. This package is in production. 🚧
 
+<p align="center">
+  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/border_lands_skill_tree.png?raw=true" width="40%"/>
+  &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/wow_style_skill_tree.png?raw=true" width="40%"/>
+</p>
+
 A package to build skill trees of any kind. This package differs from `graphview` as it only tries to provide users an interface to make a skill tree rather than a general purpose graph viewer.
 
 ## Simple usage
@@ -13,15 +19,42 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SkillTree<void, void>(
-      delegate: LayeredTreeDelegate(),
+      delegate: LayeredTreeDelegate(
+        mainAxisSpacing: 32.0,
+        crossAxisSpacing: 48.0,
+        layout: [
+          ['0', '1', '2', null],
+          ['3', '4', '5', null],
+          ['6', '7', '8', null],
+          [null, '9', '10', null],
+          ['11', '12', null, '13'],
+          [null, null, '14', null],
+          [null, '15', '16', null],
+        ],
+      ),
       edges: [
-        Edge(from: '0', to: '1'),
-        Edge(from: '0', to: '2'),
+        Edge(from: '7', to: '9'),
+        Edge(from: '10', to: '14'),
+        Edge(from: '12', to: '15'),
       ],
       nodes: [
         Node(id: '0'),
-        Node(id: '2'),
         Node(id: '1'),
+        Node(id: '2'),
+        Node(id: '3'),
+        Node(id: '4'),
+        Node(id: '5'),
+        Node(id: '6'),
+        Node(id: '7'),
+        Node(id: '8'),
+        Node(id: '9'),
+        Node(id: '10'),
+        Node(id: '11'),
+        Node(id: '12'),
+        Node(id: '13'),
+        Node(id: '14'),
+        Node(id: '15'),
+        Node(id: '16'),
       ],
     );
   }
@@ -46,25 +79,16 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The first data type is the data type of the edge. The second is
-    // of the node
-    return SkillTree<void, MyData>(
-      delegate: LayeredTreeDelegate(),
+    // The first data type is the data type of the node. The second is
+    // of the edge. The last data type is the type of the id.
+    return SkillTree<MyData, void, String>(
       serializeNode: (MyData myData) {
         return myData.toJson(myData);
       },
       deserializeNode: (Map<String, dynamic> json) {
         return myData.fromJson(json);
       },
-      edges: [
-        Edge(from: '0', to: '1'),
-        Edge(from: '0', to: '2'),
-      ],
-      nodes: [
-        Node(id: '0', data: MyData(4)),
-        Node(id: '2', data: MyData(4)),
-        Node(id: '1', data: MyData(4)),
-      ],
+      // ...
     );
   }
 }

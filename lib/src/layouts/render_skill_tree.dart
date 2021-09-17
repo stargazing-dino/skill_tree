@@ -36,6 +36,8 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     markNeedsLayout();
   }
 
+  Offset? paintOffset;
+
   @override
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SkillParentData) {
@@ -43,23 +45,43 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     }
   }
 
-  Offset? edgeOffset;
-
   void layoutNodes();
 
   @override
   void performLayout() {
     layoutNodes();
 
+    /// We need to layout edges. However, an edge is not a direct RenderObject.
+    /// Instead, it is a MultiChildRenderObject. Therefore, we must position
+    /// the edges first based off the nodes.
+    ///
+    /// We'll do so by getting the size and position of both node boxes
+    /// and then creating a bounding box based off those.
     for (final edge in graph.edges) {
+      /// The positions of both terminal nodes are needed to layout the edge.
+      final to = childForNode(edge.to);
+      final toParentData = to.parentData as SkillParentData;
+      final toRect = toParentData.offset & to.size;
+      final from = childForNode(edge.from);
+      final fromParentData = from.parentData as SkillParentData;
+      final fromRect = fromParentData.offset & from.size;
+
+      assert(
+        toRect.intersect(fromRect).isEmpty,
+        'Two nodes must not intersect one another.',
+      );
+
       final draggableEdgeChild =
           childForEdge(edge) as RenderDraggableEdge<EdgeType, NodeType, IdType>;
       final draggableEdgeParentData =
           draggableEdgeChild.parentData as SkillEdgeParentData;
+      final boundingRect = getLargestBoundingRect(toRect, fromRect);
+      final edgeOffset = boundingRect.topLeft;
 
-      /// The positions of every node are needed
-      draggableEdgeParentData.nodePositions = nodeChildren;
+      draggableEdgeParentData.offset = edgeOffset;
 
+      /// We need to manually set the sizes of the nodePositions to be used by
+      /// the edge's parentData.
       final children = draggableEdgeChild.getChildrenAsList();
       final toChildParentData = children.singleWhere((child) {
         final parentData = child.parentData as VertexParentData;
@@ -71,26 +93,12 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
         return !parentData.isTo!;
       }).parentData as VertexParentData;
-      final to = childForNode(edge.to);
-      final toParentData = to.parentData as SkillParentData;
-      final toRect = toParentData.offset & to.size;
-      final from = childForNode(edge.from);
-      final fromParentData = from.parentData as SkillParentData;
-      final fromRect = fromParentData.offset & from.size;
-      assert(toRect.intersect(fromRect).isEmpty);
-
-      final boundingRect = getLargestBoundingRect(toRect, fromRect);
 
       // Right now toRect and fromRect are in global coordinates from inside
       // this render object. We need to convert them to local coordinates by
       // subtracting the largest bounding box top-left corner.
-
-      final edgeOffset = boundingRect.topLeft;
-
       toChildParentData.addPositionData(toRect.shift(-edgeOffset));
       fromChildParentData.addPositionData(fromRect.shift(-edgeOffset));
-
-      draggableEdgeParentData.offset = edgeOffset;
 
       draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
     }
@@ -98,6 +106,10 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    paintOffset = offset;
+
+    // TODO: Should I use composite layers? What is their benefit?
+
     for (final edge in graph.edges) {
       final child = childForEdge(edge);
       final childParentData =

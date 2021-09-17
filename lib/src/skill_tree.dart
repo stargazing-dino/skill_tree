@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/clippers/triangle.dart';
 import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
@@ -125,24 +126,55 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     }
 
     final draggingChild = Container(
-      color: Colors.blue,
+      color: Colors.grey,
       width: 20,
       height: 20,
     );
 
     return SkillEdge<EdgeType, NodeType, IdType>(
       child: EdgeLine<EdgeType, NodeType, IdType>(
+        edgePainter: ({
+          required Offset toNodeCenter,
+          required Offset fromNodeCenter,
+          required List<Rect> allNodesRects,
+          required List<Rect> intersectingNodeRects,
+          required Canvas canvas,
+        }) {
+          final paint = Paint()
+            ..color = Colors.grey
+            ..strokeWidth = 10
+            ..style = PaintingStyle.stroke;
+
+          final path = Path()
+            ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
+            ..lineTo(toNodeCenter.dx, toNodeCenter.dy);
+
+          canvas.drawPath(path, paint);
+          canvas.drawShadow(
+            path,
+            Colors.grey,
+            4,
+            false,
+          );
+        },
+        // FIXME: It's not cool you can use `.from` constrcutor here for
+        // toVertex
         toVertex: SkillVertex.to(
-          child: Draggable(
-            child: draggingChild,
-            feedback: Opacity(opacity: .5, child: draggingChild),
+          child: ClipPath(
+            clipper: const TriangleClipper(
+              axisDirection: AxisDirection.down,
+            ),
+            child: Draggable(
+              child: draggingChild,
+              feedback: Opacity(opacity: .5, child: draggingChild),
+            ),
           ),
         ),
         fromVertex: SkillVertex.from(
           child: Container(
-            color: Colors.red.withOpacity(.5),
-            height: 12,
-            width: 12,
+            color: Colors.grey,
+            height: 10,
+            width: 10,
           ),
         ),
       ),
