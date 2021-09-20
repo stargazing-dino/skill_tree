@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 
 class LayeredTreeDelegate<IdType extends Object>
@@ -9,6 +10,8 @@ class LayeredTreeDelegate<IdType extends Object>
   }) {
     assert(debugCheckLayout(layout));
   }
+
+  final equality = const DeepCollectionEquality();
 
   /// Returns true if the layout is empty or if the layout is NxM
   /// dimensional. That is, every row must contain exactly M elements.
@@ -29,7 +32,7 @@ class LayeredTreeDelegate<IdType extends Object>
   @override
   bool operator ==(other) =>
       other is LayeredTreeDelegate<IdType> &&
-      layout == other.layout &&
+      equality.equals(layout, other.layout) &&
       crossAxisSpacing == other.crossAxisSpacing &&
       mainAxisSpacing == other.mainAxisSpacing;
 

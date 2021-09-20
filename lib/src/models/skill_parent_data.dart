@@ -14,6 +14,10 @@ class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
   String? id;
 
   IdType? to;
+
+  AxisDirection? toPreferredAxisDirection;
+
+  AxisDirection? fromPreferredAxisDirection;
 }
 
 class SkillNodeParentData<NodeType, IdType extends Object>

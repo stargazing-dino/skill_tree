@@ -14,11 +14,10 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,
         DebugOverflowIndicatorMixin {
-  RenderSkillTree({
-    required Graph<EdgeType, NodeType, IdType> graph,
-    required SkillTreeDelegate<IdType> delegate,
-  })  : _graph = graph,
-        _delegate = delegate;
+  // TODO: Different graph types will not auto update layout unless we specify
+  // that in their respective renderObject thing.
+  RenderSkillTree({required Graph<EdgeType, NodeType, IdType> graph})
+      : _graph = graph;
 
   Graph<EdgeType, NodeType, IdType> _graph;
   Graph<EdgeType, NodeType, IdType> get graph => _graph;
@@ -28,13 +27,7 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     markNeedsLayout();
   }
 
-  SkillTreeDelegate<IdType> _delegate;
-  SkillTreeDelegate<IdType> get delegate => _delegate;
-  set delegate(SkillTreeDelegate<IdType> delegate) {
-    if (_delegate == delegate) return;
-    _delegate = delegate;
-    markNeedsLayout();
-  }
+  SkillTreeDelegate<IdType> get delegate;
 
   Offset? paintOffset;
 

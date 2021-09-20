@@ -3,19 +3,41 @@ import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
+import 'package:skill_tree/src/widgets/edge_line.dart';
+import 'package:skill_tree/src/widgets/skill_vertex.dart';
+
+// TODO: Control points
 
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
     implements Edge<EdgeType, IdType> {
-  const SkillEdge({
+  SkillEdge({
     Key? key,
-    required Widget child,
+    required Widget fromChild,
+    required Widget toChild,
+    required EdgePainter edgePainter,
     required this.data,
     required this.name,
     required this.from,
     required this.id,
     required this.to,
-  }) : super(key: key, child: child);
+    this.toPreferredAxisDirection,
+    this.fromPreferredAxisDirection,
+  }) : super(
+          key: key,
+          child: EdgeLine<EdgeType, NodeType, IdType>(
+            toVertex: SkillVertexTo(
+              // TODO: This will have a key that is similar to the nodes
+              key: ValueKey(to),
+              child: toChild,
+            ),
+            fromVertex: SkillVertexFrom(
+              key: ValueKey(from),
+              child: fromChild,
+            ),
+            edgePainter: edgePainter,
+          ),
+        );
 
   @override
   final EdgeType data;
@@ -31,6 +53,10 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   final IdType to;
+
+  final AxisDirection? toPreferredAxisDirection;
+
+  final AxisDirection? fromPreferredAxisDirection;
 
   @override
   void applyParentData(RenderObject renderObject) {
@@ -68,6 +94,16 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
 
     if (parentData.to != to) {
       parentData.to = to;
+      needsLayout = true;
+    }
+
+    if (parentData.toPreferredAxisDirection != toPreferredAxisDirection) {
+      parentData.toPreferredAxisDirection = toPreferredAxisDirection;
+      needsLayout = true;
+    }
+
+    if (parentData.fromPreferredAxisDirection != fromPreferredAxisDirection) {
+      parentData.fromPreferredAxisDirection = fromPreferredAxisDirection;
       needsLayout = true;
     }
 

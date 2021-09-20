@@ -12,14 +12,18 @@ class RenderDirectedTree<EdgeType, NodeType, IdType extends Object>
     extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderDirectedTree({
     required Graph<EdgeType, NodeType, IdType> graph,
-    required this.delegate,
-  }) : super(
-          graph: graph,
-          delegate: delegate,
-        );
+    required DirectedTreeDelegate<IdType> delegate,
+  })  : _delegate = delegate,
+        super(graph: graph);
 
   @override
-  final DirectedTreeDelegate<IdType> delegate;
+  DirectedTreeDelegate<IdType> get delegate => _delegate;
+  DirectedTreeDelegate<IdType> _delegate;
+  set delegate(DirectedTreeDelegate<IdType> delegate) {
+    if (delegate == _delegate) return;
+    _delegate = delegate;
+    markNeedsLayout();
+  }
 
   @override
   void layoutNodes() {

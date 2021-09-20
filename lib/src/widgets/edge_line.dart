@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
@@ -17,14 +16,6 @@ typedef EdgePainter = void Function({
   required List<Rect> intersectingNodeRects,
   required Canvas canvas,
 });
-
-class NodeInfo<NodeType, IdType extends Object> {
-  const NodeInfo(this.rect, this.node);
-
-  final Rect rect;
-
-  final Node<NodeType, IdType> node;
-}
 
 class EdgeLine<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {

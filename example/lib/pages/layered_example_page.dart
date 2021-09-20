@@ -5,13 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skill_tree/skill_tree.dart';
 
-class LayeredExamplePage extends StatelessWidget {
+class LayeredExamplePage extends StatefulWidget {
   const LayeredExamplePage({Key? key}) : super(key: key);
+
+  @override
+  State<LayeredExamplePage> createState() => _LayeredExamplePageState();
+}
+
+class _LayeredExamplePageState extends State<LayeredExamplePage> {
+  final seed = Random().nextInt(5000);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final seed = Random().nextInt(5000);
 
     return Stack(
       fit: StackFit.passthrough,
@@ -73,13 +79,15 @@ class LayeredExamplePage extends StatelessWidget {
                 //   from: '10',
                 //   to: '13',
                 //   data: null,
-                //   id: '',
+                //   id: '10-13',
                 //   name: '',
-                //   child: Container(),
+                //   fromChild: Container(),
+                //   edgePainter: SkillTree.defaultEdgePainter,
+                //   toChild: Container(),
                 // ),
-                // Edge(from: '10', to: '14', data: null),
-                // Edge(from: '12', to: '15', data: null),
-                // Edge(from: '12', to: '13'),
+                Edge(from: '10', to: '14', data: null),
+                Edge(from: '12', to: '15', data: null),
+                // Edge(from: '12', to: '13', data: null),
               ],
               nodes: const [
                 Node(id: '0', data: NodeInfo(value: 0, maxValue: 5)),

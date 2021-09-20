@@ -8,14 +8,18 @@ class RenderRadialLayout<EdgeType, NodeType, IdType extends Object>
     extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderRadialLayout({
     required Graph<EdgeType, NodeType, IdType> graph,
-    required this.delegate,
-  }) : super(
-          graph: graph,
-          delegate: delegate,
-        );
+    required RadialTreeDelegate<IdType> delegate,
+  })  : _delegate = delegate,
+        super(graph: graph);
 
   @override
-  final RadialTreeDelegate<IdType> delegate;
+  RadialTreeDelegate<IdType> get delegate => _delegate;
+  RadialTreeDelegate<IdType> _delegate;
+  set delegate(RadialTreeDelegate<IdType> delegate) {
+    if (delegate == _delegate) return;
+    _delegate = delegate;
+    markNeedsLayout();
+  }
 
   @override
   void layoutNodes() {

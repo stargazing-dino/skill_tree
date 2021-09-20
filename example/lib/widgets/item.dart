@@ -55,7 +55,6 @@ class Item extends StatelessWidget {
             ),
           ),
         ),
-        // TODO: I want to be able to do negative `bottom` and `right` values
         Positioned(
           bottom: 0,
           right: 0,

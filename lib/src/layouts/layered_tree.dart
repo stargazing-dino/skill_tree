@@ -12,14 +12,18 @@ class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
     extends RenderSkillTree<EdgeType, NodeType, IdType> {
   RenderLayeredLayout({
     required Graph<EdgeType, NodeType, IdType> graph,
-    required this.delegate,
-  }) : super(
-          graph: graph,
-          delegate: delegate,
-        );
+    required LayeredTreeDelegate<IdType> delegate,
+  })  : _delegate = delegate,
+        super(graph: graph);
 
   @override
-  final LayeredTreeDelegate<IdType> delegate;
+  LayeredTreeDelegate<IdType> get delegate => _delegate;
+  LayeredTreeDelegate<IdType> _delegate;
+  set delegate(LayeredTreeDelegate<IdType> delegate) {
+    if (delegate == _delegate) return;
+    _delegate = delegate;
+    markNeedsLayout();
+  }
 
   @override
   void layoutNodes() {

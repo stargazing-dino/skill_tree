@@ -123,6 +123,32 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
+  // TODO: This should be in its own class that handles all things drawing
+  static void defaultEdgePainter({
+    required Offset toNodeCenter,
+    required Offset fromNodeCenter,
+    required List<Rect> allNodeRects,
+    required List<Rect> intersectingNodeRects,
+    required Canvas canvas,
+  }) {
+    final paint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 10
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
+      ..lineTo(toNodeCenter.dx, toNodeCenter.dy);
+
+    canvas.drawPath(path, paint);
+    canvas.drawShadow(
+      path,
+      Colors.grey,
+      4,
+      false,
+    );
+  }
+
   static SkillEdge<EdgeType, NodeType, IdType>
       defaultSkillEdgeBuilder<EdgeType, NodeType, IdType extends Object>(
     Edge<EdgeType, IdType> edge,
@@ -138,49 +164,20 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
 
     return SkillEdge<EdgeType, NodeType, IdType>(
-      child: EdgeLine<EdgeType, NodeType, IdType>(
-        edgePainter: ({
-          required Offset toNodeCenter,
-          required Offset fromNodeCenter,
-          required List<Rect> allNodeRects,
-          required List<Rect> intersectingNodeRects,
-          required Canvas canvas,
-        }) {
-          final paint = Paint()
-            ..color = Colors.grey
-            ..strokeWidth = 10
-            ..style = PaintingStyle.stroke;
-
-          final path = Path()
-            ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
-            ..lineTo(toNodeCenter.dx, toNodeCenter.dy);
-
-          canvas.drawPath(path, paint);
-          canvas.drawShadow(
-            path,
-            Colors.grey,
-            4,
-            false,
-          );
-        },
-        toVertex: SkillVertexTo(
-          child: ClipPath(
-            clipper: const TriangleClipper(
-              axisDirection: AxisDirection.down,
-            ),
-            child: Draggable(
-              child: draggingChild,
-              feedback: Opacity(opacity: .5, child: draggingChild),
-            ),
-          ),
+      edgePainter: defaultEdgePainter,
+      toChild: ClipPath(
+        clipper: const TriangleClipper(
+          axisDirection: AxisDirection.down,
         ),
-        fromVertex: SkillVertexFrom(
-          child: Container(
-            color: Colors.grey,
-            height: 10,
-            width: 10,
-          ),
+        child: Draggable(
+          child: draggingChild,
+          feedback: Opacity(opacity: .5, child: draggingChild),
         ),
+      ),
+      fromChild: Container(
+        color: Colors.grey,
+        height: 10,
+        width: 10,
       ),
       name: edge.name,
       data: edge.data,
@@ -231,9 +228,27 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    (renderObject as RenderSkillTree<EdgeType, NodeType, IdType>)
-      .._graph = graph
-      .._delegate = delegate;
+    if (renderObject is RenderDirectedTree<EdgeType, NodeType, IdType>) {
+      renderObject
+        ..graph = graph
+        ..delegate = delegate as DirectedTreeDelegate<IdType>;
+    } else if (renderObject is RenderRadialLayout<EdgeType, NodeType, IdType>) {
+      renderObject
+        ..graph = graph
+        ..delegate = delegate as RadialTreeDelegate<IdType>;
+    } else if (renderObject
+        is RenderLayeredLayout<EdgeType, NodeType, IdType>) {
+      renderObject
+        ..graph = graph
+        ..delegate = delegate as LayeredTreeDelegate<IdType>;
+    } else {
+      throw ArgumentError(
+        'Unknown renderObject $renderObject is not a supported type.',
+      );
+    }
+    // (renderObject as RenderSkillTree<EdgeType, NodeType, IdType>)
+    //   ..graph = graph
+    //   ..delegate = delegate;
   }
 
   // We create a render object instead of a [CustomMultiChildLayout]
