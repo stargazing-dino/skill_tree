@@ -59,10 +59,10 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     /// and then creating a bounding box based off those.
     for (final edge in graph.edges) {
       /// The positions of both terminal nodes are needed to layout the edge.
-      final to = childForNode(edge.to);
+      final to = childForNode(graph.getNodeFromIdType(edge.to));
       final toParentData = to.parentData as SkillParentData;
       final toRect = toParentData.offset & to.size;
-      final from = childForNode(edge.from);
+      final from = childForNode(graph.getNodeFromIdType(edge.from));
       final fromParentData = from.parentData as SkillParentData;
       final fromRect = fromParentData.offset & from.size;
 
@@ -151,7 +151,7 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     });
   }
 
-  RenderBox childForEdge(Edge<EdgeType, Node<NodeType, IdType>> edge) {
+  RenderBox childForEdge(Edge<EdgeType, IdType> edge) {
     return edgeChildren.singleWhere((child) {
       final parentData =
           child.parentData as SkillEdgeParentData<EdgeType, NodeType, IdType>;

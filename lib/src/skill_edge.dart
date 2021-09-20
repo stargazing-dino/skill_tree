@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/models/edge.dart';
-import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
-    implements Edge<EdgeType, Node<NodeType, IdType>> {
+    implements Edge<EdgeType, IdType> {
   const SkillEdge({
     Key? key,
     required Widget child,
@@ -25,13 +24,13 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
   final String? name;
 
   @override
-  final Node<NodeType, IdType> from;
+  final IdType from;
 
   @override
   final String id;
 
   @override
-  final Node<NodeType, IdType> to;
+  final IdType to;
 
   @override
   void applyParentData(RenderObject renderObject) {

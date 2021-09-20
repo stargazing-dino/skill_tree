@@ -1,3 +1,4 @@
+import 'dart:collection' show IterableMixin;
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -13,26 +14,38 @@ import 'package:skill_tree/src/models/node.dart';
 
 /// This a class to hold logic related to an abstract graph and its operations
 /// and should NOT be in any way related to UI or rendering.
-abstract class Graph<EdgeType, NodeType, IdType extends Object> {
+abstract class Graph<EdgeType, NodeType, IdType extends Object>
+    with IterableMixin<Node<NodeType, IdType>> {
   Graph() {
     /// This runs on subclasses
     assert(debugCheckGraph(edges: edges, nodes: nodes));
   }
 
+  @override
+  Iterator<Node<NodeType, IdType>> get iterator => nodes.iterator;
+
   List<Node<NodeType, IdType>> get nodes;
 
-  List<Edge<EdgeType, Node<NodeType, IdType>>> get edges;
+  List<Edge<EdgeType, IdType>> get edges;
+
+  Node<NodeType, IdType> getNodeFromIdType(IdType id) {
+    return nodes.singleWhere((node) {
+      return id == node.id;
+    });
+  }
 
   /// Checks the validity of the graph in a specific graph model
   bool debugCheckGraph({
-    required List<Edge<EdgeType, Node<NodeType, IdType>>> edges,
+    required List<Edge<EdgeType, IdType>> edges,
     required List<Node<NodeType, IdType>> nodes,
   });
 
   Iterable<Node<NodeType, IdType>> getNeighbors(Node<NodeType, IdType> node) {
     return edges
         .where((edge) => edge.from == node || edge.to == node)
-        .map((edge) => edge.to == node ? edge.from : edge.to);
+        .map((edge) {
+      return getNodeFromIdType(edge.to == node ? edge.from : edge.to);
+    });
   }
 
   /// A [Node] is a root node if there are no edges containing it or there
@@ -49,14 +62,14 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
     return result;
   }
 
-  List<Edge<EdgeType, Node<NodeType, IdType>>> nodesBefore(
+  List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   );
 
-  List<Edge<EdgeType, Node<NodeType, IdType>>> edgesForNode(
+  List<Edge<EdgeType, IdType>> edgesForNode(
     Node<NodeType, IdType> node,
   ) {
-    final edgesForNode = <Edge<EdgeType, Node<NodeType, IdType>>>[];
+    final edgesForNode = <Edge<EdgeType, IdType>>[];
 
     for (final edge in edges) {
       if (edge.from == node.id) {
@@ -84,7 +97,9 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
 
     while (hasMore) {
       final edgesOut = edges.where((edge) => currentNodes.contains(edge.from));
-      currentNodes = edgesOut.map((edge) => edge.to).toList();
+      currentNodes = edgesOut.map((edge) {
+        return getNodeFromIdType(edge.to);
+      }).toList();
 
       if (currentNodes.isEmpty) hasMore = false;
 
@@ -103,7 +118,9 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
   Iterable<Node<NodeType, IdType>> nodeDescendents(
     Node<NodeType, IdType> node,
   ) {
-    return edges.where((edge) => edge.from == node).map((edge) => edge.to);
+    return edges.where((edge) => edge.from == node).map((edge) {
+      return getNodeFromIdType(edge.to);
+    });
   }
 
   Iterable<Iterable<Node<NodeType, IdType>>> nodeBreadthFirstSearch(

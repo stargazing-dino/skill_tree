@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:skill_tree/src/models/node.dart';
 
 class SkillParentData extends ContainerBoxParentData<RenderBox> {}
 
@@ -10,11 +9,11 @@ class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
 
   String? name;
 
-  Node<NodeType, IdType>? from;
+  IdType? from;
 
   String? id;
 
-  Node<NodeType, IdType>? to;
+  IdType? to;
 }
 
 class SkillNodeParentData<NodeType, IdType extends Object>

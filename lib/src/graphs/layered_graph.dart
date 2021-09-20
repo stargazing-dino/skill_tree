@@ -10,13 +10,13 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
   });
 
   @override
-  final List<Edge<EdgeType, Node<NodeType, IdType>>> edges;
+  final List<Edge<EdgeType, IdType>> edges;
 
   @override
   final List<Node<NodeType, IdType>> nodes;
 
   @override
-  List<Edge<EdgeType, Node<NodeType, IdType>>> nodesBefore(
+  List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {
     return [];
@@ -24,7 +24,7 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
 
   @override
   bool debugCheckGraph({
-    required List<Edge<EdgeType, Node<NodeType, IdType>>> edges,
+    required List<Edge<EdgeType, IdType>> edges,
     required List<Node<NodeType, IdType>> nodes,
   }) {
     return true;

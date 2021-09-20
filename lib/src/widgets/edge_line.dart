@@ -280,8 +280,8 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
       final nodeParentData =
           nodeBox.parentData as SkillNodeParentData<NodeType, IdType>;
 
-      if (nodeParentData.id == skillEdgeParentData!.to!.id ||
-          nodeParentData.id == skillEdgeParentData.from!.id) {
+      if (nodeParentData.id == skillEdgeParentData!.to! ||
+          nodeParentData.id == skillEdgeParentData.from!) {
         continue;
       }
 

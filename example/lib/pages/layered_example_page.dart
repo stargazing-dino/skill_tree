@@ -48,7 +48,9 @@ class LayeredExamplePage extends StatelessWidget {
               ),
               nodeBuilder: (node, graph) {
                 final edges = graph.edgesForNode(node);
-                final fromNodes = edges.map((edge) => edge.from).toList();
+                final fromNodes = edges
+                    .map((edge) => graph.getNodeFromIdType(edge.from))
+                    .toList();
                 final isUnlockable = fromNodes.every((node) {
                   return node.data.isUnlocked;
                 });
@@ -73,10 +75,10 @@ class LayeredExamplePage extends StatelessWidget {
                 //   data: null,
                 //   id: '',
                 //   name: '',
-                //   child: null,
+                //   child: Container(),
                 // ),
-                Edge(from: '10', to: '14', data: null),
-                Edge(from: '12', to: '15', data: null),
+                // Edge(from: '10', to: '14', data: null),
+                // Edge(from: '12', to: '15', data: null),
                 // Edge(from: '12', to: '13'),
               ],
               nodes: const [

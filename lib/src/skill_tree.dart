@@ -45,7 +45,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   SkillTree({
     Key? key,
-    required List<Edge<EdgeType, IdType>> edges,
+    required this.edges,
     required this.nodes,
     required this.delegate,
     this.onSave,
@@ -55,29 +55,31 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     this.deserializeEdge,
     this.nodeBuilder,
     this.edgeBuilder,
-  })  : _edges = _castEdges(edges, nodes),
-        super(
+  }) : super(
           key: key,
           children: <Widget>[
             ...nodes.map((node) {
               final graph = getGraph<EdgeType, NodeType, IdType>(
                 nodes: nodes,
-                edges: _castEdges(edges, nodes),
+                edges: edges,
                 delegate: delegate,
               );
 
               return nodeBuilder?.call(node, graph) ??
                   defaultSkillNodeBuilder(node, graph);
             }),
-            ..._castEdges(edges, nodes).map(
-              edgeBuilder?.call ?? defaultSkillEdgeBuilder,
+            ...edges.map(
+              (edge) {
+                return edgeBuilder?.call(edge) ??
+                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
+              },
             ),
           ],
         );
 
-  final List<Edge<EdgeType, Node<NodeType, IdType>>> _edges;
-
   final List<Node<NodeType, IdType>> nodes;
+
+  final List<Edge<EdgeType, IdType>> edges;
 
   final SkillTreeDelegate<IdType> delegate;
 
@@ -97,7 +99,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   )? nodeBuilder;
 
   final SkillEdge<EdgeType, NodeType, IdType> Function(
-    Edge<EdgeType, Node<NodeType, IdType>> edge,
+    Edge<EdgeType, IdType> edge,
   )? edgeBuilder;
 
   static SkillNode<NodeType, IdType>
@@ -123,7 +125,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
 
   static SkillEdge<EdgeType, NodeType, IdType>
       defaultSkillEdgeBuilder<EdgeType, NodeType, IdType extends Object>(
-    Edge<EdgeType, Node<NodeType, IdType>> edge,
+    Edge<EdgeType, IdType> edge,
   ) {
     if (edge is SkillEdge<EdgeType, NodeType, IdType>) {
       return edge;
@@ -188,46 +190,17 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
-  /// Takes a list of edges with IdTypes and maps those ids to nodes. This
-  /// is a convenience method to make things easier to work with.
-  static List<Edge<EdgeType, Node<NodeType, IdType>>>
-      _castEdges<EdgeType, NodeType, IdType extends Object>(
-    List<Edge<EdgeType, IdType>> edges,
-    List<Node<NodeType, IdType>> nodes,
-  ) {
-    return edges.map<Edge<EdgeType, Node<NodeType, IdType>>>(
-      (edge) {
-        return edge.cast(
-          data: edge.data,
-          name: edge.name,
-          from: nodes.singleWhere(
-            (node) => node.id == edge.from,
-            orElse: () => throw StateError(
-              'No node with id ${edge.from} to construct edge $edge',
-            ),
-          ),
-          to: nodes.singleWhere(
-            (node) => node.id == edge.to,
-            orElse: () => throw StateError(
-              'No node with id ${edge.to} to construct edge $edge',
-            ),
-          ),
-        );
-      },
-    ).toList();
-  }
-
   Graph<EdgeType, NodeType, IdType> get graph {
     return getGraph<EdgeType, NodeType, IdType>(
       nodes: nodes,
-      edges: _edges,
+      edges: edges,
       delegate: delegate,
     );
   }
 
   static Graph<EdgeType, NodeType, IdType>
       getGraph<EdgeType, NodeType, IdType extends Object>({
-    required List<Edge<EdgeType, Node<NodeType, IdType>>> edges,
+    required List<Edge<EdgeType, IdType>> edges,
     required List<Node<NodeType, IdType>> nodes,
     required SkillTreeDelegate<IdType> delegate,
   }) {
