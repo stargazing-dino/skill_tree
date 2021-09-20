@@ -1,6 +1,5 @@
 import 'package:flutter/rendering.dart';
 
-// TODO: Unused
 /// Walks up the child parent tree looking for a [RenderObjectElement] that
 /// is of type [ParentDataType], returning null if none is found.
 ParentDataType? getParentDataOfType<ParentDataType extends ParentData>(

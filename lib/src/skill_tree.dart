@@ -55,14 +55,20 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     this.deserializeEdge,
     this.nodeBuilder,
     this.edgeBuilder,
-    this.value,
-    this.maxValue,
-  })  : assert((value == null || maxValue == null) || value <= maxValue),
-        _edges = _castEdges(edges, nodes),
+  })  : _edges = _castEdges(edges, nodes),
         super(
           key: key,
           children: <Widget>[
-            ...nodes.map(nodeBuilder?.call ?? defaultSkillNodeBuilder),
+            ...nodes.map((node) {
+              final graph = getGraph<EdgeType, NodeType, IdType>(
+                nodes: nodes,
+                edges: _castEdges(edges, nodes),
+                delegate: delegate,
+              );
+
+              return nodeBuilder?.call(node, graph) ??
+                  defaultSkillNodeBuilder(node, graph);
+            }),
             ..._castEdges(edges, nodes).map(
               edgeBuilder?.call ?? defaultSkillEdgeBuilder,
             ),
@@ -85,20 +91,19 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
 
   final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
 
-  final SkillNode<NodeType, IdType> Function(Node<NodeType, IdType> node)?
-      nodeBuilder;
+  final SkillNode<NodeType, IdType> Function(
+    Node<NodeType, IdType> node,
+    Graph<EdgeType, NodeType, IdType> graph,
+  )? nodeBuilder;
 
   final SkillEdge<EdgeType, NodeType, IdType> Function(
     Edge<EdgeType, Node<NodeType, IdType>> edge,
   )? edgeBuilder;
 
-  final int? value;
-
-  final int? maxValue;
-
   static SkillNode<NodeType, IdType>
-      defaultSkillNodeBuilder<NodeType, IdType extends Object>(
+      defaultSkillNodeBuilder<NodeType, EdgeType, IdType extends Object>(
     Node<NodeType, IdType> node,
+    Graph<EdgeType, NodeType, IdType> graph,
   ) {
     if (node is SkillNode<NodeType, IdType>) {
       return node;
@@ -112,7 +117,6 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     return SkillNode<NodeType, IdType>.fromNode(
       child: Text(node.id.toString()),
       node: node,
-      depth: null,
       name: '',
     );
   }
@@ -136,7 +140,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
         edgePainter: ({
           required Offset toNodeCenter,
           required Offset fromNodeCenter,
-          required List<Rect> allNodesRects,
+          required List<Rect> allNodeRects,
           required List<Rect> intersectingNodeRects,
           required Canvas canvas,
         }) {
@@ -157,9 +161,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
             false,
           );
         },
-        // FIXME: It's not cool you can use `.from` constrcutor here for
-        // toVertex
-        toVertex: SkillVertex.to(
+        toVertex: SkillVertexTo(
           child: ClipPath(
             clipper: const TriangleClipper(
               axisDirection: AxisDirection.down,
@@ -170,7 +172,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
             ),
           ),
         ),
-        fromVertex: SkillVertex.from(
+        fromVertex: SkillVertexFrom(
           child: Container(
             color: Colors.grey,
             height: 10,
@@ -216,20 +218,33 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   }
 
   Graph<EdgeType, NodeType, IdType> get graph {
+    return getGraph<EdgeType, NodeType, IdType>(
+      nodes: nodes,
+      edges: _edges,
+      delegate: delegate,
+    );
+  }
+
+  static Graph<EdgeType, NodeType, IdType>
+      getGraph<EdgeType, NodeType, IdType extends Object>({
+    required List<Edge<EdgeType, Node<NodeType, IdType>>> edges,
+    required List<Node<NodeType, IdType>> nodes,
+    required SkillTreeDelegate<IdType> delegate,
+  }) {
     if (delegate is DirectedTreeDelegate<IdType>) {
       return DirectedGraph<EdgeType, NodeType, IdType>(
         nodes: nodes,
-        edges: _edges,
+        edges: edges,
       );
     } else if (delegate is RadialTreeDelegate<IdType>) {
       return RadialGraph<EdgeType, NodeType, IdType>(
         nodes: nodes,
-        edges: _edges,
+        edges: edges,
       );
     } else if (delegate is LayeredTreeDelegate<IdType>) {
       return LayeredGraph<EdgeType, NodeType, IdType>(
         nodes: nodes,
-        edges: _edges,
+        edges: edges,
       );
     } else {
       throw ArgumentError(

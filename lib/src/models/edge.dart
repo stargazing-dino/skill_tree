@@ -8,15 +8,15 @@ import 'package:meta/meta.dart';
 /// imeplemented by `SkillEdge` hence the ambiguous T here.
 @immutable
 @sealed
-class Edge<EdgeType, IdType> {
+class Edge<EdgeType, IdType extends Object> {
   const Edge({
-    this.data,
-    this.name,
+    required this.data,
     required this.from,
     required this.to,
+    this.name,
   });
 
-  final EdgeType? data;
+  final EdgeType data;
 
   final IdType from;
 
@@ -24,7 +24,7 @@ class Edge<EdgeType, IdType> {
 
   final String? name;
 
-  String get id => '$from-$to';
+  String get id => '${from.toString()}-${to.toString()}';
 
   @override
   bool operator ==(Object other) {
@@ -44,9 +44,9 @@ class Edge<EdgeType, IdType> {
   String toString() => 'Edge(data: $data, name: $name, from: $from, to: $to)';
 }
 
-extension CastEdge<EdgeType, NodeType> on Edge<EdgeType, NodeType> {
-  Edge<T, R> cast<T, R>({
-    required T? data,
+extension CastEdge<EdgeType, IdType extends Object> on Edge<EdgeType, IdType> {
+  Edge<T, R> cast<T, R extends Object>({
+    required T data,
     required String? name,
     required R from,
     required R to,

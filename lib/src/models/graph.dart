@@ -49,6 +49,30 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
     return result;
   }
 
+  List<Edge<EdgeType, Node<NodeType, IdType>>> nodesBefore(
+    Node<NodeType, IdType> node,
+  );
+
+  List<Edge<EdgeType, Node<NodeType, IdType>>> edgesForNode(
+    Node<NodeType, IdType> node,
+  ) {
+    final edgesForNode = <Edge<EdgeType, Node<NodeType, IdType>>>[];
+
+    for (final edge in edges) {
+      if (edge.from == node.id) {
+        edgesForNode.add(edge);
+        continue;
+      }
+
+      if (edge.to == node.id) {
+        edgesForNode.add(edge);
+        continue;
+      }
+    }
+
+    return edgesForNode;
+  }
+
   /// Returns a layer of the graph at a time
   Iterable<Iterable<Node<NodeType, IdType>>> get breadthFirstSearch sync* {
     yield rootNodes;

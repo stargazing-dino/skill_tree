@@ -19,7 +19,7 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
   }) : super(key: key, child: child);
 
   @override
-  final EdgeType? data;
+  final EdgeType data;
 
   @override
   final String? name;
@@ -27,7 +27,6 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
   @override
   final Node<NodeType, IdType> from;
 
-  // TODO: Why is this a string and not IdType?
   @override
   final String id;
 

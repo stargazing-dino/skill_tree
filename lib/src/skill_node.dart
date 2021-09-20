@@ -19,7 +19,6 @@ class SkillNode<NodeType, IdType extends Object>
   factory SkillNode.fromNode({
     required Node<NodeType, IdType> node,
     required Widget child,
-    int? depth,
     String? name,
   }) {
     return SkillNode(
@@ -31,7 +30,7 @@ class SkillNode<NodeType, IdType extends Object>
   }
 
   @override
-  final NodeType? data;
+  final NodeType data;
 
   @override
   final IdType id;

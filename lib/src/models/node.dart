@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 class Node<NodeType, IdType extends Object> {
   const Node({
     required this.id,
-    this.data,
+    required this.data,
     this.name,
   });
 
@@ -16,7 +16,7 @@ class Node<NodeType, IdType extends Object> {
   /// information from the json representation, ensure you use a `withConverter`
   /// function to convert the json representation to the data type on the
   /// [SkillTree].
-  final NodeType? data;
+  final NodeType data;
 
   /// The id of the skill node.
   final IdType id;

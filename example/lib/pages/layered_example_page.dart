@@ -31,10 +31,11 @@ class LayeredExamplePage extends StatelessWidget {
           ),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: SkillTree<void, void, String>(
+            child: SkillTree<void, NodeInfo, String>(
+              // I feel like layout should somehow be apart of graph...
               delegate: LayeredTreeDelegate(
-                mainAxisSpacing: 32.0,
-                crossAxisSpacing: 48.0,
+                mainAxisSpacing: 28.0,
+                crossAxisSpacing: 12.0,
                 layout: [
                   ['0', '1', '2', null],
                   ['3', '4', '5', null],
@@ -45,43 +46,57 @@ class LayeredExamplePage extends StatelessWidget {
                   [null, '15', '16', null],
                 ],
               ),
-              nodeBuilder: (node) {
+              nodeBuilder: (node, graph) {
+                final edges = graph.edgesForNode(node);
+                final fromNodes = edges.map((edge) => edge.from).toList();
+                final isUnlockable = fromNodes.every((node) {
+                  return node.data.isUnlocked;
+                });
+
                 final photoId = int.parse(node.id) + 1;
 
                 return SkillNode.fromNode(
                   node: node,
-                  child: Center(
-                    child: Item(
-                      photoNumber: photoId,
-                      seed: seed,
-                    ),
+                  child: Item(
+                    isUnlockable: isUnlockable,
+                    nodeInfo: node.data,
+                    photoNumber: photoId,
+                    seed: seed,
                   ),
                 );
               },
               edges: const [
-                Edge(from: '7', to: '9'),
-                Edge(from: '10', to: '14'),
-                Edge(from: '12', to: '15'),
+                Edge(from: '7', to: '9', data: null),
+                // SkillEdge<void, NodeInfo, String>(
+                //   from: '10',
+                //   to: '13',
+                //   data: null,
+                //   id: '',
+                //   name: '',
+                //   child: null,
+                // ),
+                Edge(from: '10', to: '14', data: null),
+                Edge(from: '12', to: '15', data: null),
                 // Edge(from: '12', to: '13'),
               ],
               nodes: const [
-                Node(id: '0'),
-                Node(id: '1'),
-                Node(id: '2'),
-                Node(id: '3'),
-                Node(id: '4'),
-                Node(id: '5'),
-                Node(id: '6'),
-                Node(id: '7'),
-                Node(id: '8'),
-                Node(id: '9'),
-                Node(id: '10'),
-                Node(id: '11'),
-                Node(id: '12'),
-                Node(id: '13'),
-                Node(id: '14'),
-                Node(id: '15'),
-                Node(id: '16'),
+                Node(id: '0', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '1', data: NodeInfo(value: 5, maxValue: 5)),
+                Node(id: '2', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '3', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '4', data: NodeInfo(value: 5, maxValue: 5)),
+                Node(id: '5', data: NodeInfo(value: 2, maxValue: 2)),
+                Node(id: '6', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '7', data: NodeInfo(value: 2, maxValue: 5)),
+                Node(id: '8', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '9', data: NodeInfo(value: 0, maxValue: 1)),
+                Node(id: '10', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '11', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '12', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '13', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '14', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '15', data: NodeInfo(value: 0, maxValue: 5)),
+                Node(id: '16', data: NodeInfo(value: 0, maxValue: 5)),
               ],
             ),
           ),
@@ -89,4 +104,22 @@ class LayeredExamplePage extends StatelessWidget {
       ],
     );
   }
+}
+
+/// TODO: Although I don't want to force this model on users, I think it's  good
+/// default to provide. Probably as an abstract class they can implement or a
+/// mixin.
+class NodeInfo {
+  const NodeInfo({
+    required this.value,
+    required this.maxValue,
+  })  : assert(value >= 0),
+        assert(maxValue >= 0),
+        assert(value <= maxValue);
+
+  bool get isUnlocked => value == maxValue;
+
+  final int value;
+
+  final int maxValue;
 }

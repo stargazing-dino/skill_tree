@@ -84,15 +84,11 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
       /// the edge's parentData.
       final children = draggableEdgeChild.getChildrenAsList();
       final toChildParentData = children.singleWhere((child) {
-        final parentData = child.parentData as VertexParentData;
-
-        return parentData.isTo!;
-      }).parentData as VertexParentData;
+        return child.parentData is SkillVertexToParentData;
+      }).parentData as SkillVertexToParentData;
       final fromChildParentData = children.singleWhere((child) {
-        final parentData = child.parentData as VertexParentData;
-
-        return !parentData.isTo!;
-      }).parentData as VertexParentData;
+        return child.parentData is SkillVertexFromParentData;
+      }).parentData as SkillVertexFromParentData;
 
       // Right now toRect and fromRect are in global coordinates from inside
       // this render object. We need to convert them to local coordinates by
@@ -109,6 +105,8 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     paintOffset = offset;
 
     // TODO: Should I use composite layers? What is their benefit?
+
+    // TODO: Draw paintOverflows here.
 
     for (final edge in graph.edges) {
       final child = childForEdge(edge);

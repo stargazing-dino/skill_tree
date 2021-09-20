@@ -13,27 +13,10 @@ import 'package:skill_tree/src/widgets/skill_vertex.dart';
 typedef EdgePainter = void Function({
   required Offset toNodeCenter,
   required Offset fromNodeCenter,
-  required List<Rect> allNodesRects,
+  required List<Rect> allNodeRects,
   required List<Rect> intersectingNodeRects,
   required Canvas canvas,
 });
-
-class VertexParentData extends ContainerBoxParentData<RenderBox> {
-  void addPositionData(Rect rect) {
-    this.rect = rect;
-  }
-
-  /// This is the rect of the node. The vertex should position and
-  /// itself based off of this.
-  ///
-  /// This is initialized late
-  Rect? rect;
-
-  bool? isTo;
-
-  // TODO:
-  // Axis? preferredAxis;
-}
 
 class NodeInfo<NodeType, IdType extends Object> {
   const NodeInfo(this.rect, this.node);
@@ -47,8 +30,9 @@ class EdgeLine<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   EdgeLine({
     Key? key,
-    required SkillVertex toVertex,
-    required SkillVertex fromVertex,
+    // TODO: In the future, I'd like these to be optional
+    required SkillVertexTo toVertex,
+    required SkillVertexFrom fromVertex,
     required this.edgePainter,
   }) : super(key: key, children: [toVertex, fromVertex]);
 
@@ -67,8 +51,8 @@ class EdgeLine<EdgeType, NodeType, IdType extends Object>
 class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox, VertexParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, VertexParentData>,
+        ContainerRenderObjectMixin<RenderBox, SkillVertexParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, SkillVertexParentData>,
         DebugOverflowIndicatorMixin {
   RenderDraggableEdge({
     required EdgePainter edgePainter,
@@ -84,8 +68,8 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   void setupParentData(RenderBox child) {
-    if (child.parentData is! VertexParentData) {
-      child.parentData = VertexParentData();
+    if (child.parentData is! SkillVertexParentData) {
+      child.parentData = SkillVertexParentData();
     }
   }
 
@@ -97,17 +81,14 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
   void performLayout() {
     final children = getChildrenAsList();
     final toChild = children.singleWhere((child) {
-      final parentData = child.parentData as VertexParentData;
-
-      return parentData.isTo!;
+      return child.parentData is SkillVertexToParentData;
     });
     final fromChild = children.singleWhere((child) {
-      final parentData = child.parentData as VertexParentData;
-
-      return !parentData.isTo!;
+      return child.parentData is SkillVertexFromParentData;
     });
-    final toChildParentData = toChild.parentData as VertexParentData;
-    final fromChildParentData = fromChild.parentData as VertexParentData;
+    final toChildParentData = toChild.parentData as SkillVertexToParentData;
+    final fromChildParentData =
+        fromChild.parentData as SkillVertexFromParentData;
     final toRect = toChildParentData.rect!;
     final fromRect = fromChildParentData.rect!;
 
@@ -321,7 +302,7 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
       fromNodeCenter: _fromCenter,
       intersectingNodeRects: intersectingNodeRects,
       canvas: context.canvas,
-      allNodesRects: allNodeRects,
+      allNodeRects: allNodeRects,
     );
 
     /// Draw the vertices
