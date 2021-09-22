@@ -1,8 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/clippers/triangle.dart';
 import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
@@ -19,7 +20,6 @@ import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
-import 'package:skill_tree/src/utils/get_largest_bounding_rect.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
@@ -149,6 +149,30 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
+  static void defaultQuadraticEdgePainter({
+    required Offset toNodeCenter,
+    required Offset fromNodeCenter,
+    required List<Rect> allNodeRects,
+    required Canvas canvas,
+  }) {
+    final paint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 10
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final xA = toNodeCenter.dx;
+    final yA = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.25)!;
+    final xB = fromNodeCenter.dx;
+    final yB = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.75)!;
+
+    final path = Path()
+      ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
+      ..cubicTo(xA, yA, xB, yB, toNodeCenter.dx, toNodeCenter.dy);
+
+    canvas.drawPath(path, paint);
+  }
+
   static SkillEdge<EdgeType, NodeType, IdType>
       defaultSkillEdgeBuilder<EdgeType, NodeType, IdType extends Object>(
     Edge<EdgeType, IdType> edge,
@@ -158,24 +182,22 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     }
 
     final draggingChild = Container(
-      color: Colors.grey,
+      color: Colors.blue,
       width: 20,
       height: 20,
     );
 
     return SkillEdge<EdgeType, NodeType, IdType>(
-      edgePainter: defaultEdgePainter,
-      toChild: ClipPath(
-        clipper: const TriangleClipper(
-          axisDirection: AxisDirection.down,
-        ),
-        child: Draggable(
-          child: draggingChild,
-          feedback: Opacity(opacity: .5, child: draggingChild),
-        ),
+      edgePainter: defaultQuadraticEdgePainter,
+      fromAlignment: Alignment.topLeft,
+      // fromAlignment: Alignment.centerLeft,
+      // toAlignment: Alignment.centerLeft - Alignment(0.5, 0.25),
+      toChild: Draggable(
+        child: draggingChild,
+        feedback: Opacity(opacity: .5, child: draggingChild),
       ),
       fromChild: Container(
-        color: Colors.grey,
+        color: Colors.pink,
         height: 10,
         width: 10,
       ),
@@ -276,4 +298,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
       throw ArgumentError('Delegate $_delegate is not a supported type.');
     }
   }
+}
+
+double convertRadiusToSigma(double radius) {
+  return radius * 0.57735 + 0.5;
 }

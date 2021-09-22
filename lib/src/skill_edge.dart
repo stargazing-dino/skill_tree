@@ -7,7 +7,6 @@ import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 // TODO: Control points
-
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
     implements Edge<EdgeType, IdType> {
@@ -21,17 +20,18 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
     required this.from,
     required this.id,
     required this.to,
-    this.toPreferredAxisDirection,
-    this.fromPreferredAxisDirection,
+    Alignment? toAlignment,
+    Alignment? fromAlignment,
   }) : super(
           key: key,
           child: EdgeLine<EdgeType, NodeType, IdType>(
             toVertex: SkillVertexTo(
-              // TODO: This will have a key that is similar to the nodes
+              alignment: toAlignment,
               key: ValueKey(to),
               child: toChild,
             ),
             fromVertex: SkillVertexFrom(
+              alignment: fromAlignment,
               key: ValueKey(from),
               child: fromChild,
             ),
@@ -53,10 +53,6 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   final IdType to;
-
-  final AxisDirection? toPreferredAxisDirection;
-
-  final AxisDirection? fromPreferredAxisDirection;
 
   @override
   void applyParentData(RenderObject renderObject) {
@@ -94,16 +90,6 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
 
     if (parentData.to != to) {
       parentData.to = to;
-      needsLayout = true;
-    }
-
-    if (parentData.toPreferredAxisDirection != toPreferredAxisDirection) {
-      parentData.toPreferredAxisDirection = toPreferredAxisDirection;
-      needsLayout = true;
-    }
-
-    if (parentData.fromPreferredAxisDirection != fromPreferredAxisDirection) {
-      parentData.fromPreferredAxisDirection = fromPreferredAxisDirection;
       needsLayout = true;
     }
 

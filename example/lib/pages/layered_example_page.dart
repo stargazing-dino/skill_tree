@@ -74,7 +74,9 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                 );
               },
               edges: const [
-                Edge(from: '7', to: '9', data: null),
+                Edge(from: '6', to: '11', data: null),
+                // Edge(from: '6', to: '13', data: null),
+                // Edge(from: '7', to: '9', data: null),
                 // SkillEdge<void, NodeInfo, String>(
                 //   from: '10',
                 //   to: '13',
@@ -84,9 +86,11 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                 //   fromChild: Container(),
                 //   edgePainter: SkillTree.defaultEdgePainter,
                 //   toChild: Container(),
+                //   // toAlignment: Alignment.topCenter,
+                //   // fromAlignment: Alignment.bottomCenter,
                 // ),
-                Edge(from: '10', to: '14', data: null),
-                Edge(from: '12', to: '15', data: null),
+                // Edge(from: '10', to: '14', data: null),
+                // Edge(from: '12', to: '15', data: null),
                 // Edge(from: '12', to: '13', data: null),
               ],
               nodes: const [
@@ -116,7 +120,7 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
   }
 }
 
-/// TODO: Although I don't want to force this model on users, I think it's  good
+/// TODO: Although I don't want to force this model on users, I think it's good
 /// default to provide. Probably as an abstract class they can implement or a
 /// mixin.
 class NodeInfo {

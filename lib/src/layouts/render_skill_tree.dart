@@ -14,8 +14,8 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,
         DebugOverflowIndicatorMixin {
-  // TODO: Different graph types will not auto update layout unless we specify
-  // that in their respective renderObject thing.
+  // TODO: Different sub type graph types will not auto update layout unless we
+  // specify that in their respective renderObject thing.
   RenderSkillTree({required Graph<EdgeType, NodeType, IdType> graph})
       : _graph = graph;
 
@@ -68,7 +68,7 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
           childForEdge(edge) as RenderDraggableEdge<EdgeType, NodeType, IdType>;
       final draggableEdgeParentData =
           draggableEdgeChild.parentData as SkillEdgeParentData;
-      final boundingRect = getLargestBoundingRect(toRect, fromRect);
+      final boundingRect = toRect.expandToInclude(fromRect);
       final edgeOffset = boundingRect.topLeft;
 
       draggableEdgeParentData.offset = edgeOffset;

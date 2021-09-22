@@ -13,50 +13,66 @@ class SkillVertexParentData extends ContainerBoxParentData<RenderBox> {
   /// This is initialized late
   Rect? rect;
 
-  // TODO:
-  // Axis? preferredAxis;
+  /// This defines where the child should be placed relative to the [rect].
+  Alignment? alignment;
 }
 
 class SkillVertexToParentData extends SkillVertexParentData {}
 
 class SkillVertexFromParentData extends SkillVertexParentData {}
 
-// TODO: Allow for builder to be passed in instead of this
-abstract class SkillVertex extends ParentDataWidget<SkillVertexParentData> {
+abstract class SkillVertex<ParentType extends SkillVertexParentData>
+    extends ParentDataWidget<SkillVertexParentData> {
   const SkillVertex({
     Key? key,
     required Widget child,
+    required this.alignment,
   }) : super(key: key, child: child);
 
-  @override
-  Type get debugTypicalAncestorWidgetClass => EdgeLine;
+  final Alignment? alignment;
 
-  @override
-  void applyParentData(RenderObject renderObject) {}
-}
-
-class SkillVertexTo extends SkillVertex {
-  const SkillVertexTo({
-    Key? key,
-    required Widget child,
-  }) : super(key: key, child: child);
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => EdgeLine;
+  ParentType createParentData();
 
   @override
   void applyParentData(RenderObject renderObject) {
     // TODO: This looks like it can be abstracted into a util or extension or
     // something
-    if (renderObject.parentData is! SkillVertexToParentData) {
+    if (renderObject.parentData is! ParentType) {
       final parentData = renderObject.parentData as SkillVertexParentData;
 
-      renderObject.parentData = SkillVertexToParentData()
+      renderObject.parentData = createParentData()
         ..nextSibling = parentData.nextSibling
         ..offset = parentData.offset
         ..previousSibling = parentData.previousSibling;
     }
+
+    final parentData = renderObject.parentData as SkillVertexParentData;
+
+    bool needsLayout = false;
+    // bool needsPaint = false;
+
+    if (parentData.alignment != alignment) {
+      parentData.alignment = alignment;
+      needsLayout = true;
+    }
+
+    final targetParent = renderObject.parent;
+
+    if (needsLayout) {
+      if (targetParent is RenderObject) {
+        targetParent.markNeedsLayout();
+      }
+    }
+
+    // if (needsPaint) {
+    //   if (targetParent is RenderObject) {
+    //     targetParent.markNeedsPaint();
+    //   }
+    // }
   }
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => EdgeLine;
 
   @override
   bool debugIsValidRenderObject(RenderObject renderObject) {
@@ -64,29 +80,36 @@ class SkillVertexTo extends SkillVertex {
   }
 }
 
-class SkillVertexFrom extends SkillVertex {
+class SkillVertexTo extends SkillVertex<SkillVertexToParentData> {
+  const SkillVertexTo({
+    Key? key,
+    required Widget child,
+    Alignment? alignment,
+  }) : super(
+          key: key,
+          child: child,
+          alignment: alignment,
+        );
+
+  @override
+  SkillVertexToParentData createParentData() {
+    return SkillVertexToParentData();
+  }
+}
+
+class SkillVertexFrom extends SkillVertex<SkillVertexFromParentData> {
   const SkillVertexFrom({
     Key? key,
     required Widget child,
-  }) : super(key: key, child: child);
+    Alignment? alignment,
+  }) : super(
+          key: key,
+          child: child,
+          alignment: alignment,
+        );
 
   @override
-  Type get debugTypicalAncestorWidgetClass => EdgeLine;
-
-  @override
-  void applyParentData(RenderObject renderObject) {
-    if (renderObject.parentData is! SkillVertexFromParentData) {
-      final parentData = renderObject.parentData as SkillVertexParentData;
-
-      renderObject.parentData = SkillVertexFromParentData()
-        ..nextSibling = parentData.nextSibling
-        ..offset = parentData.offset
-        ..previousSibling = parentData.previousSibling;
-    }
-  }
-
-  @override
-  bool debugIsValidRenderObject(RenderObject renderObject) {
-    return renderObject.parentData is SkillVertexParentData;
+  SkillVertexFromParentData createParentData() {
+    return SkillVertexFromParentData();
   }
 }

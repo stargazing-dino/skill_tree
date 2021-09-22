@@ -27,7 +27,7 @@ class Item extends StatelessWidget {
       fit: StackFit.passthrough,
       children: [
         Container(
-          margin: const EdgeInsets.all(4.0),
+          // margin: const EdgeInsets.all(4.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.0),
             border: Border.all(
@@ -80,12 +80,17 @@ class Item extends StatelessWidget {
       ],
     );
 
-    return Draggable(
-      feedback: Opacity(
-        opacity: 0.5,
-        child: child,
-      ),
+    return Opacity(
+      opacity: 0.5,
       child: child,
     );
+
+    // return Draggable(
+    //   feedback: Opacity(
+    //     opacity: 0.5,
+    //     child: child,
+    //   ),
+    //   child: child,
+    // );
   }
 }

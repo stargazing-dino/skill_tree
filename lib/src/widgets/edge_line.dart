@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -6,14 +8,12 @@ import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
 import 'package:skill_tree/src/utils/get_parent_of_type.dart';
-import 'package:skill_tree/src/utils/path_intersects_rect.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 typedef EdgePainter = void Function({
   required Offset toNodeCenter,
   required Offset fromNodeCenter,
   required List<Rect> allNodeRects,
-  required List<Rect> intersectingNodeRects,
   required Canvas canvas,
 });
 
@@ -83,145 +83,48 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     final toRect = toChildParentData.rect!;
     final fromRect = fromChildParentData.rect!;
 
-    // Specifies which way the the edge is pointing. For example, if the
-    // axisDirection is AxisDirection.right, then the edge is pointing to the
-    // right.
-    final AxisDirection axisDirection;
+    // TODO: Provide proper constraints spacing with this same idea... maybe
 
-    // TODO: Revisit this. I'm not sure what's pointing where
-    if (toRect.left > fromRect.right) {
-      axisDirection = AxisDirection.right;
-    } else if (toRect.right < fromRect.left) {
-      axisDirection = AxisDirection.left;
-    } else if (toRect.bottom < fromRect.top) {
-      axisDirection = AxisDirection.down;
-    } else if (toRect.top > fromRect.bottom) {
-      axisDirection = AxisDirection.up;
-    } else {
-      throw Exception('Unable to determine axis');
-    }
+    final _toAlignment = toChildParentData.alignment ?? Alignment.center;
+    final _fromAlignment = fromChildParentData.alignment ?? Alignment.center;
 
-    final axis = axisDirectionToAxis(axisDirection);
+    /// Specify in a 2d space where the "to" Node is relative to the "from"
+    /// node. (This will be used to orient the edge line and better draw
+    /// the vertex).
+    ///
+    /// We get a vector moving from "from" to "to" and get the direction of the
+    /// vector.
+    final angle =
+        (_toAlignment.withinRect(fromRect) - _fromAlignment.withinRect(toRect))
+            .direction;
+
+    final toAlignment =
+        (toChildParentData.alignment ?? getAlignmentForAngle(angle));
+    final fromAlignment = fromChildParentData.alignment ?? (toAlignment * -1);
 
     final loosenedConstraints = constraints.loosen();
+    final fromChildSize = fromChild.getDryLayout(loosenedConstraints);
+    final toChildSize = toChild.getDryLayout(loosenedConstraints);
 
-    switch (axis) {
-      case Axis.horizontal:
-        {
-          final widthBetween =
-              constraints.maxWidth - toRect.width - fromRect.width;
-          final widthAvailable = widthBetween / 2;
+    fromChild.layout(
+      loosenedConstraints.tighten(
+        width: fromChildSize.width,
+        height: fromChildSize.height,
+      ),
+    );
 
-          // from Layout
-          final fromConstraints =
-              loosenedConstraints.copyWith(maxWidth: widthAvailable);
-          final fromChildSize = fromChild.getDryLayout(fromConstraints);
+    toChild.layout(
+      loosenedConstraints.tighten(
+        width: toChildSize.width,
+        height: toChildSize.height,
+      ),
+    );
 
-          fromChild.layout(
-            fromConstraints.tighten(
-              width: fromChildSize.width,
-              height: fromChildSize.height,
-            ),
-          );
+    fromChildParentData.offset = fromAlignment.withinRect(fromRect);
+    toChildParentData.offset = toAlignment.withinRect(toRect);
 
-          // to Layout
-          final toConstraints =
-              loosenedConstraints.copyWith(maxWidth: widthAvailable);
-          final toChildSize = toChild.getDryLayout(toConstraints);
-
-          toChild.layout(
-            toConstraints.tighten(
-              width: toChildSize.width,
-              height: toChildSize.height,
-            ),
-          );
-
-          if (axisDirection == AxisDirection.left) {
-            fromChildParentData.offset = fromRect.centerLeft.translate(
-              -fromChildSize.width,
-              -fromChildSize.height / 2,
-            );
-
-            toChildParentData.offset = toRect.centerRight.translate(
-              0,
-              -toChildSize.height / 2,
-            );
-          } else {
-            // axisDirection == right
-            fromChildParentData.offset = fromRect.centerRight.translate(
-              0,
-              -fromChildSize.height / 2,
-            );
-
-            toChildParentData.offset = toRect.centerLeft.translate(
-              -toChildSize.width,
-              -toChildSize.height / 2,
-            );
-          }
-
-          fromCenter = (fromChildParentData.offset & fromChildSize).center;
-          toCenter = (toChildParentData.offset & toChildSize).center;
-
-          break;
-        }
-      case Axis.vertical:
-        {
-          final heightBetween =
-              constraints.maxHeight - toRect.height - fromRect.height;
-          final heightAvailable = heightBetween / 2;
-
-          // from Layout
-          final fromConstraints =
-              loosenedConstraints.copyWith(maxHeight: heightAvailable);
-          final fromChildSize = fromChild.getDryLayout(fromConstraints);
-
-          fromChild.layout(
-            fromConstraints.tighten(
-              width: fromChildSize.width,
-              height: fromChildSize.height,
-            ),
-          );
-
-          // to Layout
-          final toConstraints =
-              loosenedConstraints.copyWith(maxHeight: heightAvailable);
-          final toChildSize = toChild.getDryLayout(toConstraints);
-
-          toChild.layout(
-            toConstraints.tighten(
-              width: toChildSize.width,
-              height: toChildSize.height,
-            ),
-          );
-
-          if (axisDirection == AxisDirection.up) {
-            fromChildParentData.offset = fromRect.bottomCenter.translate(
-              -fromChildSize.width / 2,
-              0,
-            );
-
-            toChildParentData.offset = toRect.topCenter.translate(
-              -toChildSize.width / 2,
-              -toChildSize.height,
-            );
-          } else {
-            fromChildParentData.offset = fromRect.topCenter.translate(
-              -fromChildSize.width / 2,
-              -fromChildSize.height,
-            );
-
-            toChildParentData.offset = toRect.bottomCenter.translate(
-              -toChildSize.width / 2,
-              0,
-            );
-          }
-
-          fromCenter = (fromChildParentData.offset & fromChildSize).center;
-          toCenter = (toChildParentData.offset & toChildSize).center;
-
-          break;
-        }
-    }
+    fromCenter = (fromChildParentData.offset & fromChildSize).center;
+    toCenter = (toChildParentData.offset & toChildSize).center;
 
     size = constraints.biggest;
   }
@@ -257,15 +160,7 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
       firstChild,
     );
 
-    final straightLinePath = Path()
-      ..moveTo(_fromCenter.dx, _fromCenter.dy)
-      ..lineTo(_toCenter.dx + 1, _toCenter.dy)
-      ..lineTo(_toCenter.dx, _toCenter.dy)
-      ..close();
-
-    final intersectingNodeRects = <Rect>[];
     final allNodeRects = <Rect>[];
-    final constraintsRect = offset & constraints.biggest;
 
     for (final nodeBox in skillTreeParent.nodeChildren) {
       final nodeParentData =
@@ -280,23 +175,79 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
           (nodeParentData.offset + skillTreeParent.paintOffset! & nodeBox.size);
 
       allNodeRects.add(nodeRect);
-
-      if (constraintsRect.overlaps(nodeRect)) {
-        if (pathIntersectsRect(straightLinePath, nodeRect)) {
-          intersectingNodeRects.add(nodeRect);
-        }
-      }
     }
 
     edgePainter(
       toNodeCenter: _toCenter,
       fromNodeCenter: _fromCenter,
-      intersectingNodeRects: intersectingNodeRects,
       canvas: context.canvas,
       allNodeRects: allNodeRects,
     );
 
     /// Draw the vertices
     defaultPaint(context, offset);
+  }
+}
+
+/// As
+Alignment shiftAlignment(Alignment alignment) {
+  final topLeftAlignment = Alignment.topLeft;
+
+  if (alignment.x > 0) {
+    return alignment + topLeftAlignment;
+  } else if (alignment.x < 1) {
+    return alignment + topLeftAlignment;
+  }
+
+  return alignment;
+}
+
+/// This goes clockwise starting at 0
+///
+///  -pi 3/4                   -pi/2                  -pi 1/4
+///
+///                               |
+///                     -x -y     |    +x -y
+///                               |
+///  (+/-)pi         ---------------------------            0
+///                               |
+///                     -x +y     |    +x +y
+///                               |
+///
+///  pi 3/4                     pi/2                   pi 1/4
+///
+Alignment getAlignmentForAngle(double angle) {
+  // TODO: We should provide more arguments here to better define how we want
+  // the alignment to come out.
+
+  // Handle the corners
+  // if (angle == -math.pi / 4) {
+  //   return Alignment.topRight;
+  // } else if (angle == -math.pi * 3 / 4) {
+  //   return Alignment.topLeft;
+  // } else if (angle == math.pi * 3 / 4) {
+  //   return Alignment.bottomLeft;
+  // } else if (angle == math.pi / 4) {
+  //   return Alignment.bottomRight;
+  // }
+
+  // If we're between -pi 1/4 and pi 1/4 we're going right
+  if (angle.abs() < math.pi / 4) {
+    return Alignment.centerRight;
+  }
+
+  // If we're between -pi 3/4 and -pi 1/4 we're going up
+  else if (angle > -math.pi * 3 / 4 && angle < -math.pi / 4) {
+    return Alignment.topCenter;
+  }
+
+  // We're going left between -pi 3/4 and pi 3/4
+  else if (angle.abs() > math.pi * 3 / 4) {
+    return Alignment.centerLeft;
+  }
+
+  // We're going down
+  else {
+    return Alignment.bottomCenter;
   }
 }
