@@ -1,11 +1,10 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
+import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
 import 'package:skill_tree/src/utils/get_parent_of_type.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
@@ -80,6 +79,7 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     final toChildParentData = toChild.parentData as SkillVertexToParentData;
     final fromChildParentData =
         fromChild.parentData as SkillVertexFromParentData;
+
     final toRect = toChildParentData.rect!;
     final fromRect = fromChildParentData.rect!;
 
@@ -97,6 +97,15 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     final angle =
         (_toAlignment.withinRect(fromRect) - _fromAlignment.withinRect(toRect))
             .direction;
+
+    // TODO: I shouldn't use getDryLayout here as it has some issues.
+    // Do same as tooltip package.
+
+    // angle (radians) is the angle between fromRect center to toRect center
+
+    // getAlignmentForAngle returns and alignment based of the angle.
+    // For example if radians is zero (y is zero and x is positive) then we'll
+    // return center right.
 
     final toAlignment =
         (toChildParentData.alignment ?? getAlignmentForAngle(angle));
@@ -120,13 +129,20 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
       ),
     );
 
-    fromChildParentData.offset = fromAlignment.withinRect(fromRect);
-    toChildParentData.offset = toAlignment.withinRect(toRect);
+    fromChildParentData.offset = fromAlignment
+        .withinRect(fromRect)
+        .translate(-fromChildSize.width / 2, -fromChildSize.height / 2);
+    toChildParentData.offset = toAlignment
+        .withinRect(toRect)
+        .translate(-toChildSize.width / 2, -toChildSize.height / 2);
 
-    fromCenter = (fromChildParentData.offset & fromChildSize).center;
-    toCenter = (toChildParentData.offset & toChildSize).center;
+    final offsetFromRect = fromChildParentData.offset & fromChildSize;
+    final offsetToRect = toChildParentData.offset & toChildSize;
 
-    size = constraints.biggest;
+    fromCenter = offsetFromRect.center;
+    toCenter = offsetToRect.center;
+
+    size = offsetFromRect.expandToInclude(offsetToRect).size;
   }
 
   @override
@@ -200,54 +216,4 @@ Alignment shiftAlignment(Alignment alignment) {
   }
 
   return alignment;
-}
-
-/// This goes clockwise starting at 0
-///
-///  -pi 3/4                   -pi/2                  -pi 1/4
-///
-///                               |
-///                     -x -y     |    +x -y
-///                               |
-///  (+/-)pi         ---------------------------            0
-///                               |
-///                     -x +y     |    +x +y
-///                               |
-///
-///  pi 3/4                     pi/2                   pi 1/4
-///
-Alignment getAlignmentForAngle(double angle) {
-  // TODO: We should provide more arguments here to better define how we want
-  // the alignment to come out.
-
-  // Handle the corners
-  // if (angle == -math.pi / 4) {
-  //   return Alignment.topRight;
-  // } else if (angle == -math.pi * 3 / 4) {
-  //   return Alignment.topLeft;
-  // } else if (angle == math.pi * 3 / 4) {
-  //   return Alignment.bottomLeft;
-  // } else if (angle == math.pi / 4) {
-  //   return Alignment.bottomRight;
-  // }
-
-  // If we're between -pi 1/4 and pi 1/4 we're going right
-  if (angle.abs() < math.pi / 4) {
-    return Alignment.centerRight;
-  }
-
-  // If we're between -pi 3/4 and -pi 1/4 we're going up
-  else if (angle > -math.pi * 3 / 4 && angle < -math.pi / 4) {
-    return Alignment.topCenter;
-  }
-
-  // We're going left between -pi 3/4 and pi 3/4
-  else if (angle.abs() > math.pi * 3 / 4) {
-    return Alignment.centerLeft;
-  }
-
-  // We're going down
-  else {
-    return Alignment.bottomCenter;
-  }
 }

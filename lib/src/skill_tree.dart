@@ -128,7 +128,6 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     required Offset toNodeCenter,
     required Offset fromNodeCenter,
     required List<Rect> allNodeRects,
-    required List<Rect> intersectingNodeRects,
     required Canvas canvas,
   }) {
     final paint = Paint()
@@ -189,8 +188,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
 
     return SkillEdge<EdgeType, NodeType, IdType>(
       edgePainter: defaultQuadraticEdgePainter,
-      fromAlignment: Alignment.topLeft,
-      // fromAlignment: Alignment.centerLeft,
+      // fromAlignment: Alignment.topLeft,
+      fromAlignment: Alignment.centerLeft,
       // toAlignment: Alignment.centerLeft - Alignment(0.5, 0.25),
       toChild: Draggable(
         child: draggingChild,

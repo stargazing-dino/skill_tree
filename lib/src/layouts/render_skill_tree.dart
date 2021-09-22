@@ -42,6 +42,13 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
   @override
   void performLayout() {
+    // TODO: Edges need to know the amount of space in the gutter available to
+    // them. Using that information, we can better constrain them when it comes
+    // to layout. I recommend we create a function template that takes in a node
+    // and returns the amount of space around it like so:
+    //  double getSpaceAroundNode(Node node) {
+    //    return node.spaceAround;
+    //  }
     layoutNodes();
 
     /// We need to layout edges. However, an edge is not a direct RenderObject.
@@ -89,7 +96,15 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
       toChildParentData.addPositionData(toRect.shift(-edgeOffset));
       fromChildParentData.addPositionData(fromRect.shift(-edgeOffset));
 
-      draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
+      // TODO: I'm not setting the constraints properly yet because the current
+      // boundingRect does not account for the gutter spacing. Gutter spacing
+      // seems dependent on layout type too...
+      // draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
+
+      // TODO: Prev todo might not be correct when dragging. A draggable should
+      // not have constraints so it can reach even the furthest nodes.
+
+      draggableEdgeChild.layout(constraints);
     }
   }
 
