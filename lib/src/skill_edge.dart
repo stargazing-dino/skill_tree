@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/models/edge.dart';
-import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
+
+class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
+    extends SkillParentData {
+  EdgeType? data;
+
+  String? name;
+
+  IdType? from;
+
+  String? id;
+
+  IdType? to;
+
+  AxisDirection? toPreferredAxisDirection;
+
+  AxisDirection? fromPreferredAxisDirection;
+}
 
 // TODO: Control points
 class SkillEdge<EdgeType, NodeType, IdType extends Object>

@@ -1,8 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:skill_tree/src/models/node.dart';
-import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_tree.dart';
+
+class SkillNodeParentData<NodeType, IdType extends Object>
+    extends SkillParentData {
+  NodeType? data;
+
+  IdType? id;
+
+  String? name;
+}
 
 /// A representation of a node in the skill tree.
 class SkillNode<NodeType, IdType extends Object>

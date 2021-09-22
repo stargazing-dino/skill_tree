@@ -17,7 +17,6 @@ import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
-import 'package:skill_tree/src/models/skill_parent_data.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';

@@ -1,5 +1,7 @@
 part of '../skill_tree.dart';
 
+class SkillParentData extends ContainerBoxParentData<RenderBox> {}
+
 /// This class provides useful abstractions across both the graph theory model
 /// and the render model.
 ///
