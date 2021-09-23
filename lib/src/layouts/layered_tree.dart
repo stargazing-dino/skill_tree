@@ -1,9 +1,13 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
 import 'package:skill_tree/src/models/graph.dart';
+
+// FIXME: I think this class should actually be called a delegate
 
 // GraphView describes it here
 // https://pub.dev/packages/graphview#layered-graph
@@ -29,14 +33,26 @@ class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
     // Each child will have 1 / maxLayerFlex of the space
     final crossAxisSpacing = delegate.crossAxisSpacing;
     final mainAxisSpacing = delegate.mainAxisSpacing;
-    final maxLayerSize = delegate.layout.first.length;
-    final maxAvailableWidth =
-        constraints.maxWidth - (crossAxisSpacing * (maxLayerSize - 1));
-    final maxChildFraction = 1 / maxLayerSize;
-    final maxChildWidth = maxAvailableWidth * maxChildFraction;
+    final crossAxisAlignment = delegate.crossAxisAlignment;
+    final layerSizes = delegate.layout.map((layer) => layer.length).toList();
+    final layerMaxWidths = delegate.layout.mapIndexed((index, layer) {
+      final layerSize = layerSizes[index];
+
+      return constraints.maxWidth - (crossAxisSpacing * (layerSize - 1));
+    }).toList();
+    final maxChildWidths = layerMaxWidths.mapIndexed((index, layerMaxWidth) {
+      final layerSize = layerSizes[index];
+      final layerMaxWidth = layerMaxWidths[index];
+
+      return layerMaxWidth / layerSize;
+    }).toList();
+
     final layerHeights = <double>[];
 
-    for (final layer in delegate.layout) {
+    for (int i = 0; i < delegate.layout.length; i++) {
+      final layer = delegate.layout[i];
+      final maxChildWidth = maxChildWidths[i];
+
       var layerHeight = 0.0;
 
       /// We iterate through the layer and get the approximate layer height
@@ -65,10 +81,7 @@ class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
               maxHeight: layerHeight,
             );
 
-        child.layout(
-          childConstraints,
-          parentUsesSize: true,
-        );
+        child.layout(childConstraints, parentUsesSize: true);
       }
     }
 
@@ -79,6 +92,7 @@ class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
       var dx = 0.0;
       final layer = delegate.layout[i];
       final layerHeight = layerHeights[i];
+      final maxChildWidth = maxChildWidths[i];
 
       for (var j = 0; j < layer.length; j++) {
         dx = maxChildWidth * j;
@@ -92,10 +106,7 @@ class RenderLayeredLayout<EdgeType, NodeType, IdType extends Object>
         final child = childForNode(node);
         final childParentData = child.parentData as SkillNodeParentData;
 
-        childParentData.offset = Offset(
-          dx,
-          dy,
-        );
+        childParentData.offset = Offset(dx, dy);
       }
 
       dy += layerHeight;

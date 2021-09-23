@@ -39,11 +39,11 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
             padding: const EdgeInsets.all(16.0),
             child: SkillTree<void, NodeInfo, String>(
               // I feel like layout should somehow be apart of graph...
-              delegate: LayeredTreeDelegate(
+              delegate: const LayeredTreeDelegate(
                 mainAxisSpacing: 28.0,
                 crossAxisSpacing: 12.0,
                 layout: [
-                  ['0', '1', '2', null],
+                  ['0', '1', '2'],
                   ['3', '4', '5', null],
                   ['6', '7', '8', null],
                   [null, '9', '10', null],

@@ -4,4 +4,6 @@
 /// [MultiChildLayoutDelegate] as that class is specific to a
 /// [CustomMultiChildLayout] does is not "delegated" any real work other
 /// than holding layout config.
-abstract class SkillTreeDelegate<IdType extends Object> {}
+abstract class SkillTreeDelegate<IdType extends Object> {
+  const SkillTreeDelegate();
+}
