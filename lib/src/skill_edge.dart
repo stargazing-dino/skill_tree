@@ -11,18 +11,17 @@ class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
 
   String? name;
 
-  IdType? from;
-
   String? id;
+
+  IdType? from;
 
   IdType? to;
 
-  AxisDirection? toPreferredAxisDirection;
+  Alignment? fromAlignment;
 
-  AxisDirection? fromPreferredAxisDirection;
+  Alignment? toAlignment;
 }
 
-// TODO: Control points
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
     implements Edge<EdgeType, IdType> {
@@ -36,18 +35,16 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
     required this.from,
     required this.id,
     required this.to,
-    Alignment? toAlignment,
-    Alignment? fromAlignment,
+    this.toAlignment,
+    this.fromAlignment,
   }) : super(
           key: key,
           child: EdgeLine<EdgeType, NodeType, IdType>(
             toVertex: SkillVertexTo(
-              alignment: toAlignment,
               key: ValueKey(to),
               child: toChild,
             ),
             fromVertex: SkillVertexFrom(
-              alignment: fromAlignment,
               key: ValueKey(from),
               child: fromChild,
             ),
@@ -62,13 +59,17 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
   final String? name;
 
   @override
-  final IdType from;
-
-  @override
   final String id;
 
   @override
+  final IdType from;
+
+  @override
   final IdType to;
+
+  final Alignment? fromAlignment;
+
+  final Alignment? toAlignment;
 
   @override
   void applyParentData(RenderObject renderObject) {
@@ -94,13 +95,18 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
       needsLayout = true;
     }
 
-    if (parentData.from != from) {
-      parentData.from = from;
-      needsLayout = true;
+    if (parentData.name != name) {
+      parentData.name = name;
+      needsPaint = true;
     }
 
     if (parentData.id != id) {
       parentData.id = id;
+      needsLayout = true;
+    }
+
+    if (parentData.from != from) {
+      parentData.from = from;
       needsLayout = true;
     }
 
@@ -109,9 +115,14 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
       needsLayout = true;
     }
 
-    if (parentData.name != name) {
-      parentData.name = name;
-      needsPaint = true;
+    if (parentData.fromAlignment != fromAlignment) {
+      parentData.fromAlignment = fromAlignment;
+      needsLayout = true;
+    }
+
+    if (parentData.toAlignment != toAlignment) {
+      parentData.toAlignment = toAlignment;
+      needsLayout = true;
     }
 
     final targetParent = renderObject.parent;

@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/delegates/directed_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
+import 'package:skill_tree/src/delegates/positioned_tree_delegate.dart';
 import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
-import 'package:skill_tree/src/graphs/directed_graph.dart';
 import 'package:skill_tree/src/graphs/layered_graph.dart';
+import 'package:skill_tree/src/graphs/positioned_graph.dart';
 import 'package:skill_tree/src/graphs/radial_graph.dart';
-import 'package:skill_tree/src/layouts/directed_tree.dart';
 import 'package:skill_tree/src/layouts/layered_tree.dart';
+import 'package:skill_tree/src/layouts/positioned_tree.dart';
 import 'package:skill_tree/src/layouts/radial_tree.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
@@ -19,6 +19,7 @@ import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
+import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
@@ -110,6 +111,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
       return node;
     }
 
+    assert(node is! SkillNode);
+
     // TODO: the four sides of the node should have
     // a DragTarget for the [EdgePoint] to be connected to.
     // I would honestly like to do four triangles whose
@@ -147,7 +150,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
-  static void defaultQuadraticEdgePainter({
+  static void defaultCubicEdgePainter({
     required Offset toNodeCenter,
     required Offset fromNodeCenter,
     required List<Rect> allNodeRects,
@@ -155,14 +158,24 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   }) {
     final paint = Paint()
       ..color = Colors.grey
-      ..strokeWidth = 10
+      ..strokeWidth = 5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
+    final rect = Rect.fromPoints(toNodeCenter, fromNodeCenter);
+    final double xA, yA, xB, yB;
 
-    final xA = toNodeCenter.dx;
-    final yA = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.25)!;
-    final xB = fromNodeCenter.dx;
-    final yB = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.75)!;
+    // a cubic line looks better when it runs along the narrower side
+    if (rect.width < rect.height) {
+      xA = toNodeCenter.dx;
+      yA = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.25)!;
+      xB = fromNodeCenter.dx;
+      yB = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.75)!;
+    } else {
+      xA = lerpDouble(fromNodeCenter.dx, toNodeCenter.dx, 0.25)!;
+      yA = toNodeCenter.dy;
+      xB = lerpDouble(fromNodeCenter.dx, toNodeCenter.dx, 0.75)!;
+      yB = fromNodeCenter.dy;
+    }
 
     final path = Path()
       ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
@@ -179,25 +192,23 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
       return edge;
     }
 
-    final draggingChild = Container(
-      color: Colors.blue,
-      width: 20,
-      height: 20,
-    );
-
     return SkillEdge<EdgeType, NodeType, IdType>(
-      edgePainter: defaultQuadraticEdgePainter,
-      // fromAlignment: Alignment.topLeft,
-      fromAlignment: Alignment.centerLeft,
-      // toAlignment: Alignment.centerLeft - Alignment(0.5, 0.25),
-      toChild: Draggable(
-        child: draggingChild,
-        feedback: Opacity(opacity: .5, child: draggingChild),
+      edgePainter: defaultCubicEdgePainter,
+      toChild: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.blue,
+        ),
+        width: 20,
+        height: 20,
       ),
       fromChild: Container(
-        color: Colors.pink,
-        height: 10,
-        width: 10,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.yellow,
+        ),
+        height: 20,
+        width: 20,
       ),
       name: edge.name,
       data: edge.data,
@@ -221,8 +232,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     required List<Node<NodeType, IdType>> nodes,
     required SkillTreeDelegate<IdType> delegate,
   }) {
-    if (delegate is DirectedTreeDelegate<IdType>) {
-      return DirectedGraph<EdgeType, NodeType, IdType>(
+    if (delegate is PositionedTreeDelegate<IdType>) {
+      return PositionedGraph<EdgeType, NodeType, IdType>(
         nodes: nodes,
         edges: edges,
       );
@@ -248,10 +259,10 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    if (renderObject is RenderDirectedTree<EdgeType, NodeType, IdType>) {
+    if (renderObject is RenderPositionedLayout<EdgeType, NodeType, IdType>) {
       renderObject
         ..graph = graph
-        ..delegate = delegate as DirectedTreeDelegate<IdType>;
+        ..delegate = delegate as PositionedTreeDelegate<IdType>;
     } else if (renderObject is RenderRadialLayout<EdgeType, NodeType, IdType>) {
       renderObject
         ..graph = graph
@@ -266,9 +277,6 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
         'Unknown renderObject $renderObject is not a supported type.',
       );
     }
-    // (renderObject as RenderSkillTree<EdgeType, NodeType, IdType>)
-    //   ..graph = graph
-    //   ..delegate = delegate;
   }
 
   // We create a render object instead of a [CustomMultiChildLayout]
@@ -277,8 +285,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   RenderObject createRenderObject(BuildContext context) {
     final _delegate = delegate;
 
-    if (_delegate is DirectedTreeDelegate<IdType>) {
-      return RenderDirectedTree<EdgeType, NodeType, IdType>(
+    if (_delegate is PositionedTreeDelegate<IdType>) {
+      return RenderPositionedLayout<EdgeType, NodeType, IdType>(
         graph: graph,
         delegate: _delegate,
       );
@@ -296,8 +304,4 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
       throw ArgumentError('Delegate $_delegate is not a supported type.');
     }
   }
-}
-
-double convertRadiusToSigma(double radius) {
-  return radius * 0.57735 + 0.5;
 }

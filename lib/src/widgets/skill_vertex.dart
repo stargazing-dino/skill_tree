@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 
+// TODO: Justify the use of ParentData like this
+// TODO: Rename vertex to something else. Maybe end? or terminal?
+
 class SkillVertexParentData extends ContainerBoxParentData<RenderBox> {
   void addPositionData(Rect rect) {
     this.rect = rect;
   }
 
-  /// This is the rect of the node. The vertex should position and
-  /// itself based off of this.
-  ///
-  /// This is initialized late
+  /// This is the rect of the child in relative to the parent's Offset.
   Rect? rect;
-
-  /// This defines where the child should be placed relative to the [rect].
-  Alignment? alignment;
 }
 
 class SkillVertexToParentData extends SkillVertexParentData {}
@@ -26,10 +23,7 @@ abstract class SkillVertex<ParentType extends SkillVertexParentData>
   const SkillVertex({
     Key? key,
     required Widget child,
-    required this.alignment,
   }) : super(key: key, child: child);
-
-  final Alignment? alignment;
 
   ParentType createParentData();
 
@@ -50,11 +44,6 @@ abstract class SkillVertex<ParentType extends SkillVertexParentData>
 
     bool needsLayout = false;
     // bool needsPaint = false;
-
-    if (parentData.alignment != alignment) {
-      parentData.alignment = alignment;
-      needsLayout = true;
-    }
 
     final targetParent = renderObject.parent;
 
@@ -84,11 +73,9 @@ class SkillVertexTo extends SkillVertex<SkillVertexToParentData> {
   const SkillVertexTo({
     Key? key,
     required Widget child,
-    Alignment? alignment,
   }) : super(
           key: key,
           child: child,
-          alignment: alignment,
         );
 
   @override
@@ -101,11 +88,9 @@ class SkillVertexFrom extends SkillVertex<SkillVertexFromParentData> {
   const SkillVertexFrom({
     Key? key,
     required Widget child,
-    Alignment? alignment,
   }) : super(
           key: key,
           child: child,
-          alignment: alignment,
         );
 
   @override

@@ -31,8 +31,6 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
   SkillTreeDelegate<IdType> get delegate;
 
-  Offset? paintOffset;
-
   @override
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SkillParentData) {
@@ -57,10 +55,13 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     /// Instead, it is a MultiChildRenderObject. Therefore, we must position
     /// the edges first based off the nodes.
     ///
-    /// We'll do so by getting the size and position of both node boxes
-    /// and then creating a bounding box based off those.
+    /// The positions and sizes of both edge terminals are needed to layout
+    /// this edge.
     for (final edge in graph.edges) {
-      /// The positions of both terminal nodes are needed to layout the edge.
+      final edgeChild =
+          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final edgeParentData = edgeChild.parentData
+          as SkillEdgeParentData<EdgeType, NodeType, IdType>;
       final to = childForNode(graph.getNodeFromIdType(edge.to));
       final toParentData = to.parentData as SkillParentData;
       final toRect = toParentData.offset & to.size;
@@ -73,49 +74,69 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         'Two nodes must not intersect one another.',
       );
 
-      final draggableEdgeChild =
-          childForEdge(edge) as RenderDraggableEdge<EdgeType, NodeType, IdType>;
-      final draggableEdgeParentData =
-          draggableEdgeChild.parentData as SkillEdgeParentData;
-      final boundingRect = toRect.expandToInclude(fromRect);
-      final edgeOffset = boundingRect.topLeft;
+      /// Specify in a 2d space where the "to" Node is relative to the "from"
+      /// node. (This will be used to orient the edge line and better draw
+      /// the vertex).
+      ///
+      /// We get a vector moving from "from" to "to" and get the direction of the
+      /// vector.
+      final _toAlignment = edgeParentData.toAlignment ?? Alignment.center;
+      final _fromAlignment = edgeParentData.fromAlignment ?? Alignment.center;
+      final angle = (_toAlignment.withinRect(fromRect) -
+              _fromAlignment.withinRect(toRect))
+          .direction;
+      final toAlignment =
+          (edgeParentData.toAlignment ?? getAlignmentForAngle(angle));
+      final fromAlignment = edgeParentData.fromAlignment ?? (toAlignment * -1);
 
-      draggableEdgeParentData.offset = edgeOffset;
-
-      /// We need to manually set the sizes of the nodePositions to be used by
-      /// the edge's parentData.
-      final children = draggableEdgeChild.getChildrenAsList();
-      final toChildParentData = children.singleWhere((child) {
+      final children = edgeChild.getChildrenAsList();
+      final toEdgeChild = children.singleWhere((child) {
         return child.parentData is SkillVertexToParentData;
-      }).parentData as SkillVertexToParentData;
-      final fromChildParentData = children.singleWhere((child) {
+      });
+      final toEdgeChildParentData =
+          toEdgeChild.parentData as SkillVertexParentData;
+      final fromEdgeChild = children.singleWhere((child) {
         return child.parentData is SkillVertexFromParentData;
-      }).parentData as SkillVertexFromParentData;
+      });
+      final fromEdgeChildParentData =
+          fromEdgeChild.parentData as SkillVertexParentData;
 
-      // Right now toRect and fromRect are in global coordinates from inside
-      // this render object. We need to convert them to local coordinates by
-      // subtracting the largest bounding box top-left corner.
-      toChildParentData.addPositionData(toRect.shift(-edgeOffset));
-      fromChildParentData.addPositionData(fromRect.shift(-edgeOffset));
+      // TODO: I shouldn't use getDryLayout here as it has some issues.
+      // Do same as tooltip package.
+      final toEdgeSize = toEdgeChild.getDryLayout(constraints);
+      final fromEdgeSize = fromEdgeChild.getDryLayout(constraints);
+      final fromEdgeBox = fromAlignment
+              .withinRect(fromRect)
+              .translate(-fromEdgeSize.width / 2, -fromEdgeSize.height / 2) &
+          fromEdgeSize;
+      final toEdgeBox = toAlignment
+              .withinRect(toRect)
+              .translate(-toEdgeSize.width / 2, -toEdgeSize.height / 2) &
+          toEdgeSize;
+      final edgeBoundingBox = fromEdgeBox.expandToInclude(toEdgeBox);
+
+      edgeParentData.offset = edgeBoundingBox.topLeft;
+
+      toEdgeChildParentData.addPositionData(
+        fromEdgeBox.shift(-edgeBoundingBox.topLeft),
+      );
+      fromEdgeChildParentData.addPositionData(
+        toEdgeBox.shift(-edgeBoundingBox.topLeft),
+      );
 
       // TODO: I'm not setting the constraints properly yet because the current
       // boundingRect does not account for the gutter spacing. Gutter spacing
       // seems dependent on layout type too...
       // draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
-
       // TODO: Prev todo might not be correct when dragging. A draggable should
       // not have constraints so it can reach even the furthest nodes.
-
-      draggableEdgeChild.layout(constraints);
+      edgeChild.layout(constraints);
     }
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    paintOffset = offset;
-
     // TODO: Should I use composite layers? What is their benefit?
-
     // TODO: Draw paintOverflows here.
 
     for (final edge in graph.edges) {

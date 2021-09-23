@@ -1,6 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 
+// TODO: I think I can get the centered behavior if I don't care about
+// square layouts...
+
 class LayeredTreeDelegate<IdType extends Object>
     extends SkillTreeDelegate<IdType> {
   LayeredTreeDelegate({

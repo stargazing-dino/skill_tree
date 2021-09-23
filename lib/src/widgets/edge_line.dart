@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
 import 'package:skill_tree/src/skill_tree.dart';
-import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
 import 'package:skill_tree/src/utils/get_parent_data_of_type.dart';
 import 'package:skill_tree/src/utils/get_parent_of_type.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
@@ -22,6 +21,8 @@ class EdgeLine<EdgeType, NodeType, IdType extends Object>
   EdgeLine({
     Key? key,
     // TODO: In the future, I'd like these to be optional
+    // TODO: Control points ... This should be able to be a list of
+    // [SkillVertex] or control points.
     required SkillVertexTo toVertex,
     required SkillVertexFrom fromVertex,
     required this.edgePainter,
@@ -31,7 +32,7 @@ class EdgeLine<EdgeType, NodeType, IdType extends Object>
 
   @override
   RenderBox createRenderObject(BuildContext context) {
-    return RenderDraggableEdge<EdgeType, NodeType, IdType>(
+    return RenderEdgeLine<EdgeType, NodeType, IdType>(
       edgePainter: edgePainter,
     );
   }
@@ -39,13 +40,13 @@ class EdgeLine<EdgeType, NodeType, IdType extends Object>
 
 /// The fields of this [RenderObject] are initialized in the layout phase.
 /// This is because we must first know the size of the node widgets.
-class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
+class RenderEdgeLine<EdgeType, NodeType, IdType extends Object>
     extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillVertexParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillVertexParentData>,
         DebugOverflowIndicatorMixin {
-  RenderDraggableEdge({
+  RenderEdgeLine({
     required EdgePainter edgePainter,
   }) : _edgePainter = edgePainter;
 
@@ -64,10 +65,6 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     }
   }
 
-  Offset? fromCenter;
-
-  Offset? toCenter;
-
   @override
   void performLayout() {
     final children = getChildrenAsList();
@@ -81,40 +78,12 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     final fromChildParentData =
         fromChild.parentData as SkillVertexFromParentData;
 
-    final toRect = toChildParentData.rect!;
-    final fromRect = fromChildParentData.rect!;
-
     // TODO: Provide proper constraints spacing with this same idea... maybe
-
-    final _toAlignment = toChildParentData.alignment ?? Alignment.center;
-    final _fromAlignment = fromChildParentData.alignment ?? Alignment.center;
-
-    /// Specify in a 2d space where the "to" Node is relative to the "from"
-    /// node. (This will be used to orient the edge line and better draw
-    /// the vertex).
-    ///
-    /// We get a vector moving from "from" to "to" and get the direction of the
-    /// vector.
-    final angle =
-        (_toAlignment.withinRect(fromRect) - _fromAlignment.withinRect(toRect))
-            .direction;
-
-    // TODO: I shouldn't use getDryLayout here as it has some issues.
-    // Do same as tooltip package.
-
-    // angle (radians) is the angle between fromRect center to toRect center
-
-    // getAlignmentForAngle returns and alignment based of the angle.
-    // For example if radians is zero (y is zero and x is positive) then we'll
-    // return center right.
-
-    final toAlignment =
-        (toChildParentData.alignment ?? getAlignmentForAngle(angle));
-    final fromAlignment = fromChildParentData.alignment ?? (toAlignment * -1);
-
     final loosenedConstraints = constraints.loosen();
-    final fromChildSize = fromChild.getDryLayout(loosenedConstraints);
-    final toChildSize = toChild.getDryLayout(loosenedConstraints);
+    final fromChildRect = fromChildParentData.rect!;
+    final fromChildSize = fromChildRect.size;
+    final toChildRect = toChildParentData.rect!;
+    final toChildSize = toChildRect.size;
 
     fromChild.layout(
       loosenedConstraints.tighten(
@@ -122,7 +91,6 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
         height: fromChildSize.height,
       ),
     );
-
     toChild.layout(
       loosenedConstraints.tighten(
         width: toChildSize.width,
@@ -130,20 +98,16 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
       ),
     );
 
-    fromChildParentData.offset = fromAlignment
-        .withinRect(fromRect)
-        .translate(-fromChildSize.width / 2, -fromChildSize.height / 2);
-    toChildParentData.offset = toAlignment
-        .withinRect(toRect)
-        .translate(-toChildSize.width / 2, -toChildSize.height / 2);
+    toChildParentData.offset = Offset(
+      toChildRect.left,
+      toChildRect.top,
+    );
+    fromChildParentData.offset = Offset(
+      fromChildRect.left,
+      fromChildRect.top,
+    );
 
-    final offsetFromRect = fromChildParentData.offset & fromChildSize;
-    final offsetToRect = toChildParentData.offset & toChildSize;
-
-    fromCenter = offsetFromRect.center;
-    toCenter = offsetToRect.center;
-
-    size = offsetFromRect.expandToInclude(offsetToRect).size;
+    size = fromChildRect.expandToInclude(toChildRect).size;
   }
 
   @override
@@ -158,8 +122,15 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final _fromCenter = fromCenter! + offset;
-    final _toCenter = toCenter! + offset;
+    final children = getChildrenAsList();
+    final toChildParentData = children.singleWhere((child) {
+      return child.parentData is SkillVertexToParentData;
+    }).parentData as SkillVertexToParentData;
+    final fromChildParentData = children.singleWhere((child) {
+      return child.parentData is SkillVertexFromParentData;
+    }).parentData as SkillVertexFromParentData;
+    final _fromCenter = fromChildParentData.rect!.center + offset;
+    final _toCenter = toChildParentData.rect!.center + offset;
 
     final firstChild = getChildrenAsList().first;
     final skillTreeParent =
@@ -188,8 +159,7 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
         continue;
       }
 
-      final nodeRect =
-          (nodeParentData.offset + skillTreeParent.paintOffset! & nodeBox.size);
+      final nodeRect = (nodeParentData.offset & nodeBox.size);
 
       allNodeRects.add(nodeRect);
     }
@@ -204,17 +174,4 @@ class RenderDraggableEdge<EdgeType, NodeType, IdType extends Object>
     /// Draw the vertices
     defaultPaint(context, offset);
   }
-}
-
-/// As
-Alignment shiftAlignment(Alignment alignment) {
-  final topLeftAlignment = Alignment.topLeft;
-
-  if (alignment.x > 0) {
-    return alignment + topLeftAlignment;
-  } else if (alignment.x < 1) {
-    return alignment + topLeftAlignment;
-  }
-
-  return alignment;
 }
