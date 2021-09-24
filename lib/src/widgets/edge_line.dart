@@ -144,7 +144,7 @@ class RenderEdgeLine<EdgeType, NodeType, IdType extends Object>
       );
     }
     final skillEdgeParentData =
-        getParentDataOfType<SkillEdgeParentData<EdgeType, NodeType, IdType>>(
+        getParentDataOfType<SkillEdgeParentData<EdgeType, IdType>>(
       firstChild,
     );
 

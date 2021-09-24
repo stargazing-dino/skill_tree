@@ -4,24 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/delegates/layered_tree_delegate.dart';
-import 'package:skill_tree/src/delegates/positioned_tree_delegate.dart';
-import 'package:skill_tree/src/delegates/radial_tree_delegate.dart';
 import 'package:skill_tree/src/graphs/layered_graph.dart';
-import 'package:skill_tree/src/graphs/positioned_graph.dart';
 import 'package:skill_tree/src/graphs/radial_graph.dart';
-import 'package:skill_tree/src/layouts/layered_tree.dart';
-import 'package:skill_tree/src/layouts/positioned_tree.dart';
-import 'package:skill_tree/src/layouts/radial_tree.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
-import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
-import 'package:skill_tree/src/widgets/edge_line.dart';
-import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
@@ -41,10 +31,9 @@ import 'package:skill_tree/src/widgets/skill_vertex.dart';
 /// through to [RenderSkillTree] where they are laid out and rendered.
 class SkillTree<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
-  SkillTree({
+  SkillTree.layered({
     Key? key,
-    required this.edges,
-    required this.nodes,
+    required LayeredGraph<EdgeType, NodeType, IdType> graph,
     required this.delegate,
     this.onSave,
     this.serializeNode,
@@ -53,20 +42,15 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     this.deserializeEdge,
     this.nodeBuilder,
     this.edgeBuilder,
-  }) : super(
+  })  : _graph = graph,
+        super(
           key: key,
           children: <Widget>[
-            ...nodes.map((node) {
-              final graph = getGraph<EdgeType, NodeType, IdType>(
-                nodes: nodes,
-                edges: edges,
-                delegate: delegate,
-              );
-
+            ...graph.nodes.map((node) {
               return nodeBuilder?.call(node, graph) ??
                   defaultSkillNodeBuilder(node, graph);
             }),
-            ...edges.map(
+            ...graph.edges.map(
               (edge) {
                 return edgeBuilder?.call(edge) ??
                     defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
@@ -75,11 +59,38 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
           ],
         );
 
-  final List<Node<NodeType, IdType>> nodes;
+  SkillTree.radial({
+    Key? key,
+    required RadialGraph<EdgeType, NodeType, IdType> graph,
+    required this.delegate,
+    this.onSave,
+    this.serializeNode,
+    this.serializeEdge,
+    this.deserializeNode,
+    this.deserializeEdge,
+    this.nodeBuilder,
+    this.edgeBuilder,
+  })  : _graph = graph,
+        super(
+          key: key,
+          children: <Widget>[
+            ...graph.nodes.map((node) {
+              return nodeBuilder?.call(node, graph) ??
+                  defaultSkillNodeBuilder(node, graph);
+            }),
+            ...graph.edges.map(
+              (edge) {
+                return edgeBuilder?.call(edge) ??
+                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
+              },
+            ),
+          ],
+        );
 
-  final List<Edge<EdgeType, IdType>> edges;
+  final Graph<EdgeType, NodeType, IdType> _graph;
 
-  final SkillTreeDelegate<IdType> delegate;
+  final SkillTreeDelegate<EdgeType, NodeType, IdType,
+      Graph<EdgeType, NodeType, IdType>> delegate;
 
   final Function(Map<IdType, dynamic> json)? onSave;
 
@@ -123,7 +134,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
-  // TODO: This should be in its own class that handles all things drawing
+  // TODO: This should be in its own class/mixin/extension that handles all
+  // things drawing
   static void defaultEdgePainter({
     required Offset toNodeCenter,
     required Offset fromNodeCenter,
@@ -216,91 +228,24 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
-  Graph<EdgeType, NodeType, IdType> get graph {
-    return getGraph<EdgeType, NodeType, IdType>(
-      nodes: nodes,
-      edges: edges,
-      delegate: delegate,
-    );
-  }
-
-  static Graph<EdgeType, NodeType, IdType>
-      getGraph<EdgeType, NodeType, IdType extends Object>({
-    required List<Edge<EdgeType, IdType>> edges,
-    required List<Node<NodeType, IdType>> nodes,
-    required SkillTreeDelegate<IdType> delegate,
-  }) {
-    if (delegate is PositionedTreeDelegate<IdType>) {
-      return PositionedGraph<EdgeType, NodeType, IdType>(
-        nodes: nodes,
-        edges: edges,
-      );
-    } else if (delegate is RadialTreeDelegate<IdType>) {
-      return RadialGraph<EdgeType, NodeType, IdType>(
-        nodes: nodes,
-        edges: edges,
-      );
-    } else if (delegate is LayeredTreeDelegate<IdType>) {
-      return LayeredGraph<EdgeType, NodeType, IdType>(
-        nodes: nodes,
-        edges: edges,
-      );
-    } else {
-      throw ArgumentError(
-        'No graph could be constructed from delegate $delegate',
-      );
-    }
-  }
-
   @override
   void updateRenderObject(
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    if (renderObject is RenderPositionedLayout<EdgeType, NodeType, IdType>) {
-      renderObject
-        ..graph = graph
-        ..delegate = delegate as PositionedTreeDelegate<IdType>;
-    } else if (renderObject is RenderRadialLayout<EdgeType, NodeType, IdType>) {
-      renderObject
-        ..graph = graph
-        ..delegate = delegate as RadialTreeDelegate<IdType>;
-    } else if (renderObject
-        is RenderLayeredLayout<EdgeType, NodeType, IdType>) {
-      renderObject
-        ..graph = graph
-        ..delegate = delegate as LayeredTreeDelegate<IdType>;
-    } else {
-      throw ArgumentError(
-        'Unknown renderObject $renderObject is not a supported type.',
-      );
-    }
+    renderObject as RenderSkillTree
+      ..graph = _graph
+      ..delegate = delegate;
   }
 
   // We create a render object instead of a [CustomMultiChildLayout]
   // because we want to define our own ParentData necessary for the layout.
   @override
   RenderObject createRenderObject(BuildContext context) {
-    final _delegate = delegate;
-
-    if (_delegate is PositionedTreeDelegate<IdType>) {
-      return RenderPositionedLayout<EdgeType, NodeType, IdType>(
-        graph: graph,
-        delegate: _delegate,
-      );
-    } else if (_delegate is RadialTreeDelegate<IdType>) {
-      return RenderRadialLayout<EdgeType, NodeType, IdType>(
-        graph: graph,
-        delegate: _delegate,
-      );
-    } else if (_delegate is LayeredTreeDelegate<IdType>) {
-      return RenderLayeredLayout<EdgeType, NodeType, IdType>(
-        graph: graph,
-        delegate: _delegate,
-      );
-    } else {
-      throw ArgumentError('Delegate $_delegate is not a supported type.');
-    }
+    return RenderSkillTree<EdgeType, NodeType, IdType>(
+      delegate: delegate,
+      graph: _graph,
+    );
   }
 }
 
@@ -314,16 +259,19 @@ class SkillParentData extends ContainerBoxParentData<RenderBox> {}
 /// [MultChildCustomLayout] doesn't allow for setting the layout size based
 /// on the sizes of the children. Instead of that, therefore, we just define new
 /// layouts by implementing this class and creating a custom [RenderBox]
-abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
+class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,
         DebugOverflowIndicatorMixin {
-  // TODO: Different sub type graph types will not auto update layout unless we
-  // specify that in their respective renderObject thing.
-  RenderSkillTree({required Graph<EdgeType, NodeType, IdType> graph})
-      : _graph = graph;
+  RenderSkillTree({
+    required Graph<EdgeType, NodeType, IdType> graph,
+    required SkillTreeDelegate<EdgeType, NodeType, IdType,
+            Graph<EdgeType, NodeType, IdType>>
+        delegate,
+  })  : _graph = graph,
+        _delegate = delegate;
 
   Graph<EdgeType, NodeType, IdType> _graph;
   Graph<EdgeType, NodeType, IdType> get graph => _graph;
@@ -333,7 +281,24 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     markNeedsLayout();
   }
 
-  SkillTreeDelegate<IdType> get delegate;
+  // TODO: I don't like how I'm handling Graph type here...
+  SkillTreeDelegate<EdgeType, NodeType, IdType,
+      Graph<EdgeType, NodeType, IdType>> _delegate;
+  SkillTreeDelegate<EdgeType, NodeType, IdType,
+      Graph<EdgeType, NodeType, IdType>> get delegate => _delegate;
+  set delegate(
+    SkillTreeDelegate<EdgeType, NodeType, IdType,
+            Graph<EdgeType, NodeType, IdType>>
+        delegate,
+  ) {
+    if (_delegate == delegate) return;
+    _delegate = delegate;
+
+    if (delegate.runtimeType != _delegate.runtimeType ||
+        delegate.shouldRelayout(_delegate)) {
+      markNeedsLayout();
+    }
+  }
 
   @override
   void setupParentData(covariant RenderObject child) {
@@ -342,100 +307,16 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     }
   }
 
-  void layoutNodes();
-
   @override
   void performLayout() {
-    // TODO: Edges need to know the amount of space in the gutter available to
-    // them. Using that information, we can better constrain them when it comes
-    // to layout. I recommend we create a function template that takes in a node
-    // and returns the amount of space around it like so:
-    //  double getSpaceAroundNode(Node node) {
-    //    return node.spaceAround;
-    //  }
-    layoutNodes();
+    final loosenedConstraints = constraints.loosen();
 
-    /// We need to layout edges. However, an edge is not a direct RenderObject.
-    /// Instead, it is a MultiChildRenderObject. Therefore, we must position
-    /// the edges first based off the nodes.
-    ///
-    /// The positions and sizes of both edge terminals are needed to layout
-    /// this edge.
-    for (final edge in graph.edges) {
-      final edgeChild =
-          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
-      final edgeParentData = edgeChild.parentData
-          as SkillEdgeParentData<EdgeType, NodeType, IdType>;
-      final to = childForNode(graph.getNodeFromIdType(edge.to));
-      final toParentData = to.parentData as SkillParentData;
-      final toRect = toParentData.offset & to.size;
-      final from = childForNode(graph.getNodeFromIdType(edge.from));
-      final fromParentData = from.parentData as SkillParentData;
-      final fromRect = fromParentData.offset & from.size;
+    final skillNodeLayout = delegate.layoutNodes(
+      loosenedConstraints,
+      graph,
+    );
 
-      assert(
-        toRect.intersect(fromRect).isEmpty,
-        'Two nodes must not intersect one another.',
-      );
-
-      /// Specify in a 2d space where the "to" Node is relative to the "from"
-      /// node. (This will be used to orient the edge line and better draw
-      /// the vertex).
-      ///
-      /// We get a vector moving from "from" to "to" and get the direction of the
-      /// vector.
-      final _toAlignment = edgeParentData.toAlignment ?? Alignment.center;
-      final _fromAlignment = edgeParentData.fromAlignment ?? Alignment.center;
-      final angle = (_toAlignment.withinRect(fromRect) -
-              _fromAlignment.withinRect(toRect))
-          .direction;
-      final toAlignment =
-          (edgeParentData.toAlignment ?? getAlignmentForAngle(angle));
-      final fromAlignment = edgeParentData.fromAlignment ?? (toAlignment * -1);
-
-      final children = edgeChild.getChildrenAsList();
-      final toEdgeChild = children.singleWhere((child) {
-        return child.parentData is SkillVertexToParentData;
-      });
-      final toEdgeChildParentData =
-          toEdgeChild.parentData as SkillVertexParentData;
-      final fromEdgeChild = children.singleWhere((child) {
-        return child.parentData is SkillVertexFromParentData;
-      });
-      final fromEdgeChildParentData =
-          fromEdgeChild.parentData as SkillVertexParentData;
-
-      // TODO: I shouldn't use getDryLayout here as it has some issues.
-      // Do same as tooltip package.
-      final toEdgeSize = toEdgeChild.getDryLayout(constraints);
-      final fromEdgeSize = fromEdgeChild.getDryLayout(constraints);
-      final fromEdgeBox = fromAlignment
-              .withinRect(fromRect)
-              .translate(-fromEdgeSize.width / 2, -fromEdgeSize.height / 2) &
-          fromEdgeSize;
-      final toEdgeBox = toAlignment
-              .withinRect(toRect)
-              .translate(-toEdgeSize.width / 2, -toEdgeSize.height / 2) &
-          toEdgeSize;
-      final edgeBoundingBox = fromEdgeBox.expandToInclude(toEdgeBox);
-
-      edgeParentData.offset = edgeBoundingBox.topLeft;
-
-      toEdgeChildParentData.addPositionData(
-        fromEdgeBox.shift(-edgeBoundingBox.topLeft),
-      );
-      fromEdgeChildParentData.addPositionData(
-        toEdgeBox.shift(-edgeBoundingBox.topLeft),
-      );
-
-      // TODO: I'm not setting the constraints properly yet because the current
-      // boundingRect does not account for the gutter spacing. Gutter spacing
-      // seems dependent on layout type too...
-      // draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
-      // TODO: Prev todo might not be correct when dragging. A draggable should
-      // not have constraints so it can reach even the furthest nodes.
-      edgeChild.layout(constraints);
-    }
+    delegate.layoutEdges(constraints, skillNodeLayout, graph);
   }
 
   @override
@@ -446,7 +327,7 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     for (final edge in graph.edges) {
       final child = childForEdge(edge);
       final childParentData =
-          child.parentData as SkillEdgeParentData<EdgeType, NodeType, IdType>;
+          child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
       context.paintChild(
         child,
@@ -476,7 +357,6 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     return defaultHitTestChildren(result, position: position);
   }
 
-  // TODO: memoize this or something. Don't want to getChildrenAsList every time
   RenderBox childForNode(Node<NodeType, IdType> node) {
     return nodeChildren.singleWhere((child) {
       final parentData =
@@ -489,12 +369,13 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
   RenderBox childForEdge(Edge<EdgeType, IdType> edge) {
     return edgeChildren.singleWhere((child) {
       final parentData =
-          child.parentData as SkillEdgeParentData<EdgeType, NodeType, IdType>;
+          child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
       return parentData.id == edge.id;
     });
   }
 
+  // TODO: memoize this or something. Don't want to getChildrenAsList every time
   List<RenderBox> get nodeChildren {
     return getChildrenAsList().where((child) {
       return child.parentData is SkillNodeParentData<NodeType, IdType>;
@@ -503,8 +384,49 @@ abstract class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
   List<RenderBox> get edgeChildren {
     return getChildrenAsList().where((child) {
-      return child.parentData
-          is SkillEdgeParentData<EdgeType, NodeType, IdType>;
+      return child.parentData is SkillEdgeParentData<EdgeType, IdType>;
     }).toList();
   }
+}
+
+abstract class ChildDetails<ParentDataType extends ParentData> {
+  const ChildDetails();
+
+  RenderBox get child;
+
+  ParentDataType get parentData;
+}
+
+class NodeDetails<NodeType, IdType extends Object>
+    extends ChildDetails<SkillNodeParentData<NodeType, IdType>> {
+  const NodeDetails({
+    required this.child,
+    required this.parentData,
+    required this.node,
+  });
+
+  @override
+  final RenderBox child;
+
+  @override
+  final SkillNodeParentData<NodeType, IdType> parentData;
+
+  final Node<NodeType, IdType> node;
+}
+
+class EdgeDetails<EdgeType, IdType extends Object>
+    extends ChildDetails<SkillEdgeParentData<EdgeType, IdType>> {
+  const EdgeDetails({
+    required this.child,
+    required this.parentData,
+    required this.edge,
+  });
+
+  @override
+  final RenderBox child;
+
+  @override
+  final SkillEdgeParentData<EdgeType, IdType> parentData;
+
+  final Edge<EdgeType, IdType> edge;
 }

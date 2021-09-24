@@ -5,7 +5,7 @@ import 'package:skill_tree/src/skill_tree.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
-class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
+class SkillEdgeParentData<EdgeType, IdType extends Object>
     extends SkillParentData {
   EdgeType? data;
 
@@ -23,7 +23,7 @@ class SkillEdgeParentData<EdgeType, NodeType, IdType extends Object>
 }
 
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
-    extends ParentDataWidget<SkillEdgeParentData<EdgeType, NodeType, IdType>>
+    extends ParentDataWidget<SkillEdgeParentData<EdgeType, IdType>>
     implements Edge<EdgeType, IdType> {
   SkillEdge({
     Key? key,
@@ -73,19 +73,17 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   void applyParentData(RenderObject renderObject) {
-    if (renderObject.parentData
-        is! SkillEdgeParentData<EdgeType, NodeType, IdType>) {
+    if (renderObject.parentData is! SkillEdgeParentData<EdgeType, IdType>) {
       final parentData = renderObject.parentData as SkillParentData;
 
-      renderObject.parentData =
-          SkillEdgeParentData<EdgeType, NodeType, IdType>()
-            ..nextSibling = parentData.nextSibling
-            ..offset = parentData.offset
-            ..previousSibling = parentData.previousSibling;
+      renderObject.parentData = SkillEdgeParentData<EdgeType, IdType>()
+        ..nextSibling = parentData.nextSibling
+        ..offset = parentData.offset
+        ..previousSibling = parentData.previousSibling;
     }
 
-    final parentData = renderObject.parentData
-        as SkillEdgeParentData<EdgeType, NodeType, IdType>;
+    final parentData =
+        renderObject.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
     bool needsLayout = false;
     bool needsPaint = false;

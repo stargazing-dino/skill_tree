@@ -7,7 +7,10 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
   LayeredGraph({
     required this.edges,
     required this.nodes,
+    required this.layout,
   });
+
+  final List<List<IdType?>> layout;
 
   @override
   final List<Edge<EdgeType, IdType>> edges;

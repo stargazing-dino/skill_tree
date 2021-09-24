@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/models/delegate.dart';
 
 // TODO: We need to decide the origin of the plane so our offsets can be
@@ -6,11 +7,29 @@ import 'package:skill_tree/src/models/delegate.dart';
 
 /// A skill tree that lays out its nodes free hand based off the relative
 /// offsets of the nodes.
-class PositionedTreeDelegate<IdType extends Object>
-    extends SkillTreeDelegate<IdType> {
+class PositionedTreeDelegate<EdgeType, NodeType, IdType extends Object>
+    extends SkillTreeDelegate<EdgeType, NodeType, IdType,
+        PositionedGraph<EdgeType, NodeType, IdType>> {
   PositionedTreeDelegate({
     required this.positions,
   });
 
   final Map<IdType?, Offset> positions;
+
+  @override
+  SkillNodeLayout layoutNodes(
+    BoxConstraints constraints,
+    PositionedGraph<EdgeType, NodeType, IdType> graph,
+  ) {
+    // TODO: implement layoutEdges
+    throw UnimplementedError();
+  }
+
+  @override
+  bool shouldRelayout(
+    covariant PositionedTreeDelegate<EdgeType, NodeType, IdType> oldDelegate,
+  ) {
+    // TODO: implement shouldRelayout
+    throw UnimplementedError();
+  }
 }
