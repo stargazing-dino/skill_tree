@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/models/delegate.dart';
 
 // TODO: We need to decide the origin of the plane so our offsets can be
 // calculated.
@@ -17,9 +16,10 @@ class PositionedTreeDelegate<EdgeType, NodeType, IdType extends Object>
   final Map<IdType?, Offset> positions;
 
   @override
-  SkillNodeLayout layoutNodes(
+  SkillNodeLayout<NodeType, IdType> layoutNodes(
     BoxConstraints constraints,
     PositionedGraph<EdgeType, NodeType, IdType> graph,
+    List<NodeDetails<NodeType, IdType>> nodeChildrenDetails,
   ) {
     // TODO: implement layoutEdges
     throw UnimplementedError();

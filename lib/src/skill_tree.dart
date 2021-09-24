@@ -1,17 +1,22 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/graphs/layered_graph.dart';
 import 'package:skill_tree/src/graphs/radial_graph.dart';
-import 'package:skill_tree/src/models/delegate.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
+import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
+import 'package:skill_tree/src/widgets/edge_line.dart';
+import 'package:skill_tree/src/widgets/skill_vertex.dart';
+
+part './models/delegate.dart';
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
@@ -52,6 +57,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
             }),
             ...graph.edges.map(
               (edge) {
+                // TODO: Does this need graph?
                 return edgeBuilder?.call(edge) ??
                     defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
               },
@@ -233,7 +239,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    renderObject as RenderSkillTree
+    renderObject as RenderSkillTree<EdgeType, NodeType, IdType>
       ..graph = _graph
       ..delegate = delegate;
   }
@@ -249,6 +255,9 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   }
 }
 
+/// A super parent data class that is temporarily initialized in
+/// [RenderSkillTree] to later then be converted to [SkillNodeParentData] or
+/// [SkillEdgeParentData] respective of the type of the child.
 class SkillParentData extends ContainerBoxParentData<RenderBox> {}
 
 /// This class provides useful abstractions across both the graph theory model
@@ -257,14 +266,17 @@ class SkillParentData extends ContainerBoxParentData<RenderBox> {}
 /// This class can be considered a sort of [MultiChildLayoutDelegate]. However,
 /// it is not for technical reasons. One of them being that using a
 /// [MultChildCustomLayout] doesn't allow for setting the layout size based
-/// on the sizes of the children. Instead of that, therefore, we just define new
-/// layouts by implementing this class and creating a custom [RenderBox]
+/// on the sizes of the children.
+///
+/// This class abstracts down to two operations. One for drawing nodes and the
+/// other for drawing edges.
 class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SkillParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SkillParentData>,
         DebugOverflowIndicatorMixin {
+  /// Creates a render object that lays out both nodes and edges.
   RenderSkillTree({
     required Graph<EdgeType, NodeType, IdType> graph,
     required SkillTreeDelegate<EdgeType, NodeType, IdType,
@@ -272,6 +284,13 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         delegate,
   })  : _graph = graph,
         _delegate = delegate;
+
+  @override
+  void setupParentData(covariant RenderObject child) {
+    if (child.parentData is! SkillParentData) {
+      child.parentData = SkillParentData();
+    }
+  }
 
   Graph<EdgeType, NodeType, IdType> _graph;
   Graph<EdgeType, NodeType, IdType> get graph => _graph;
@@ -292,31 +311,71 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         delegate,
   ) {
     if (_delegate == delegate) return;
-    _delegate = delegate;
-
     if (delegate.runtimeType != _delegate.runtimeType ||
         delegate.shouldRelayout(_delegate)) {
       markNeedsLayout();
     }
+    _delegate = delegate;
+    if (attached) {
+      _delegate._relayout?.removeListener(markNeedsLayout);
+      delegate._relayout?.addListener(markNeedsLayout);
+    }
   }
 
   @override
-  void setupParentData(covariant RenderObject child) {
-    if (child.parentData is! SkillParentData) {
-      child.parentData = SkillParentData();
-    }
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _delegate._relayout?.addListener(markNeedsLayout);
+  }
+
+  @override
+  void detach() {
+    _delegate._relayout?.removeListener(markNeedsLayout);
+    super.detach();
   }
 
   @override
   void performLayout() {
     final loosenedConstraints = constraints.loosen();
+    final nodeChildrenDetails = graph.nodes.map((node) {
+      final child = childForNode(node);
+      final parentData =
+          child.parentData as SkillNodeParentData<NodeType, IdType>;
+
+      return NodeDetails(
+        child: child,
+        parentData: parentData,
+        node: node,
+      );
+    }).toList();
+    final edgeChildrenDetails = graph.edges.map((edge) {
+      final child =
+          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final parentData =
+          child.parentData as SkillEdgeParentData<EdgeType, IdType>;
+
+      return EdgeDetails<EdgeType, NodeType, IdType>(
+        child: child,
+        parentData: parentData,
+        edge: edge,
+      );
+    }).toList();
 
     final skillNodeLayout = delegate.layoutNodes(
       loosenedConstraints,
       graph,
+      nodeChildrenDetails,
     );
 
-    delegate.layoutEdges(constraints, skillNodeLayout, graph);
+    size = skillNodeLayout.size;
+
+    delegate.layoutEdges(
+      loosenedConstraints,
+      skillNodeLayout,
+      graph,
+      edgeChildrenDetails,
+      nodeChildrenDetails,
+    );
   }
 
   @override
@@ -389,6 +448,8 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
   }
 }
 
+// TODO: I'm not a fan of these rather useless classes.
+// Should I bring in tuple?
 abstract class ChildDetails<ParentDataType extends ParentData> {
   const ChildDetails();
 
@@ -414,7 +475,7 @@ class NodeDetails<NodeType, IdType extends Object>
   final Node<NodeType, IdType> node;
 }
 
-class EdgeDetails<EdgeType, IdType extends Object>
+class EdgeDetails<EdgeType, NodeType, IdType extends Object>
     extends ChildDetails<SkillEdgeParentData<EdgeType, IdType>> {
   const EdgeDetails({
     required this.child,
@@ -423,7 +484,7 @@ class EdgeDetails<EdgeType, IdType extends Object>
   });
 
   @override
-  final RenderBox child;
+  final RenderEdgeLine<EdgeType, NodeType, IdType> child;
 
   @override
   final SkillEdgeParentData<EdgeType, IdType> parentData;

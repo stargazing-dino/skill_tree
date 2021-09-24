@@ -10,6 +10,7 @@ import 'package:skill_tree/src/models/node.dart';
 abstract class Graph<EdgeType, NodeType, IdType extends Object>
     with IterableMixin<Node<NodeType, IdType>> {
   Graph() {
+    // TODO: Move this somewhere else so we can have const constructors
     /// This runs on subclasses
     assert(debugCheckGraph(edges: edges, nodes: nodes));
   }

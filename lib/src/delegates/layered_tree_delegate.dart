@@ -4,12 +4,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
-import 'package:skill_tree/src/models/delegate.dart';
 
 class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
     extends SkillTreeDelegate<EdgeType, NodeType, IdType,
         LayeredGraph<EdgeType, NodeType, IdType>> {
-  const LayeredTreeDelegate({
+  LayeredTreeDelegate({
     this.crossAxisSpacing = 0,
     this.mainAxisSpacing = 0,
     this.crossAxisAlignment = CrossAxisAlignment.start,
@@ -21,12 +20,11 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
 
   final CrossAxisAlignment crossAxisAlignment;
 
-  // final equality = const DeepCollectionEquality();
-
   @override
-  SkillNodeLayout layoutNodes(
+  SkillNodeLayout<NodeType, IdType> layoutNodes(
     BoxConstraints constraints,
     LayeredGraph<EdgeType, NodeType, IdType> graph,
+    List<NodeDetails<NodeType, IdType>> nodeChildrenDetails,
   ) {
     // Each child will have 1 / maxLayerFlex of the space
     final layerSizes = graph.layout.map((layer) => layer.length).toList();
@@ -55,10 +53,11 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
       for (final id in layer) {
         if (id == null) continue;
 
-        final node = graph.nodes.singleWhere((node) => node.id == id);
-        final child = childForNode(node) as RenderBox;
-        final maxWidth = maxChildWidth;
-        final height = child.getDryLayout(constraints).height;
+        final nodeDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
+          return nodeDetails.node.id == id;
+        });
+        final child = nodeDetails.child;
+        final height = child.getMaxIntrinsicHeight(maxChildWidth);
 
         layerHeight = max(height, layerHeight);
       }
@@ -69,14 +68,18 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
       for (final id in layer) {
         if (id == null) continue;
 
-        final node = graph.nodes.singleWhere((node) => node.id == id);
-        final child = childForNode(node);
+        final nodeDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
+          return nodeDetails.node.id == id;
+        });
         final childConstraints = constraints.copyWith(
           maxWidth: maxChildWidth,
           maxHeight: layerHeight,
         );
 
-        child.layout(childConstraints, parentUsesSize: true);
+        // TODO: Should this be moved to delegate like `layoutChild`?
+        // TODO: Similar to [MultiChildLayoutDelegate] I should probably have
+        // debug asserts that ensure every child was laid out.
+        nodeDetails.child.layout(childConstraints, parentUsesSize: true);
       }
     }
 
@@ -97,9 +100,10 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
 
         if (id == null) continue;
 
-        final node = graph.nodes.singleWhere((node) => node.id == id);
-        final child = childForNode(node);
-        final childParentData = child.parentData as SkillNodeParentData;
+        final nodeDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
+          return nodeDetails.node.id == id;
+        });
+        final childParentData = nodeDetails.parentData;
 
         childParentData.offset = Offset(dx, dy);
       }
@@ -107,9 +111,11 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
       dy += layerHeight;
     }
 
-    size = Size(
-      constraints.maxWidth,
-      layerHeights.fold(0.0, (acc, element) => acc += element),
+    return SkillNodeLayout(
+      size: Size(
+        constraints.maxWidth,
+        layerHeights.fold(0.0, (acc, element) => acc += element),
+      ),
     );
   }
 
@@ -117,7 +123,7 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
   bool shouldRelayout(
     covariant LayeredTreeDelegate<EdgeType, NodeType, IdType> oldDelegate,
   ) {
-    return oldDelegate == this;
+    return oldDelegate != this;
   }
 
   @override

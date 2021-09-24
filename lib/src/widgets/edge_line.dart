@@ -164,6 +164,7 @@ class RenderEdgeLine<EdgeType, NodeType, IdType extends Object>
       allNodeRects.add(nodeRect);
     }
 
+    // TODO: This should somehow recieve the node data of all nodes too
     edgePainter(
       toNodeCenter: _toCenter,
       fromNodeCenter: _fromCenter,

@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:skill_tree/src/models/graph.dart';
-import 'package:skill_tree/src/skill_edge.dart';
-import 'package:skill_tree/src/skill_tree.dart';
-import 'package:skill_tree/src/widgets/edge_line.dart';
-import 'package:skill_tree/src/widgets/skill_vertex.dart';
+part of '../skill_tree.dart';
 
 /// A delegate decides the layout to be used for the skill tree
 ///
@@ -13,14 +8,18 @@ import 'package:skill_tree/src/widgets/skill_vertex.dart';
 /// than holding layout config.
 abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
     GraphType extends Graph<EdgeType, NodeType, IdType>> {
-  /// Abstract const constructor. This constructor enables subclasses to provide
-  /// const constructors so that they can be used in const expressions.
-  const SkillTreeDelegate();
+  /// Creates a layout delegate.
+  ///
+  /// The layout will update whenever [relayout] notifies its listeners.
+  SkillTreeDelegate({Listenable? relayout}) : _relayout = relayout;
 
-  /// Returns information about the size and position of the tiles in the grid.
-  SkillNodeLayout layoutNodes(
+  final Listenable? _relayout;
+
+  /// Returns information about the size and position of the nodes
+  SkillNodeLayout<NodeType, IdType> layoutNodes(
     BoxConstraints constraints,
     GraphType graph,
+    List<NodeDetails<NodeType, IdType>> nodeChildrenDetails,
   );
 
   /// We need to layout edges. However, an edge is not a direct RenderObject.
@@ -31,20 +30,26 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
   /// this edge.
   void layoutEdges(
     BoxConstraints constraints,
-    SkillNodeLayout skillNodeLayout,
+    SkillNodeLayout<NodeType, IdType> skillNodeLayout,
     GraphType graph,
+    List<EdgeDetails<EdgeType, NodeType, IdType>> edgeChildrenDetails,
+    List<NodeDetails<NodeType, IdType>> nodeChildrenDetails,
   ) {
-    for (final edge in graph.edges) {
-      final edgeChild =
-          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
-      final edgeParentData =
-          edgeChild.parentData as SkillEdgeParentData<EdgeType, IdType>;
-      final to = childForNode(graph.getNodeFromIdType(edge.to));
-      final toParentData = to.parentData as SkillParentData;
-      final toRect = toParentData.offset & to.size;
-      final from = childForNode(graph.getNodeFromIdType(edge.from));
-      final fromParentData = from.parentData as SkillParentData;
-      final fromRect = fromParentData.offset & from.size;
+    for (final edgeDetails in edgeChildrenDetails) {
+      final edgeChild = edgeDetails.child;
+      final edgeParentData = edgeDetails.parentData;
+      final toDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
+        return nodeDetails.node.id == edgeDetails.edge.to;
+      });
+      final toChild = toDetails.child;
+      final toParentData = toDetails.parentData;
+      final toRect = toParentData.offset & toChild.size;
+      final fromDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
+        return nodeDetails.node.id == edgeDetails.edge.from;
+      });
+      final fromChild = fromDetails.child;
+      final fromParentData = fromDetails.parentData;
+      final fromRect = fromParentData.offset & fromChild.size;
 
       assert(
         toRect.intersect(fromRect).isEmpty,
@@ -121,6 +126,13 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
     covariant SkillTreeDelegate<EdgeType, NodeType, IdType, GraphType>
         oldDelegate,
   );
+
+  /// Override this method to include additional information in the
+  /// debugging data printed by [debugDumpRenderTree] and friends.
+  ///
+  /// By default, returns the [runtimeType] of the class.
+  @override
+  String toString() => objectRuntimeType(this, 'SkillTreeDelegae');
 }
 
 // TODO: Edges need to know the amount of space in the gutter available to
@@ -132,13 +144,13 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
 //  }
 
 @immutable
-abstract class SkillNodeLayout {
+class SkillNodeLayout<NodeType, IdType extends Object> {
   /// Abstract const constructor. This constructor enables subclasses to provide
   /// const constructors so that they can be used in const expressions.
-  const SkillNodeLayout();
+  const SkillNodeLayout({required this.size});
 
   // /// The minimum child index that intersects with (or is after) this scroll offset.
-  // int getMinChildIndexForScrollOffset(double scrollOffset);
+  // int getSpaceAroundForNode(Node<NodeType, IdType> node);
 
   // /// The maximum child index that intersects with (or is before) this scroll offset.
   // int getMaxChildIndexForScrollOffset(double scrollOffset);
@@ -151,4 +163,6 @@ abstract class SkillNodeLayout {
   // ///
   // /// The child count will never be null.
   // double computeMaxScrollOffset(int childCount);
+
+  final Size size;
 }

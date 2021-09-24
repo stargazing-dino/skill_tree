@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/widgets/edge_line.dart';
 
 // TODO: Justify the use of ParentData like this
-// TODO: Rename vertex to something else. Maybe end? or terminal?
+// TODO: Rename vertex to something else. Maybe end? or terminal? tail and head
 
 class SkillVertexParentData extends ContainerBoxParentData<RenderBox> {
   void addPositionData(Rect rect) {
