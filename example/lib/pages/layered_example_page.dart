@@ -14,20 +14,77 @@ class LayeredExamplePage extends StatefulWidget {
 
 class _LayeredExamplePageState extends State<LayeredExamplePage> {
   final seed = Random().nextInt(5000);
+  int avaialablePoints = 20;
+
+  var graph = const LayeredGraph(
+    layout: [
+      ['0', '1', '2', null],
+      ['3', '4', '5', null],
+      ['6', '7', '8', null],
+      [null, '9', '10', null],
+      ['11', '12', null, '13'],
+      [null, null, '14', null],
+      [null, '15', '16', null],
+    ],
+    nodes: [
+      Node(id: '0', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '1', data: NodeInfo(value: 5, maxValue: 5)),
+      Node(id: '2', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '3', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '4', data: NodeInfo(value: 5, maxValue: 5)),
+      Node(id: '5', data: NodeInfo(value: 2, maxValue: 2)),
+      Node(id: '6', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '7', data: NodeInfo(value: 2, maxValue: 5)),
+      Node(id: '8', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '9', data: NodeInfo(value: 0, maxValue: 1)),
+      Node(id: '10', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '11', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '12', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '13', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '14', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '15', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '16', data: NodeInfo(value: 0, maxValue: 5)),
+    ],
+    edges: [
+      // SkillEdge<void, NodeInfo, String>(
+      //   from: '10',
+      //   to: '13',
+      //   data: null,
+      //   id: '10-13',
+      //   toAlignment: Alignment.centerLeft,
+      //   fromAlignment: Alignment.topLeft,
+      //   name: '',
+      //   fromChild: Container(
+      //     height: 20.0,
+      //     width: 20.0,
+      //     color: Colors.pink,
+      //     child: const Placeholder(),
+      //   ),
+      //   edgePainter: SkillTree.defaultEdgePainter,
+      //   toChild: Container(
+      //     height: 20.0,
+      //     width: 20.0,
+      //     color: Colors.blue,
+      //     child: const Placeholder(),
+      //   ),
+      //   // toAlignment: Alignment.topCenter,
+      //   // fromAlignment: Alignment.bottomCenter,
+      // ),
+      Edge(from: '7', to: '9', data: null),
+      Edge(from: '10', to: '14', data: null),
+      Edge(from: '12', to: '15', data: null),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Stack(
       fit: StackFit.passthrough,
       children: [
-        Image.asset(
-          'assets/ruined_city.png',
-          fit: BoxFit.cover,
-        ),
+        Image.asset('assets/ruined_city.png', fit: BoxFit.cover),
         Scaffold(
-          backgroundColor: theme.primaryColor.withAlpha(20),
+          floatingActionButton: SkillPoints(avaialablePoints),
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
             systemOverlayStyle: SystemUiOverlayStyle.light,
             title: const Text(
@@ -38,95 +95,138 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: SkillTree<void, NodeInfo, String>.layered(
-              // TODO: I feel like layout should somehow be apart of graph...
               delegate: LayeredTreeDelegate(
-                mainAxisSpacing: 28.0,
+                mainAxisSpacing: 18.0,
                 crossAxisSpacing: 12.0,
               ),
               nodeBuilder: (node, graph) {
+                // TODO: This logic needs to be cleaned up or added into the
+                // graph model for users to use.
+
+                assert(avaialablePoints >= 0);
+                final hasAvailablePoints = avaialablePoints != 0;
+                const pointsPerLayer = 5;
                 final edges = graph.edgesForNode(node);
                 final fromNodes = edges
                     .map((edge) => graph.getNodeFromIdType(edge.from))
+                    .where((_node) => node != _node)
                     .toList();
-                final isUnlockable = fromNodes.every((node) {
-                  return node.data.isUnlocked;
+                final previousNodesAreMaxed = fromNodes.every((_node) {
+                  return _node.data.isMaxedOut;
                 });
+                final ancestorLayers = graph.ancestorLayersForNode(node);
+                final layerOfNode = graph.layerForNode(node);
+                final pointsToUnlock = pointsPerLayer * layerOfNode;
+                final pointInAncestorLayers = ancestorLayers.fold<int>(
+                  0,
+                  (acc, layer) {
+                    acc += layer.fold<int>(0, (acc, id) {
+                      if (id != null) {
+                        final node = graph.getNodeFromIdType(id);
+                        acc += node.data.value;
+                      }
 
+                      return acc;
+                    });
+                    return acc;
+                  },
+                );
+
+                final canBeUnlocked = pointsToUnlock <= pointInAncestorLayers &&
+                    hasAvailablePoints;
                 final photoId = int.parse(node.id) + 1;
 
                 return SkillNode.fromNode(
                   node: node,
                   child: Item(
-                    isUnlockable: isUnlockable,
+                    onTap: hasAvailablePoints &&
+                            canBeUnlocked &&
+                            !node.data.isMaxedOut
+                        ? () {
+                            // iterate backwards through graph nodes
+                            for (var i = graph.nodes.length - 1; i >= 0; i--) {
+                              final currentNode = graph.nodes[i];
+
+                              // TODO: Have a good way to update a node or edge
+                              // on the graph class
+                              if (currentNode == node) {
+                                graph.nodes.removeAt(i);
+                                graph.nodes.insert(
+                                  i,
+                                  node.copyWith(
+                                    data: node.data
+                                        .copyWith(value: node.data.value + 1),
+                                  ),
+                                );
+
+                                setState(() {
+                                  avaialablePoints--;
+                                });
+                              }
+                            }
+                          }
+                        : null,
+                    canUnlock: hasAvailablePoints &&
+                        canBeUnlocked &&
+                        previousNodesAreMaxed &&
+                        !node.data.isMaxedOut,
+                    isUnreachable: !canBeUnlocked || !previousNodesAreMaxed,
                     node: node,
                     photoNumber: photoId,
                     seed: seed,
                   ),
                 );
               },
-              graph: LayeredGraph(
-                layout: [
-                  ['0', '1', '2'],
-                  ['3', '4', '5', null],
-                  ['6', '7', '8', null],
-                  [null, '9', '10', null],
-                  ['11', '12', null, '13'],
-                  [null, null, '14', null],
-                  [null, '15', '16', null],
-                ],
-                nodes: const [
-                  Node(id: '0', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '1', data: NodeInfo(value: 5, maxValue: 5)),
-                  Node(id: '2', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '3', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '4', data: NodeInfo(value: 5, maxValue: 5)),
-                  Node(id: '5', data: NodeInfo(value: 2, maxValue: 2)),
-                  Node(id: '6', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '7', data: NodeInfo(value: 2, maxValue: 5)),
-                  Node(id: '8', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '9', data: NodeInfo(value: 0, maxValue: 1)),
-                  Node(id: '10', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '11', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '12', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '13', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '14', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '15', data: NodeInfo(value: 0, maxValue: 5)),
-                  Node(id: '16', data: NodeInfo(value: 0, maxValue: 5)),
-                ],
-                edges: const [
-                  // SkillEdge<void, NodeInfo, String>(
-                  //   from: '10',
-                  //   to: '13',
-                  //   data: null,
-                  //   id: '10-13',
-                  //   toAlignment: Alignment.centerLeft,
-                  //   fromAlignment: Alignment.topLeft,
-                  //   name: '',
-                  //   fromChild: Container(
-                  //     height: 20.0,
-                  //     width: 20.0,
-                  //     color: Colors.pink,
-                  //     child: const Placeholder(),
-                  //   ),
-                  //   edgePainter: SkillTree.defaultEdgePainter,
-                  //   toChild: Container(
-                  //     height: 20.0,
-                  //     width: 20.0,
-                  //     color: Colors.blue,
-                  //     child: const Placeholder(),
-                  //   ),
-                  //   // toAlignment: Alignment.topCenter,
-                  //   // fromAlignment: Alignment.bottomCenter,
-                  // ),
-                  Edge(from: '7', to: '9', data: null),
-                  Edge(from: '10', to: '14', data: null),
-                  Edge(from: '12', to: '15', data: null),
-                ],
-              ),
+              edgeBuilder: (edge, graph) {
+                return SkillEdge(
+                  edgePainter: defaultCubicEdgePainter,
+                  fromChild: Container(
+                    color: Colors.pink,
+                    width: 20,
+                    height: 20,
+                  ),
+                  toChild: Container(
+                    color: Colors.grey,
+                    width: 20,
+                    height: 20,
+                  ),
+                  name: edge.name,
+                  data: null,
+                  id: edge.id,
+                  from: edge.from,
+                  to: edge.to,
+                );
+              },
+              graph: graph,
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class SkillPoints extends StatelessWidget {
+  const SkillPoints(this.avaialablePoints, {Key? key}) : super(key: key);
+
+  final int avaialablePoints;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.green[900],
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        child: Text(
+          avaialablePoints.toString(),
+          style: theme.textTheme.headline6,
+        ),
+      ),
     );
   }
 }
@@ -142,9 +242,19 @@ class NodeInfo {
         assert(maxValue >= 0),
         assert(value <= maxValue);
 
-  bool get isUnlocked => value == maxValue;
+  bool get isMaxedOut => value == maxValue;
 
   final int value;
 
   final int maxValue;
+
+  NodeInfo copyWith({
+    int? value,
+    int? maxValue,
+  }) {
+    return NodeInfo(
+      value: value ?? this.value,
+      maxValue: maxValue ?? this.maxValue,
+    );
+  }
 }

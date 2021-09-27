@@ -9,7 +9,7 @@
 A package to build skill trees of any kind. This package differs from `graphview` as it only tries to provide users an interface to make a skill tree rather than a general purpose graph viewer.
 
 # TODO
-- [ ] Moved all custom layout stuff to delegate
+- [x] Moved all custom layout stuff to delegate
 - [x] Layered tree layout
 - [ ] Radial tree layout
 - [ ] Positioned layout

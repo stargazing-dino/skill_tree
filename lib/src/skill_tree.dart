@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
+import 'package:skill_tree/src/edge_route_painting/spline_edge.dart';
 import 'package:skill_tree/src/graphs/layered_graph.dart';
 import 'package:skill_tree/src/graphs/radial_graph.dart';
 import 'package:skill_tree/src/models/edge.dart';
@@ -17,6 +18,20 @@ import 'package:skill_tree/src/widgets/edge_line.dart';
 import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 part './models/delegate.dart';
+
+typedef EdgeBuilder<EdgeType, NodeType, IdType extends Object,
+        GraphType extends Graph<EdgeType, NodeType, IdType>>
+    = SkillEdge<EdgeType, NodeType, IdType> Function(
+  Edge<EdgeType, IdType> edge,
+  GraphType graph,
+);
+
+typedef NodeBuilder<EdgeType, NodeType, IdType extends Object,
+        GraphType extends Graph<EdgeType, NodeType, IdType>>
+    = SkillNode<NodeType, IdType> Function(
+  Node<NodeType, IdType> node,
+  GraphType graph,
+);
 
 // TODO: Column has it so it can nest itself because it itself is a Flex. We
 // should have something like the same so we can nest skill trees.
@@ -36,18 +51,19 @@ part './models/delegate.dart';
 /// through to [RenderSkillTree] where they are laid out and rendered.
 class SkillTree<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
+  /// Defines a graph and delegate specific to a LayeredGraph.
   SkillTree.layered({
     Key? key,
     required LayeredGraph<EdgeType, NodeType, IdType> graph,
-    required this.delegate,
-    this.onSave,
-    this.serializeNode,
-    this.serializeEdge,
-    this.deserializeNode,
-    this.deserializeEdge,
-    this.nodeBuilder,
-    this.edgeBuilder,
+    required LayeredTreeDelegate<EdgeType, NodeType, IdType> delegate,
+    NodeBuilder<EdgeType, NodeType, IdType,
+            LayeredGraph<EdgeType, NodeType, IdType>>?
+        nodeBuilder,
+    EdgeBuilder<EdgeType, NodeType, IdType,
+            LayeredGraph<EdgeType, NodeType, IdType>>?
+        edgeBuilder,
   })  : _graph = graph,
+        _delegate = delegate,
         super(
           key: key,
           children: <Widget>[
@@ -57,9 +73,11 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
             }),
             ...graph.edges.map(
               (edge) {
-                // TODO: Does this need graph?
-                return edgeBuilder?.call(edge) ??
-                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
+                return edgeBuilder?.call(edge, graph) ??
+                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(
+                      edge,
+                      graph,
+                    );
               },
             ),
           ],
@@ -68,15 +86,15 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   SkillTree.radial({
     Key? key,
     required RadialGraph<EdgeType, NodeType, IdType> graph,
-    required this.delegate,
-    this.onSave,
-    this.serializeNode,
-    this.serializeEdge,
-    this.deserializeNode,
-    this.deserializeEdge,
-    this.nodeBuilder,
-    this.edgeBuilder,
+    required RadialTreeDelegate<EdgeType, NodeType, IdType> delegate,
+    NodeBuilder<EdgeType, NodeType, IdType,
+            RadialGraph<EdgeType, NodeType, IdType>>?
+        nodeBuilder,
+    EdgeBuilder<EdgeType, NodeType, IdType,
+            RadialGraph<EdgeType, NodeType, IdType>>?
+        edgeBuilder,
   })  : _graph = graph,
+        _delegate = delegate,
         super(
           key: key,
           children: <Widget>[
@@ -86,8 +104,11 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
             }),
             ...graph.edges.map(
               (edge) {
-                return edgeBuilder?.call(edge) ??
-                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(edge);
+                return edgeBuilder?.call(edge, graph) ??
+                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(
+                      edge,
+                      graph,
+                    );
               },
             ),
           ],
@@ -96,26 +117,7 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   final Graph<EdgeType, NodeType, IdType> _graph;
 
   final SkillTreeDelegate<EdgeType, NodeType, IdType,
-      Graph<EdgeType, NodeType, IdType>> delegate;
-
-  final Function(Map<IdType, dynamic> json)? onSave;
-
-  final Map<IdType, dynamic> Function(NodeType value)? serializeNode;
-
-  final Map<IdType, dynamic> Function(EdgeType value)? serializeEdge;
-
-  final NodeType Function(Map<IdType, dynamic> json)? deserializeNode;
-
-  final EdgeType Function(Map<IdType, dynamic> json)? deserializeEdge;
-
-  final SkillNode<NodeType, IdType> Function(
-    Node<NodeType, IdType> node,
-    Graph<EdgeType, NodeType, IdType> graph,
-  )? nodeBuilder;
-
-  final SkillEdge<EdgeType, NodeType, IdType> Function(
-    Edge<EdgeType, IdType> edge,
-  )? edgeBuilder;
+      Graph<EdgeType, NodeType, IdType>> _delegate;
 
   static SkillNode<NodeType, IdType>
       defaultSkillNodeBuilder<NodeType, EdgeType, IdType extends Object>(
@@ -140,69 +142,10 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     );
   }
 
-  // TODO: This should be in its own class/mixin/extension that handles all
-  // things drawing
-  static void defaultEdgePainter({
-    required Offset toNodeCenter,
-    required Offset fromNodeCenter,
-    required List<Rect> allNodeRects,
-    required Canvas canvas,
-  }) {
-    final paint = Paint()
-      ..color = Colors.grey
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke;
-
-    final path = Path()
-      ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
-      ..lineTo(toNodeCenter.dx, toNodeCenter.dy);
-
-    canvas.drawPath(path, paint);
-    canvas.drawShadow(
-      path,
-      Colors.grey,
-      4,
-      false,
-    );
-  }
-
-  static void defaultCubicEdgePainter({
-    required Offset toNodeCenter,
-    required Offset fromNodeCenter,
-    required List<Rect> allNodeRects,
-    required Canvas canvas,
-  }) {
-    final paint = Paint()
-      ..color = Colors.grey
-      ..strokeWidth = 5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    final rect = Rect.fromPoints(toNodeCenter, fromNodeCenter);
-    final double xA, yA, xB, yB;
-
-    // a cubic line looks better when it runs along the narrower side
-    if (rect.width < rect.height) {
-      xA = toNodeCenter.dx;
-      yA = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.25)!;
-      xB = fromNodeCenter.dx;
-      yB = lerpDouble(fromNodeCenter.dy, toNodeCenter.dy, 0.75)!;
-    } else {
-      xA = lerpDouble(fromNodeCenter.dx, toNodeCenter.dx, 0.25)!;
-      yA = toNodeCenter.dy;
-      xB = lerpDouble(fromNodeCenter.dx, toNodeCenter.dx, 0.75)!;
-      yB = fromNodeCenter.dy;
-    }
-
-    final path = Path()
-      ..moveTo(fromNodeCenter.dx, fromNodeCenter.dy)
-      ..cubicTo(xA, yA, xB, yB, toNodeCenter.dx, toNodeCenter.dy);
-
-    canvas.drawPath(path, paint);
-  }
-
   static SkillEdge<EdgeType, NodeType, IdType>
       defaultSkillEdgeBuilder<EdgeType, NodeType, IdType extends Object>(
     Edge<EdgeType, IdType> edge,
+    Graph<EdgeType, NodeType, IdType> graph,
   ) {
     if (edge is SkillEdge<EdgeType, NodeType, IdType>) {
       return edge;
@@ -210,26 +153,12 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
 
     return SkillEdge<EdgeType, NodeType, IdType>(
       edgePainter: defaultCubicEdgePainter,
-      toChild: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.blue,
-        ),
-        width: 20,
-        height: 20,
-      ),
-      fromChild: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.yellow,
-        ),
-        height: 20,
-        width: 20,
-      ),
+      fromChild: const SizedBox.shrink(),
+      toChild: const SizedBox.shrink(),
       name: edge.name,
       data: edge.data,
-      from: edge.from,
       id: edge.id,
+      from: edge.from,
       to: edge.to,
     );
   }
@@ -241,15 +170,17 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
   ) {
     renderObject as RenderSkillTree<EdgeType, NodeType, IdType>
       ..graph = _graph
-      ..delegate = delegate;
+      ..delegate = _delegate;
   }
 
   // We create a render object instead of a [CustomMultiChildLayout]
   // because we want to define our own ParentData necessary for the layout.
   @override
   RenderObject createRenderObject(BuildContext context) {
+    assert(_graph.debugCheckGraph);
+
     return RenderSkillTree<EdgeType, NodeType, IdType>(
-      delegate: delegate,
+      delegate: _delegate,
       graph: _graph,
     );
   }
@@ -348,6 +279,16 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         node: node,
       );
     }).toList();
+    final skillNodeLayout = delegate.layoutNodes(
+      loosenedConstraints,
+      graph,
+      nodeChildrenDetails,
+    );
+
+    // addAll();
+
+    size = skillNodeLayout.size;
+
     final edgeChildrenDetails = graph.edges.map((edge) {
       final child =
           childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
@@ -360,14 +301,6 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         edge: edge,
       );
     }).toList();
-
-    final skillNodeLayout = delegate.layoutNodes(
-      loosenedConstraints,
-      graph,
-      nodeChildrenDetails,
-    );
-
-    size = skillNodeLayout.size;
 
     delegate.layoutEdges(
       loosenedConstraints,
@@ -382,9 +315,22 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
   void paint(PaintingContext context, Offset offset) {
     // TODO: Should I use composite layers? What is their benefit?
     // TODO: Draw paintOverflows here.
+    final constraintsRect = offset & constraints.biggest;
+    final treeRect = offset & size;
 
+    if (constraintsRect.expandToInclude(treeRect) != constraintsRect) {
+      paintOverflowIndicator(
+        context,
+        offset,
+        constraintsRect,
+        treeRect,
+      );
+    }
+
+    /// Draw the edges lines
     for (final edge in graph.edges) {
-      final child = childForEdge(edge);
+      final child =
+          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
       final childParentData =
           child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
@@ -403,6 +349,16 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
         child,
         childParentData.offset + offset,
       );
+    }
+
+    /// Draw the edges ends.
+    for (final edge in graph.edges) {
+      final child =
+          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final childParentData =
+          child.parentData as SkillEdgeParentData<EdgeType, IdType>;
+
+      child.defaultPaint(context, childParentData.offset + offset);
     }
   }
 

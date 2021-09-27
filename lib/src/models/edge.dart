@@ -45,6 +45,20 @@ class Edge<EdgeType, IdType extends Object> {
 }
 
 extension CastEdge<EdgeType, IdType extends Object> on Edge<EdgeType, IdType> {
+  Edge<EdgeType, IdType> copyWith({
+    EdgeType? data,
+    IdType? from,
+    IdType? to,
+    String? name,
+  }) {
+    return Edge<EdgeType, IdType>(
+      data: data ?? this.data,
+      from: from ?? this.from,
+      to: to ?? this.to,
+      name: name ?? this.name,
+    );
+  }
+
   Edge<T, R> cast<T, R extends Object>({
     required T data,
     required String? name,

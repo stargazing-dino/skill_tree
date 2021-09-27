@@ -43,6 +43,21 @@ class Node<NodeType, IdType extends Object> {
   String toString() => 'Node(data: $data, id: $id, name: $name)';
 }
 
+extension NodeCopyWith<NodeType, IdType extends Object>
+    on Node<NodeType, IdType> {
+  Node<NodeType, IdType> copyWith({
+    NodeType? data,
+    IdType? id,
+    String? name,
+  }) {
+    return Node<NodeType, IdType>(
+      data: data ?? this.data,
+      id: id ?? this.id,
+      name: name ?? this.name,
+    );
+  }
+} 
+
 // TODO: This stuff would be internal to the graph and we'd need another Node
 // type for a user provided node. We would transform all of those user provided
 // nodes to one of these types and that would help us better work with nodes.

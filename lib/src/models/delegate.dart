@@ -100,10 +100,10 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
       edgeParentData.offset = edgeBoundingBox.topLeft;
 
       toEdgeChildParentData.addPositionData(
-        fromEdgeBox.shift(-edgeBoundingBox.topLeft),
+        toEdgeBox.shift(-edgeBoundingBox.topLeft),
       );
       fromEdgeChildParentData.addPositionData(
-        toEdgeBox.shift(-edgeBoundingBox.topLeft),
+        fromEdgeBox.shift(-edgeBoundingBox.topLeft),
       );
 
       // TODO: I'm not setting the constraints properly yet because the current

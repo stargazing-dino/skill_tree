@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
 
+// TODO: I need to rethink how I size node. They should shrink if they don't fit.
 class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
     extends SkillTreeDelegate<EdgeType, NodeType, IdType,
         LayeredGraph<EdgeType, NodeType, IdType>> {

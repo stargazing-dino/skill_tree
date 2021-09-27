@@ -1,4 +1,3 @@
-import 'dart:collection' show IterableMixin;
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -7,20 +6,21 @@ import 'package:skill_tree/src/models/node.dart';
 
 /// This a class to hold logic related to an abstract graph and its operations
 /// and should NOT be in any way related to UI or rendering.
-abstract class Graph<EdgeType, NodeType, IdType extends Object>
-    with IterableMixin<Node<NodeType, IdType>> {
-  Graph() {
-    // TODO: Move this somewhere else so we can have const constructors
-    /// This runs on subclasses
-    assert(debugCheckGraph(edges: edges, nodes: nodes));
-  }
+@immutable
+abstract class Graph<EdgeType, NodeType, IdType extends Object> {
+  const Graph();
 
-  @override
-  Iterator<Node<NodeType, IdType>> get iterator => nodes.iterator;
+  // TODO:
+  // void Function(Node<NodeType, IdType> a, Node<NodeType, IdType> b) get swap;
 
   List<Node<NodeType, IdType>> get nodes;
 
   List<Edge<EdgeType, IdType>> get edges;
+
+  // TODO: I'm not sure how I'm going to better handle (de)serialization
+  // dynamic Function(Graph<EdgeType, NodeType, IdType> graph)? get serialize;
+
+  // Graph<EdgeType, NodeType, IdType> Function(dynamic value)? get deserialize;
 
   Node<NodeType, IdType> getNodeFromIdType(IdType id) {
     return nodes.singleWhere((node) {
@@ -29,10 +29,7 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object>
   }
 
   /// Checks the validity of the graph in a specific graph model
-  bool debugCheckGraph({
-    required List<Edge<EdgeType, IdType>> edges,
-    required List<Node<NodeType, IdType>> nodes,
-  });
+  bool get debugCheckGraph;
 
   Iterable<Node<NodeType, IdType>> getNeighbors(Node<NodeType, IdType> node) {
     return edges

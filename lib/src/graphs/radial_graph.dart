@@ -1,10 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 
+@immutable
 class RadialGraph<EdgeType, NodeType, IdType extends Object>
     extends Graph<EdgeType, NodeType, IdType> {
-  RadialGraph({
+  const RadialGraph({
     required this.edges,
     required this.nodes,
   });
@@ -23,10 +25,18 @@ class RadialGraph<EdgeType, NodeType, IdType extends Object>
   }
 
   @override
-  bool debugCheckGraph({
-    required List<Edge<EdgeType, IdType>> edges,
-    required List<Node<NodeType, IdType>> nodes,
-  }) {
+  bool get debugCheckGraph {
+    // TODO:
     return true;
+  }
+
+  RadialGraph<EdgeType, NodeType, IdType> copyWith({
+    List<Edge<EdgeType, IdType>>? edges,
+    List<Node<NodeType, IdType>>? nodes,
+  }) {
+    return RadialGraph<EdgeType, NodeType, IdType>(
+      edges: edges ?? this.edges,
+      nodes: nodes ?? this.nodes,
+    );
   }
 }

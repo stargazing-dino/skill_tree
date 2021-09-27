@@ -6,12 +6,15 @@ class DraggableNode<NodeType, IdType extends Object> extends StatefulWidget {
     Key? key,
     required this.child,
     required this.node,
+    required this.onSwapNode,
     this.feedbackOpacity = 0.5,
   }) : super(key: key);
 
   final Widget child;
 
   final Node<NodeType, IdType> node;
+
+  final void Function(Node<NodeType, IdType> node) onSwapNode;
 
   final double feedbackOpacity;
 
@@ -27,9 +30,7 @@ class _DraggableNodeState<NodeType, IdType extends Object>
     return Draggable<Node<NodeType, IdType>>(
       data: widget.node,
       child: DragTarget<Node<NodeType, IdType>>(
-        onWillAccept: (Node<NodeType, IdType>? data) {
-          return true;
-        },
+        onAccept: widget.onSwapNode,
         builder: (
           BuildContext context,
           List<Node<NodeType, IdType>?> candidateData,

@@ -5,17 +5,13 @@ import 'package:flutter/rendering.dart';
 ParentType? getParentOfType<ParentType extends RenderObject>(
   RenderBox child,
 ) {
-  var currentParent = child.parent as RenderObject?;
+  RenderObject? current = child;
 
-  while (currentParent != null) {
-    if (currentParent.parent == null) {
-      return null;
+  while (current != null) {
+    if (current is ParentType) {
+      return current;
     }
 
-    if (currentParent.parent is ParentType) {
-      return currentParent.parent as ParentType;
-    }
-
-    currentParent = currentParent.parent as RenderObject?;
+    current = current.parent as RenderObject?;
   }
 }

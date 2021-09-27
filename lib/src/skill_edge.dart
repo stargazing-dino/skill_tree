@@ -22,6 +22,7 @@ class SkillEdgeParentData<EdgeType, IdType extends Object>
   Alignment? toAlignment;
 }
 
+/// An edge that will be rendered as a line between two widget vertices.
 class SkillEdge<EdgeType, NodeType, IdType extends Object>
     extends ParentDataWidget<SkillEdgeParentData<EdgeType, IdType>>
     implements Edge<EdgeType, IdType> {
@@ -41,11 +42,11 @@ class SkillEdge<EdgeType, NodeType, IdType extends Object>
           key: key,
           child: EdgeLine<EdgeType, NodeType, IdType>(
             toVertex: SkillVertexTo(
-              key: ValueKey(to),
+              key: ValueKey(from),
               child: toChild,
             ),
             fromVertex: SkillVertexFrom(
-              key: ValueKey(from),
+              key: ValueKey(to),
               child: fromChild,
             ),
             edgePainter: edgePainter,
