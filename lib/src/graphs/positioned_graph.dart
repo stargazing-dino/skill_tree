@@ -18,6 +18,17 @@ class PositionedGraph<EdgeType, NodeType, IdType extends Object>
   final List<Node<NodeType, IdType>> nodes;
 
   @override
+  PositionedGraph<EdgeType, NodeType, IdType> updateNode(
+    Node<NodeType, IdType> node,
+    ValueUpdater<Node<NodeType, IdType>> updater,
+  ) {
+    return PositionedGraph(
+      edges: edges,
+      nodes: nodes.map((n) => n.id == node.id ? updater(n) : n).toList(),
+    );
+  }
+
+  @override
   List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {

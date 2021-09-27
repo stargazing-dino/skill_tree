@@ -18,6 +18,17 @@ class RadialGraph<EdgeType, NodeType, IdType extends Object>
   final List<Node<NodeType, IdType>> nodes;
 
   @override
+  RadialGraph<EdgeType, NodeType, IdType> updateNode(
+    Node<NodeType, IdType> node,
+    ValueUpdater<Node<NodeType, IdType>> updater,
+  ) {
+    return RadialGraph(
+      edges: edges,
+      nodes: nodes.map((n) => n.id == node.id ? updater(n) : n).toList(),
+    );
+  }
+
+  @override
   List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {

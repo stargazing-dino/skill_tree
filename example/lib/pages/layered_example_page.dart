@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:example/widgets/item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart' as clip;
 import 'package:skill_tree/skill_tree.dart';
 
 class LayeredExamplePage extends StatefulWidget {
@@ -16,7 +17,7 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
   final seed = Random().nextInt(5000);
   int avaialablePoints = 20;
 
-  var graph = const LayeredGraph(
+  var graph = const LayeredGraph<void, NodeInfo, String>(
     layout: [
       ['0', '1', '2', null],
       ['3', '4', '5', null],
@@ -99,30 +100,30 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                 mainAxisSpacing: 18.0,
                 crossAxisSpacing: 12.0,
               ),
-              nodeBuilder: (node, graph) {
+              nodeBuilder: (node, _graph) {
                 // TODO: This logic needs to be cleaned up or added into the
-                // graph model for users to use.
+                // _graph model for users to use.
 
                 assert(avaialablePoints >= 0);
                 final hasAvailablePoints = avaialablePoints != 0;
                 const pointsPerLayer = 5;
-                final edges = graph.edgesForNode(node);
+                final edges = _graph.edgesForNode(node);
                 final fromNodes = edges
-                    .map((edge) => graph.getNodeFromIdType(edge.from))
+                    .map((edge) => _graph.getNodeFromIdType(edge.from))
                     .where((_node) => node != _node)
                     .toList();
                 final previousNodesAreMaxed = fromNodes.every((_node) {
                   return _node.data.isMaxedOut;
                 });
-                final ancestorLayers = graph.ancestorLayersForNode(node);
-                final layerOfNode = graph.layerForNode(node);
+                final ancestorLayers = _graph.ancestorLayersForNode(node);
+                final layerOfNode = _graph.layerForNode(node);
                 final pointsToUnlock = pointsPerLayer * layerOfNode;
                 final pointInAncestorLayers = ancestorLayers.fold<int>(
                   0,
                   (acc, layer) {
                     acc += layer.fold<int>(0, (acc, id) {
                       if (id != null) {
-                        final node = graph.getNodeFromIdType(id);
+                        final node = _graph.getNodeFromIdType(id);
                         acc += node.data.value;
                       }
 
@@ -143,23 +144,26 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                             canBeUnlocked &&
                             !node.data.isMaxedOut
                         ? () {
-                            // iterate backwards through graph nodes
-                            for (var i = graph.nodes.length - 1; i >= 0; i--) {
-                              final currentNode = graph.nodes[i];
+                            // iterate backwards through _graph nodes
+                            for (var i = _graph.nodes.length - 1; i >= 0; i--) {
+                              final currentNode = _graph.nodes[i];
 
                               // TODO: Have a good way to update a node or edge
-                              // on the graph class
+                              // on the _graph class
                               if (currentNode == node) {
-                                graph.nodes.removeAt(i);
-                                graph.nodes.insert(
-                                  i,
-                                  node.copyWith(
-                                    data: node.data
-                                        .copyWith(value: node.data.value + 1),
-                                  ),
-                                );
-
+                                print(_graph.nodes.first.data);
                                 setState(() {
+                                  graph = _graph.updateNode(
+                                    node,
+                                    (node) => node.copyWith(
+                                      data: node.data.copyWith(
+                                        value: node.data.value + 1,
+                                      ),
+                                    ),
+                                  );
+
+                                  print(_graph.nodes.first.data);
+
                                   avaialablePoints--;
                                 });
                               }
@@ -180,15 +184,14 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
               edgeBuilder: (edge, graph) {
                 return SkillEdge(
                   edgePainter: defaultCubicEdgePainter,
-                  fromChild: Container(
-                    color: Colors.pink,
-                    width: 20,
-                    height: 20,
-                  ),
-                  toChild: Container(
-                    color: Colors.grey,
-                    width: 20,
-                    height: 20,
+                  fromChild: const SizedBox.shrink(),
+                  toChild: ClipPath(
+                    clipper: clip.TriangleClipper(),
+                    child: Container(
+                      color: Colors.grey,
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
                   name: edge.name,
                   data: null,
@@ -257,4 +260,19 @@ class NodeInfo {
       maxValue: maxValue ?? this.maxValue,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is NodeInfo &&
+        other.value == value &&
+        other.maxValue == maxValue;
+  }
+
+  @override
+  int get hashCode => value.hashCode ^ maxValue.hashCode;
+
+  @override
+  String toString() => 'NodeInfo(value: $value, maxValue: $maxValue)';
 }

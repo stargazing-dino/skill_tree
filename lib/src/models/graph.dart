@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
 
+// TODO: I swear I've seen a typdef similar to this
+typedef ValueUpdater<T> = T Function(T value);
+
 /// This a class to hold logic related to an abstract graph and its operations
 /// and should NOT be in any way related to UI or rendering.
 @immutable
@@ -12,6 +15,13 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
 
   // TODO:
   // void Function(Node<NodeType, IdType> a, Node<NodeType, IdType> b) get swap;
+
+  // TODO: This can have extra validation that if the node id is changed, the
+  // corresponding edge is removed etc.
+  Graph<EdgeType, NodeType, IdType> updateNode(
+    Node<NodeType, IdType> node,
+    ValueUpdater<Node<NodeType, IdType>> updater,
+  );
 
   List<Node<NodeType, IdType>> get nodes;
 

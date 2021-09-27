@@ -26,6 +26,18 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
   @override
   final List<Node<NodeType, IdType>> nodes;
 
+  @override
+  LayeredGraph<EdgeType, NodeType, IdType> updateNode(
+    Node<NodeType, IdType> node,
+    ValueUpdater<Node<NodeType, IdType>> updater,
+  ) {
+    return LayeredGraph(
+      edges: edges,
+      nodes: nodes.map((n) => n.id == node.id ? updater(n) : n).toList(),
+      layout: layout,
+    );
+  }
+
   List<List<IdType?>> ancestorLayersForNode(Node<NodeType, IdType> node) {
     return layout.sublist(0, layerForNode(node));
   }
