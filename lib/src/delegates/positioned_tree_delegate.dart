@@ -10,8 +10,9 @@ class PositionedTreeDelegate<EdgeType, NodeType, IdType extends Object>
     extends SkillTreeDelegate<EdgeType, NodeType, IdType,
         PositionedGraph<EdgeType, NodeType, IdType>> {
   PositionedTreeDelegate({
+    Listenable? relayout,
     required this.positions,
-  });
+  }) : super(relayout: relayout);
 
   final Map<IdType?, Offset> positions;
 

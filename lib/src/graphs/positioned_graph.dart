@@ -29,9 +29,21 @@ class PositionedGraph<EdgeType, NodeType, IdType extends Object>
   }
 
   @override
+  PositionedGraph<EdgeType, NodeType, IdType> updateEdge(
+    Edge<EdgeType, IdType> edge,
+    ValueUpdater<Edge<EdgeType, IdType>> updater,
+  ) {
+    return PositionedGraph(
+      edges: edges.map((e) => e.id == edge.id ? updater(e) : e).toList(),
+      nodes: nodes,
+    );
+  }
+
+  @override
   List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {
+    // TODO:
     return [];
   }
 

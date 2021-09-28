@@ -38,6 +38,18 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
     );
   }
 
+  @override
+  LayeredGraph<EdgeType, NodeType, IdType> updateEdge(
+    Edge<EdgeType, IdType> edge,
+    ValueUpdater<Edge<EdgeType, IdType>> updater,
+  ) {
+    return LayeredGraph(
+      edges: edges.map((e) => e.id == edge.id ? updater(e) : e).toList(),
+      nodes: nodes,
+      layout: layout,
+    );
+  }
+
   List<List<IdType?>> ancestorLayersForNode(Node<NodeType, IdType> node) {
     return layout.sublist(0, layerForNode(node));
   }
@@ -65,6 +77,7 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
   List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {
+    // TODO:
     return [];
   }
 

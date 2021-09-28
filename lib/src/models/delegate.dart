@@ -36,6 +36,7 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
     List<NodeDetails<NodeType, IdType>> nodeChildrenDetails,
   ) {
     for (final edgeDetails in edgeChildrenDetails) {
+      // Get the necessary information of the nodes and edge data
       final edgeChild = edgeDetails.child;
       final edgeParentData = edgeDetails.parentData;
       final toDetails = nodeChildrenDetails.singleWhere((nodeDetails) {
@@ -58,7 +59,7 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
 
       /// Specify in a 2d space where the "to" Node is relative to the "from"
       /// node. (This will be used to orient the edge line and better draw
-      /// the vertex).
+      /// the point).
       ///
       /// We get a vector moving from "from" to "to" and get the direction of the
       /// vector.
@@ -70,41 +71,56 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
       final toAlignment =
           (edgeParentData.toAlignment ?? getAlignmentForAngle(angle));
       final fromAlignment = edgeParentData.fromAlignment ?? (toAlignment * -1);
+      final fromCenter = fromAlignment.withinRect(fromRect);
+      final toCenter = toAlignment.withinRect(toRect);
 
+      // Laying out the individual points in the edge line
+      Rect edgeBoundingBox = Rect.fromPoints(fromCenter, toCenter);
       final children = edgeChild.getChildrenAsList();
+
       final toEdgeChild = children.singleWhere((child) {
-        return child.parentData is SkillVertexToParentData;
+        return child.parentData is SkillPointToParentData;
       });
       final toEdgeChildParentData =
-          toEdgeChild.parentData as SkillVertexParentData;
-      final fromEdgeChild = children.singleWhere((child) {
-        return child.parentData is SkillVertexFromParentData;
-      });
-      final fromEdgeChildParentData =
-          fromEdgeChild.parentData as SkillVertexParentData;
-
+          toEdgeChild.parentData as SkillPointParentData;
       // TODO: I shouldn't use getDryLayout here as it has some issues.
       // Do same as tooltip package.
       final toEdgeSize = toEdgeChild.getDryLayout(constraints);
-      final fromEdgeSize = fromEdgeChild.getDryLayout(constraints);
-      final fromEdgeBox = fromAlignment
-              .withinRect(fromRect)
-              .translate(-fromEdgeSize.width / 2, -fromEdgeSize.height / 2) &
-          fromEdgeSize;
-      final toEdgeBox = toAlignment
-              .withinRect(toRect)
-              .translate(-toEdgeSize.width / 2, -toEdgeSize.height / 2) &
+      final toEdgeBox = toCenter.translate(
+            -toEdgeSize.width / 2,
+            -toEdgeSize.height / 2,
+          ) &
           toEdgeSize;
-      final edgeBoundingBox = fromEdgeBox.expandToInclude(toEdgeBox);
+
+      toEdgeChildParentData.rect = toEdgeBox.shift(-edgeBoundingBox.topLeft);
+
+      final fromEdgeChild = children.singleWhere((child) {
+        return child.parentData is SkillPointFromParentData;
+      });
+      final fromEdgeChildParentData =
+          fromEdgeChild.parentData as SkillPointParentData;
+      final fromEdgeSize = fromEdgeChild.getDryLayout(constraints);
+      final fromEdgeBox = fromCenter.translate(
+            -fromEdgeSize.width / 2,
+            -fromEdgeSize.height / 2,
+          ) &
+          fromEdgeSize;
+
+      fromEdgeChildParentData.rect = fromEdgeBox.shift(
+        -edgeBoundingBox.topLeft,
+      );
+
+      edgeBoundingBox = edgeBoundingBox.expandToInclude(fromEdgeBox);
+
+      edgeParentData.fromCenter = fromCenter - edgeBoundingBox.topLeft;
+      edgeParentData.toCenter = toCenter - edgeBoundingBox.topLeft;
+
+      // TODO: We'll add control point sizes here
+      // for (final controlPoint in controlPoints) {
+      //   edgeBoundingBox.expandToInclude(fromEdgeBox);
+      // }
 
       edgeParentData.offset = edgeBoundingBox.topLeft;
-
-      toEdgeChildParentData.addPositionData(
-        toEdgeBox.shift(-edgeBoundingBox.topLeft),
-      );
-      fromEdgeChildParentData.addPositionData(
-        fromEdgeBox.shift(-edgeBoundingBox.topLeft),
-      );
 
       // TODO: I'm not setting the constraints properly yet because the current
       // boundingRect does not account for the gutter spacing. Gutter spacing
@@ -149,20 +165,8 @@ class SkillNodeLayout<NodeType, IdType extends Object> {
   /// const constructors so that they can be used in const expressions.
   const SkillNodeLayout({required this.size});
 
-  // /// The minimum child index that intersects with (or is after) this scroll offset.
+  // TODO:
   // int getSpaceAroundForNode(Node<NodeType, IdType> node);
-
-  // /// The maximum child index that intersects with (or is before) this scroll offset.
-  // int getMaxChildIndexForScrollOffset(double scrollOffset);
-
-  // /// The size and position of the child with the given index.
-  // SliverGridGeometry getGeometryForChildIndex(int index);
-
-  // /// The scroll extent needed to fully display all the tiles if there are
-  // /// `childCount` children in total.
-  // ///
-  // /// The child count will never be null.
-  // double computeMaxScrollOffset(int childCount);
 
   final Size size;
 }

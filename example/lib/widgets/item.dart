@@ -90,7 +90,9 @@ class Item extends StatelessWidget {
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 3.0, vertical: 1.0),
+                    horizontal: 3.0,
+                    vertical: 1.0,
+                  ),
                   child: Text(
                     '${nodeInfo.value}/${nodeInfo.maxValue}',
                     style: TextStyle(

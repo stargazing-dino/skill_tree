@@ -23,6 +23,11 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
     ValueUpdater<Node<NodeType, IdType>> updater,
   );
 
+  Graph<EdgeType, NodeType, IdType> updateEdge(
+    Edge<EdgeType, IdType> edge,
+    ValueUpdater<Edge<EdgeType, IdType>> updater,
+  );
+
   List<Node<NodeType, IdType>> get nodes;
 
   List<Edge<EdgeType, IdType>> get edges;

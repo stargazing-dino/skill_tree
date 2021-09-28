@@ -47,30 +47,6 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
       Node(id: '16', data: NodeInfo(value: 0, maxValue: 5)),
     ],
     edges: [
-      // SkillEdge<void, NodeInfo, String>(
-      //   from: '10',
-      //   to: '13',
-      //   data: null,
-      //   id: '10-13',
-      //   toAlignment: Alignment.centerLeft,
-      //   fromAlignment: Alignment.topLeft,
-      //   name: '',
-      //   fromChild: Container(
-      //     height: 20.0,
-      //     width: 20.0,
-      //     color: Colors.pink,
-      //     child: const Placeholder(),
-      //   ),
-      //   edgePainter: SkillTree.defaultEdgePainter,
-      //   toChild: Container(
-      //     height: 20.0,
-      //     width: 20.0,
-      //     color: Colors.blue,
-      //     child: const Placeholder(),
-      //   ),
-      //   // toAlignment: Alignment.topCenter,
-      //   // fromAlignment: Alignment.bottomCenter,
-      // ),
       Edge(from: '7', to: '9', data: null),
       Edge(from: '10', to: '14', data: null),
       Edge(from: '12', to: '15', data: null),
@@ -151,7 +127,6 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                               // TODO: Have a good way to update a node or edge
                               // on the _graph class
                               if (currentNode == node) {
-                                print(_graph.nodes.first.data);
                                 setState(() {
                                   graph = _graph.updateNode(
                                     node,
@@ -161,8 +136,6 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                                       ),
                                     ),
                                   );
-
-                                  print(_graph.nodes.first.data);
 
                                   avaialablePoints--;
                                 });

@@ -10,10 +10,11 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
     extends SkillTreeDelegate<EdgeType, NodeType, IdType,
         LayeredGraph<EdgeType, NodeType, IdType>> {
   LayeredTreeDelegate({
+    Listenable? relayout,
     this.crossAxisSpacing = 0,
     this.mainAxisSpacing = 0,
     this.crossAxisAlignment = CrossAxisAlignment.start,
-  });
+  }) : super(relayout: relayout);
 
   final double crossAxisSpacing;
 

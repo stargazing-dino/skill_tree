@@ -7,15 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:skill_tree/skill_tree.dart';
 import 'package:skill_tree/src/edge_route_painting/spline_edge.dart';
 import 'package:skill_tree/src/graphs/layered_graph.dart';
-import 'package:skill_tree/src/graphs/radial_graph.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/graph.dart';
 import 'package:skill_tree/src/models/node.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 import 'package:skill_tree/src/skill_node.dart';
+import 'package:skill_tree/src/skill_point.dart';
 import 'package:skill_tree/src/utils/get_alignment_for_angle.dart';
-import 'package:skill_tree/src/widgets/edge_line.dart';
-import 'package:skill_tree/src/widgets/skill_vertex.dart';
 
 part './models/delegate.dart';
 
@@ -42,8 +40,7 @@ typedef NodeBuilder<EdgeType, NodeType, IdType extends Object,
 /// edges are directed.
 ///
 /// Edges can be acyclic so long as the [LayoutDelegate] properly handles it. The
-/// default layout does not as it's unidrected in a single axis. For acyclic
-/// graphs, use the a [RadialLayout] instead.
+/// default layout does not as it's unidrected in a single axis.
 ///
 /// Edges and nodes go through two representations. The first is unconnected to
 /// the UI and are in the form of Edge and Node. They are then transformed into
@@ -83,37 +80,6 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
           ],
         );
 
-  SkillTree.radial({
-    Key? key,
-    required RadialGraph<EdgeType, NodeType, IdType> graph,
-    required RadialTreeDelegate<EdgeType, NodeType, IdType> delegate,
-    NodeBuilder<EdgeType, NodeType, IdType,
-            RadialGraph<EdgeType, NodeType, IdType>>?
-        nodeBuilder,
-    EdgeBuilder<EdgeType, NodeType, IdType,
-            RadialGraph<EdgeType, NodeType, IdType>>?
-        edgeBuilder,
-  })  : _graph = graph,
-        _delegate = delegate,
-        super(
-          key: key,
-          children: <Widget>[
-            ...graph.nodes.map((node) {
-              return nodeBuilder?.call(node, graph) ??
-                  defaultSkillNodeBuilder(node, graph);
-            }),
-            ...graph.edges.map(
-              (edge) {
-                return edgeBuilder?.call(edge, graph) ??
-                    defaultSkillEdgeBuilder<EdgeType, NodeType, IdType>(
-                      edge,
-                      graph,
-                    );
-              },
-            ),
-          ],
-        );
-
   final Graph<EdgeType, NodeType, IdType> _graph;
 
   final SkillTreeDelegate<EdgeType, NodeType, IdType,
@@ -130,11 +96,6 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
 
     assert(node is! SkillNode);
 
-    // TODO: the four sides of the node should have
-    // a DragTarget for the [EdgePoint] to be connected to.
-    // I would honestly like to do four triangles whose
-    // inner vertices meet in the center
-    // https://stackoverflow.com/questions/56930636/flutter-button-with-custom-shape-triangle
     return SkillNode<NodeType, IdType>.fromNode(
       child: Text(node.id.toString()),
       node: node,
@@ -290,8 +251,8 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     size = skillNodeLayout.size;
 
     final edgeChildrenDetails = graph.edges.map((edge) {
-      final child =
-          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final child = childForEdge(edge)
+          as RenderMultiChildEdge<EdgeType, NodeType, IdType>;
       final parentData =
           child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
@@ -314,7 +275,6 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
   @override
   void paint(PaintingContext context, Offset offset) {
     // TODO: Should I use composite layers? What is their benefit?
-    // TODO: Draw paintOverflows here.
     final constraintsRect = offset & constraints.biggest;
     final treeRect = offset & size;
 
@@ -329,8 +289,8 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
     /// Draw the edges lines
     for (final edge in graph.edges) {
-      final child =
-          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final child = childForEdge(edge)
+          as RenderMultiChildEdge<EdgeType, NodeType, IdType>;
       final childParentData =
           child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
@@ -353,8 +313,8 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
     /// Draw the edges ends.
     for (final edge in graph.edges) {
-      final child =
-          childForEdge(edge) as RenderEdgeLine<EdgeType, NodeType, IdType>;
+      final child = childForEdge(edge)
+          as RenderMultiChildEdge<EdgeType, NodeType, IdType>;
       final childParentData =
           child.parentData as SkillEdgeParentData<EdgeType, IdType>;
 
@@ -390,15 +350,16 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     });
   }
 
-  // TODO: memoize this or something. Don't want to getChildrenAsList every time
+  List<RenderBox> get children => getChildrenAsList();
+
   List<RenderBox> get nodeChildren {
-    return getChildrenAsList().where((child) {
+    return children.where((child) {
       return child.parentData is SkillNodeParentData<NodeType, IdType>;
     }).toList();
   }
 
   List<RenderBox> get edgeChildren {
-    return getChildrenAsList().where((child) {
+    return children.where((child) {
       return child.parentData is SkillEdgeParentData<EdgeType, IdType>;
     }).toList();
   }
@@ -440,7 +401,7 @@ class EdgeDetails<EdgeType, NodeType, IdType extends Object>
   });
 
   @override
-  final RenderEdgeLine<EdgeType, NodeType, IdType> child;
+  final RenderMultiChildEdge<EdgeType, NodeType, IdType> child;
 
   @override
   final SkillEdgeParentData<EdgeType, IdType> parentData;
