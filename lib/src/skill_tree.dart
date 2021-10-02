@@ -36,6 +36,8 @@ typedef NodeBuilder<EdgeType, NodeType, IdType extends Object,
 
 // TODO: What do we do with self-directed edges? Do we allow them?
 
+// TODO: I'm thinking instead
+
 /// A widget to create a skill tree. This assumes a digraph structure. That is,
 /// edges are directed.
 ///
@@ -113,7 +115,8 @@ class SkillTree<EdgeType, NodeType, IdType extends Object>
     }
 
     return SkillEdge<EdgeType, NodeType, IdType>(
-      edgePainter: defaultCubicEdgePainter,
+      edgePathPainter: defaultCubicEdgePathPainter,
+      edgePathBuilder: defaultCubicEdgePathBuilder,
       fromChild: const SizedBox.shrink(),
       toChild: const SizedBox.shrink(),
       name: edge.name,
@@ -245,8 +248,6 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
       graph,
       nodeChildrenDetails,
     );
-
-    // addAll();
 
     size = skillNodeLayout.size;
 

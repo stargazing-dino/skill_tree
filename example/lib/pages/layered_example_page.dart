@@ -48,7 +48,8 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
     ],
     edges: [
       Edge(from: '7', to: '9', data: null),
-      Edge(from: '10', to: '14', data: null),
+      // Edge(from: '10', to: '14', data: null),
+      Edge(from: '12', to: '13', data: null),
       Edge(from: '12', to: '15', data: null),
     ],
   );
@@ -156,7 +157,8 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
               },
               edgeBuilder: (edge, graph) {
                 return SkillEdge(
-                  edgePainter: defaultCubicEdgePainter,
+                  edgePathBuilder: defaultEdgePathBuilder,
+                  edgePathPainter: defaultEdgePathPainter,
                   fromChild: const SizedBox.shrink(),
                   toChild: ClipPath(
                     clipper: clip.TriangleClipper(),

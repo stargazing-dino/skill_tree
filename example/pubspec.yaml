@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_custom_clippers: ^2.0.0
+  just_the_tooltip: ^0.0.9+1
   skill_tree:
     path: ../
 
