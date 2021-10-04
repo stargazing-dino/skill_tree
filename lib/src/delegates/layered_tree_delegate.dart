@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/skill_tree.dart';
 
-// TODO: I need to rethink how I size node. They should shrink if they don't fit.
+// TODO I need to rethink how I size node. They should shrink if they don't fit.
 class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
     extends SkillTreeDelegate<EdgeType, NodeType, IdType,
         LayeredGraph<EdgeType, NodeType, IdType>> {
@@ -78,8 +78,8 @@ class LayeredTreeDelegate<EdgeType, NodeType, IdType extends Object>
           maxHeight: layerHeight,
         );
 
-        // TODO: Should this be moved to delegate like `layoutChild`?
-        // TODO: Similar to [MultiChildLayoutDelegate] I should probably have
+        // TODO Should this be moved to delegate like `layoutChild`?
+        // TODO Similar to [MultiChildLayoutDelegate] I should probably have
         // debug asserts that ensure every child was laid out.
         nodeDetails.child.layout(childConstraints, parentUsesSize: true);
       }

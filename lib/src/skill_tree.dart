@@ -31,12 +31,7 @@ typedef NodeBuilder<EdgeType, NodeType, IdType extends Object,
   GraphType graph,
 );
 
-// TODO: Column has it so it can nest itself because it itself is a Flex. We
-// should have something like the same so we can nest skill trees.
-
-// TODO: What do we do with self-directed edges? Do we allow them?
-
-// TODO: I'm thinking instead
+// TODO What do we do with self-directed edges? Do we allow them?
 
 /// A widget to create a skill tree. This assumes a digraph structure. That is,
 /// edges are directed.
@@ -195,7 +190,7 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
     markNeedsLayout();
   }
 
-  // TODO: I don't like how I'm handling Graph type here...
+  // TODO I don't like how I'm handling Graph type here...
   SkillTreeDelegate<EdgeType, NodeType, IdType,
       Graph<EdgeType, NodeType, IdType>> _delegate;
   SkillTreeDelegate<EdgeType, NodeType, IdType,
@@ -275,7 +270,7 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    // TODO: Should I use composite layers? What is their benefit?
+    // TODO Should I use composite layers? What is their benefit?
     final constraintsRect = offset & constraints.biggest;
     final treeRect = offset & size;
 
@@ -366,8 +361,7 @@ class RenderSkillTree<EdgeType, NodeType, IdType extends Object>
   }
 }
 
-// TODO: I'm not a fan of these rather useless classes.
-// Should I bring in tuple?
+// TODO I'm not a fan of these rather useless classes.
 abstract class ChildDetails<ParentDataType extends ParentData> {
   const ChildDetails();
 

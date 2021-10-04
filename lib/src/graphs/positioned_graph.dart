@@ -43,13 +43,13 @@ class PositionedGraph<EdgeType, NodeType, IdType extends Object>
   List<Edge<EdgeType, IdType>> nodesBefore(
     Node<NodeType, IdType> node,
   ) {
-    // TODO:
+    // TODO
     return [];
   }
 
   @override
   bool get debugCheckGraph {
-    // TODO:
+    // TODO
     return true;
   }
 
@@ -61,5 +61,11 @@ class PositionedGraph<EdgeType, NodeType, IdType extends Object>
       edges: edges ?? this.edges,
       nodes: nodes ?? this.nodes,
     );
+  }
+
+  @override
+  PositionedGraph<EdgeType, NodeType, IdType> swap(IdType idOne, IdType idTwo) {
+    // TODO implement swap
+    throw UnimplementedError();
   }
 }

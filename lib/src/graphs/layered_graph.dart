@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
@@ -14,9 +16,6 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
 
   // As layout is nested, to compare equality we'll need deep comparison
   final equality = const DeepCollectionEquality();
-
-  // TODO: Should we have this here or as an onus to the user?
-  // final int layerValue;
 
   final List<List<IdType?>> layout;
 
@@ -50,6 +49,42 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
     );
   }
 
+  @override
+  LayeredGraph<EdgeType, NodeType, IdType> swap(IdType idOne, IdType idTwo) {
+    final pointOne = findIdInLayout(idOne);
+    final pointTwo = findIdInLayout(idTwo);
+
+    var layoutCopy = List<List<IdType?>>.from(
+      layout.map<List<IdType?>>((layer) => List<IdType?>.from(layer)),
+    );
+
+    layoutCopy[pointOne.x][pointOne.y] = idTwo;
+    layoutCopy[pointTwo.x][pointTwo.y] = idOne;
+
+    return LayeredGraph(
+      edges: edges,
+      nodes: nodes,
+      layout: layoutCopy,
+    );
+  }
+
+  // Returns the (x, y) position of the id in the layout
+  //
+  // Was gonna try fancy modulo stuff but you can't assume rectangular layouts.
+  Point<int> findIdInLayout(IdType id) {
+    for (int i = 0; i < layout.length; i++) {
+      final layer = layout[i];
+
+      final j = layer.indexOf(id);
+
+      if (j != -1) {
+        return Point<int>(i, j);
+      }
+    }
+
+    throw ArgumentError('Could not find $id in layout');
+  }
+
   List<List<IdType?>> ancestorLayersForNode(Node<NodeType, IdType> node) {
     return layout.sublist(0, layerForNode(node));
   }
@@ -74,16 +109,8 @@ class LayeredGraph<EdgeType, NodeType, IdType extends Object>
   }
 
   @override
-  List<Edge<EdgeType, IdType>> nodesBefore(
-    Node<NodeType, IdType> node,
-  ) {
-    // TODO:
-    return [];
-  }
-
-  @override
   bool get debugCheckGraph {
-    // TODO:
+    // TODO
     return true;
   }
 

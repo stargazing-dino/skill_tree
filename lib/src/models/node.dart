@@ -58,7 +58,7 @@ extension NodeCopyWith<NodeType, IdType extends Object>
   }
 } 
 
-// TODO: This stuff would be internal to the graph and we'd need another Node
+// TODO This stuff would be internal to the graph and we'd need another Node
 // type for a user provided node. We would transform all of those user provided
 // nodes to one of these types and that would help us better work with nodes.
 // The same could be safe of edges. We could have a self-referential edge and

@@ -83,7 +83,7 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
       });
       final toEdgeChildParentData =
           toEdgeChild.parentData as SkillPointParentData;
-      // TODO: I shouldn't use getDryLayout here as it has some issues.
+      // TODO I shouldn't use getDryLayout here as it has some issues.
       // Do same as tooltip package.
       final toEdgeSize = toEdgeChild.getDryLayout(constraints);
       final toEdgeBox = toCenter.translate(
@@ -115,18 +115,18 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
       edgeParentData.fromCenter = fromCenter - edgeBoundingBox.topLeft;
       edgeParentData.toCenter = toCenter - edgeBoundingBox.topLeft;
 
-      // TODO: We'll add control point sizes here
+      // TODO We'll add control point sizes here
       // for (final controlPoint in controlPoints) {
       //   edgeBoundingBox.expandToInclude(fromEdgeBox);
       // }
 
       edgeParentData.offset = edgeBoundingBox.topLeft;
 
-      // TODO: I'm not setting the constraints properly yet because the current
+      // TODO I'm not setting the constraints properly yet because the current
       // boundingRect does not account for the gutter spacing. Gutter spacing
       // seems dependent on layout type too...
       // draggableEdgeChild.layout(BoxConstraints.tight(boundingRect.size));
-      // TODO: Prev todo might not be correct when dragging. A draggable should
+      // TODO Prev todo might not be correct when dragging. A draggable should
       // not have constraints so it can reach even the furthest nodes.
       edgeChild.layout(constraints);
     }
@@ -151,7 +151,7 @@ abstract class SkillTreeDelegate<EdgeType, NodeType, IdType extends Object,
   String toString() => objectRuntimeType(this, 'SkillTreeDelegae');
 }
 
-// TODO: Edges need to know the amount of space in the gutter available to
+// TODO Edges need to know the amount of space in the gutter available to
 // them. Using that information, we can better constrain them when it comes
 // to layout. I recommend we create a function template that takes in a node
 // and returns the amount of space around it like so:
@@ -165,7 +165,7 @@ class SkillNodeLayout<NodeType, IdType extends Object> {
   /// const constructors so that they can be used in const expressions.
   const SkillNodeLayout({required this.size});
 
-  // TODO:
+  // TODO
   // int getSpaceAroundForNode(Node<NodeType, IdType> node);
 
   final Size size;

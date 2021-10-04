@@ -10,8 +10,9 @@ class Item extends StatelessWidget {
     required this.seed,
     required this.node,
     required this.canUnlock,
-    required this.isUnreachable,
+    required this.isReachable,
     required this.onTap,
+    required this.onSwap,
   }) : super(key: key);
 
   final int photoNumber;
@@ -22,9 +23,11 @@ class Item extends StatelessWidget {
 
   final bool canUnlock;
 
-  final bool isUnreachable;
+  final bool isReachable;
 
   final VoidCallback? onTap;
+
+  final void Function(Node<NodeInfo, String> node) onSwap;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +65,7 @@ class Item extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: DraggableNode(
-          onSwapNode: (Node<NodeInfo, String> node) {
-            // TODO: Swap with graph
-          },
+          onSwapNode: onSwap,
           node: node,
           child: Stack(
             fit: StackFit.passthrough,
@@ -99,7 +100,7 @@ class Item extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!isUnreachable)
+              if (isReachable)
                 Positioned(
                   bottom: 0,
                   right: 0,

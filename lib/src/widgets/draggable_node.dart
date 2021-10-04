@@ -27,7 +27,7 @@ class _DraggableNodeState<NodeType, IdType extends Object>
     extends State<DraggableNode<NodeType, IdType>> {
   @override
   Widget build(BuildContext context) {
-    // TODO: the four sides of the node should have a DragTarget for the
+    // TODO the four sides of the node should have a DragTarget for the
     // [EdgePoint] to be connected to. I would honestly like to do four
     // triangles whose inner vertices meet in the center
     // https://stackoverflow.com/questions/56930636/flutter-button-with-custom-shape-triangle

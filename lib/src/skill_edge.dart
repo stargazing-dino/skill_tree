@@ -39,13 +39,13 @@ class SkillEdgeParentData<EdgeType, IdType extends Object>
 
   Offset? fromCenter;
 
-  // TODO: Implement
+  // TODO Implement
   // List<Offset>? controlPointCenters;
 
   Offset? toCenter;
 }
 
-// TODO: There is a way to combine SkillEdge and MultiChildEdge as a single
+// TODO There is a way to combine SkillEdge and MultiChildEdge as a single
 // widget but I'm not sure how.
 
 /// An edge that will be rendered as a line between two widget vertices.
@@ -180,7 +180,7 @@ class MultiChildEdge<EdgeType, NodeType, IdType extends Object>
     extends MultiChildRenderObjectWidget {
   MultiChildEdge({
     Key? key,
-    // TODO: Control points ... This should be able to be a list of
+    // TODO Control points ... This should be able to be a list of
     // [SkillPoint] or control points.
     required SkillPointTo toPoint,
     required SkillPointFrom fromPoint,
@@ -218,7 +218,7 @@ class MultiChildEdge<EdgeType, NodeType, IdType extends Object>
   }
 }
 
-// TODO: Draw paintOverflows
+// TODO Draw paintOverflows
 
 /// The fields of this [RenderObject] are initialized in the layout phase.
 /// This is because we must first know the size of the node widgets.
@@ -261,7 +261,7 @@ class RenderMultiChildEdge<EdgeType, NodeType, IdType extends Object>
 
   @override
   void performLayout() {
-    // TODO: Fix constraints or double check them.
+    // TODO Fix constraints or double check them.
     final loosenedConstraints = constraints.loosen();
     final skillEdgeParentData =
         getParentDataOfType<SkillEdgeParentData<EdgeType, IdType>>(
@@ -352,15 +352,15 @@ class RenderMultiChildEdge<EdgeType, NodeType, IdType extends Object>
     //   allNodeRects.add(nodeRect);
     // }
 
-    // TODO: This should somehow recieve the node data of all nodes too
+    // TODO This should somehow recieve the node data of all nodes too
     path = edgePathBuilder(
       // Although we have toChildRect.center, I don't want to use it because
       // in the future, to and from should be nullable
       fromNodeCenter: fromCenter,
       toNodeCenter: toCenter,
-      // TODO:
+      // TODO
       controlPointCenters: [],
-      // TODO:
+      // TODO
       allNodeRects: [],
     );
 

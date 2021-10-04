@@ -20,7 +20,7 @@ Alignment getAlignmentForAngle(double angle) {
   //  pi 3/4                     pi/2                   pi 1/4
   //
 
-  // TODO: We should provide more arguments here to better define how we want
+  // TODO We should provide more arguments here to better define how we want
   // the alignment to come out.
 
   // Handle the corners

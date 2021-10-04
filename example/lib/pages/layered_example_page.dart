@@ -48,14 +48,15 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
     ],
     edges: [
       Edge(from: '7', to: '9', data: null),
-      // Edge(from: '10', to: '14', data: null),
-      Edge(from: '12', to: '13', data: null),
+      Edge(from: '10', to: '14', data: null),
       Edge(from: '12', to: '15', data: null),
     ],
   );
 
   @override
   Widget build(BuildContext context) {
+    const pointsPerLayer = 5;
+
     return Stack(
       fit: StackFit.passthrough,
       children: [
@@ -77,30 +78,28 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                 mainAxisSpacing: 18.0,
                 crossAxisSpacing: 12.0,
               ),
-              nodeBuilder: (node, _graph) {
-                // TODO: This logic needs to be cleaned up or added into the
-                // _graph model for users to use.
-
+              nodeBuilder: (node, _) {
                 assert(avaialablePoints >= 0);
                 final hasAvailablePoints = avaialablePoints != 0;
-                const pointsPerLayer = 5;
-                final edges = _graph.edgesForNode(node);
-                final fromNodes = edges
-                    .map((edge) => _graph.getNodeFromIdType(edge.from))
-                    .where((_node) => node != _node)
-                    .toList();
+
+                // Graph specific. The edges leading to this node must all be
+                // maxed out.
+                final fromNodes = graph.allFromNodes(node);
                 final previousNodesAreMaxed = fromNodes.every((_node) {
                   return _node.data.isMaxedOut;
                 });
-                final ancestorLayers = _graph.ancestorLayersForNode(node);
-                final layerOfNode = _graph.layerForNode(node);
+
+                // Layered graph logic. Layers each have a required amount of
+                // points to be considered completed.
+                final ancestorLayers = graph.ancestorLayersForNode(node);
+                final layerOfNode = graph.layerForNode(node);
                 final pointsToUnlock = pointsPerLayer * layerOfNode;
-                final pointInAncestorLayers = ancestorLayers.fold<int>(
+                final pointsInAncestorLayers = ancestorLayers.fold<int>(
                   0,
                   (acc, layer) {
                     acc += layer.fold<int>(0, (acc, id) {
                       if (id != null) {
-                        final node = _graph.getNodeFromIdType(id);
+                        final node = graph.getNodeFromIdType(id);
                         acc += node.data.value;
                       }
 
@@ -110,45 +109,44 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                   },
                 );
 
-                final canBeUnlocked = pointsToUnlock <= pointInAncestorLayers &&
-                    hasAvailablePoints;
+                /// The user is able to reach this node if they have the
+                /// necessary points.
+                final isReachable = previousNodesAreMaxed &&
+                    pointsToUnlock <= pointsInAncestorLayers;
+
+                /// The user is able to unlock this node because it is
+                /// reachable, they have points and the node is not maxed out.
+                final canBeUnlocked =
+                    isReachable && hasAvailablePoints && !node.data.isMaxedOut;
+
                 final photoId = int.parse(node.id) + 1;
 
                 return SkillNode.fromNode(
                   node: node,
                   child: Item(
-                    onTap: hasAvailablePoints &&
-                            canBeUnlocked &&
-                            !node.data.isMaxedOut
+                    onSwap: (_node) {
+                      setState(() {
+                        graph = graph.swap(_node.id, node.id);
+                      });
+                    },
+                    onTap: canBeUnlocked
                         ? () {
-                            // iterate backwards through _graph nodes
-                            for (var i = _graph.nodes.length - 1; i >= 0; i--) {
-                              final currentNode = _graph.nodes[i];
+                            setState(() {
+                              graph = graph.updateNode(
+                                node,
+                                (node) => node.copyWith(
+                                  data: node.data.copyWith(
+                                    value: node.data.value + 1,
+                                  ),
+                                ),
+                              );
 
-                              // TODO: Have a good way to update a node or edge
-                              // on the _graph class
-                              if (currentNode == node) {
-                                setState(() {
-                                  graph = _graph.updateNode(
-                                    node,
-                                    (node) => node.copyWith(
-                                      data: node.data.copyWith(
-                                        value: node.data.value + 1,
-                                      ),
-                                    ),
-                                  );
-
-                                  avaialablePoints--;
-                                });
-                              }
-                            }
+                              avaialablePoints--;
+                            });
                           }
                         : null,
-                    canUnlock: hasAvailablePoints &&
-                        canBeUnlocked &&
-                        previousNodesAreMaxed &&
-                        !node.data.isMaxedOut,
-                    isUnreachable: !canBeUnlocked || !previousNodesAreMaxed,
+                    canUnlock: canBeUnlocked,
+                    isReachable: isReachable,
                     node: node,
                     photoNumber: photoId,
                     seed: seed,

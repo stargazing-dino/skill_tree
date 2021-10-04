@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:skill_tree/src/models/edge.dart';
 import 'package:skill_tree/src/models/node.dart';
 
-// TODO: I swear I've seen a typdef similar to this
+// TODO I swear I've seen a typdef similar to this
 typedef ValueUpdater<T> = T Function(T value);
 
 /// This a class to hold logic related to an abstract graph and its operations
@@ -13,10 +11,7 @@ typedef ValueUpdater<T> = T Function(T value);
 abstract class Graph<EdgeType, NodeType, IdType extends Object> {
   const Graph();
 
-  // TODO:
-  // void Function(Node<NodeType, IdType> a, Node<NodeType, IdType> b) get swap;
-
-  // TODO: This can have extra validation that if the node id is changed, the
+  // TODO This can have extra validation that if the node id is changed, the
   // corresponding edge is removed etc.
   Graph<EdgeType, NodeType, IdType> updateNode(
     Node<NodeType, IdType> node,
@@ -28,25 +23,28 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
     ValueUpdater<Edge<EdgeType, IdType>> updater,
   );
 
+  Graph<EdgeType, NodeType, IdType> swap(IdType idOne, IdType idTwo);
+
   List<Node<NodeType, IdType>> get nodes;
 
   List<Edge<EdgeType, IdType>> get edges;
 
-  // TODO: I'm not sure how I'm going to better handle (de)serialization
-  // dynamic Function(Graph<EdgeType, NodeType, IdType> graph)? get serialize;
-
-  // Graph<EdgeType, NodeType, IdType> Function(dynamic value)? get deserialize;
-
   Node<NodeType, IdType> getNodeFromIdType(IdType id) {
-    return nodes.singleWhere((node) {
-      return id == node.id;
-    });
+    return nodes.singleWhere((node) => id == node.id);
+  }
+
+  Node<NodeType, IdType> getFromNodeFromEdge(Edge<EdgeType, IdType> edge) {
+    return getNodeFromIdType(edge.from);
+  }
+
+  Node<NodeType, IdType> getToNodeFromEdge(Edge<EdgeType, IdType> edge) {
+    return getNodeFromIdType(edge.to);
   }
 
   /// Checks the validity of the graph in a specific graph model
   bool get debugCheckGraph;
 
-  Iterable<Node<NodeType, IdType>> getNeighbors(Node<NodeType, IdType> node) {
+  Iterable<Node<NodeType, IdType>> getConnected(Node<NodeType, IdType> node) {
     return edges
         .where((edge) => edge.from == node || edge.to == node)
         .map((edge) {
@@ -68,110 +66,71 @@ abstract class Graph<EdgeType, NodeType, IdType extends Object> {
     return result;
   }
 
-  List<Edge<EdgeType, IdType>> nodesBefore(
+  bool nodeHasToNodes(Node<NodeType, IdType> node) {
+    return edges.any((edge) => edge.to == node);
+  }
+
+  /// Returns all of the nodes that are directly or indirectly attached via
+  /// `to` edges.
+  List<Node<NodeType, IdType>> allToNodes(Node<NodeType, IdType> node) {
+    return toNodes(node).expand((nodeLayers) => nodeLayers).toList();
+  }
+
+  Iterable<List<Node<NodeType, IdType>>> toNodes(
     Node<NodeType, IdType> node,
-  );
-
-  List<Edge<EdgeType, IdType>> edgesForNode(
-    Node<NodeType, IdType> node,
-  ) {
-    final edgesForNode = <Edge<EdgeType, IdType>>[];
-
-    for (final edge in edges) {
-      if (edge.from == node.id) {
-        edgesForNode.add(edge);
-        continue;
-      }
-
-      if (edge.to == node.id) {
-        edgesForNode.add(edge);
-        continue;
-      }
-    }
-
-    return edgesForNode;
+  ) sync* {
+    yield* travel(
+      node,
+      getToNodeFromEdge,
+      (edge) => edge.from == node.id,
+    );
   }
 
-  /// Returns a layer of the graph at a time
-  Iterable<Iterable<Node<NodeType, IdType>>> get breadthFirstSearch sync* {
-    yield rootNodes;
-
-    var hasMore = true;
-
-    Iterable<Node<NodeType, IdType>> currentNodes =
-        rootNodes.cast<Node<NodeType, IdType>>();
-
-    while (hasMore) {
-      final edgesOut = edges.where((edge) => currentNodes.contains(edge.from));
-      currentNodes = edgesOut.map((edge) {
-        return getNodeFromIdType(edge.to);
-      }).toList();
-
-      if (currentNodes.isEmpty) hasMore = false;
-
-      yield currentNodes;
-    }
-  }
-
-  Iterable<Node<NodeType, IdType>> get depthFirstSearch sync* {
-    throw UnimplementedError();
-  }
-
-  bool nodeHasDescendents(Node<NodeType, IdType> node) {
+  bool nodeHasFromNodes(Node<NodeType, IdType> node) {
     return edges.any((edge) => edge.from == node);
   }
 
-  Iterable<Node<NodeType, IdType>> nodeDescendents(
+  /// Returns all of the nodes that are directly or indirectly attached via
+  /// `from` edges.
+  List<Node<NodeType, IdType>> allFromNodes(Node<NodeType, IdType> node) {
+    return fromNodes(node).expand((nodeLayers) => nodeLayers).toList();
+  }
+
+  /// Retrieves the [Node]s that are descendants of the given [Node]. That means
+  /// that the given [Node] has a `to` relationship with any of the other nodes.
+  Iterable<List<Node<NodeType, IdType>>> fromNodes(
     Node<NodeType, IdType> node,
-  ) {
-    return edges.where((edge) => edge.from == node).map((edge) {
-      return getNodeFromIdType(edge.to);
-    });
-  }
-
-  Iterable<Iterable<Node<NodeType, IdType>>> nodeBreadthFirstSearch(
-    Node<NodeType, IdType> rootNode,
   ) sync* {
-    bool hasDescendents = true;
-    var descendents = nodeDescendents(rootNode);
-
-    yield descendents;
-
-    while (hasDescendents) {
-      final nextLayer =
-          descendents.fold<List<Iterable<Node<NodeType, IdType>>>>(
-        [],
-        (acc, node) {
-          acc.add(nodeDescendents(node));
-          return acc;
-        },
-      ).expand((edges) => edges);
-
-      if (nextLayer.isEmpty) {
-        hasDescendents = false;
-      } else {
-        yield nextLayer;
-      }
-    }
+    yield* travel(
+      node,
+      getFromNodeFromEdge,
+      (edge) => edge.to == node.id,
+    );
   }
 
-  Iterable<Iterable<Iterable<Node<NodeType, IdType>>>>
-      get treeBreadthFirstSearch sync* {
-    for (final rootNode in rootNodes) {
-      yield nodeBreadthFirstSearch(rootNode);
+  /// Travels the graph a level or layer at a time.
+  Iterable<List<Node<NodeType, IdType>>> travel(
+    Node<NodeType, IdType> node,
+    Node<NodeType, IdType> Function(Edge<EdgeType, IdType> edge) getNode,
+    bool Function(Edge<EdgeType, IdType> edge) predicateNode,
+  ) sync* {
+    var layerNodes = edges.where(predicateNode).map(getNode).toList();
+
+    while (layerNodes.isNotEmpty) {
+      yield layerNodes;
+
+      layerNodes = layerNodes
+          .map(
+            (node) {
+              return edges
+                  .where(predicateNode)
+                  .map(getNode)
+                  .where((node) => !layerNodes.contains(node));
+            },
+          )
+          .expand((edges) => edges)
+          .toList();
     }
-  }
-
-  /// Given a root node, traverses the tree and returns the max breadth of the
-  /// tree.
-  int maxBreadth(Node<NodeType, IdType> rootNode) {
-    int maxNodes = 1;
-
-    for (final layer in nodeBreadthFirstSearch(rootNode)) {
-      maxNodes = max(layer.length, maxNodes);
-    }
-
-    return maxNodes;
   }
 
   @override

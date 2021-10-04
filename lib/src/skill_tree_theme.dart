@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 /// [ThemeData] of the app.
 @immutable
 class SkillTreeThemeData with Diagnosticable {
-  // TODO: Implement.
+  // TODO Implement.
 }
 
 class SkillTreeTheme extends StatelessWidget {

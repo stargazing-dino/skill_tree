@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:skill_tree/src/skill_edge.dart';
 
-// TODO: Justify the use of ParentData like this. In fact, rethink all of this.
+// TODO Justify the use of ParentData like this. In fact, rethink all of this.
 
 class SkillPointParentData extends ContainerBoxParentData<RenderBox> {
   /// This is the rect of the child in relative to the parent's Offset.
@@ -29,7 +29,7 @@ abstract class SkillPoint<ParentType extends SkillPointParentData>
 
   @override
   void applyParentData(RenderObject renderObject) {
-    // TODO: This looks like it can be abstracted into a util or extension or
+    // TODO This looks like it can be abstracted into a util or extension or
     // something
     if (renderObject.parentData is! ParentType) {
       final parentData = renderObject.parentData as SkillPointParentData;
