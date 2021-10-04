@@ -1,3 +1,6 @@
+## [0.0.1+3] - Jul 22, 2021
+Update readme and assets
+
 ## [0.0.1+2] - Jul 22, 2021
 Release with working layered graph
 
