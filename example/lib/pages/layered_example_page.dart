@@ -15,7 +15,7 @@ class LayeredExamplePage extends StatefulWidget {
 
 class _LayeredExamplePageState extends State<LayeredExamplePage> {
   final seed = Random().nextInt(5000);
-  int avaialablePoints = 20;
+  int avaialablePoints = 0;
 
   var graph = const LayeredGraph<void, NodeInfo, String>(
     layout: [
@@ -28,22 +28,22 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
       [null, '15', '16', null],
     ],
     nodes: [
-      Node(id: '0', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '1', data: NodeInfo(value: 5, maxValue: 5)),
-      Node(id: '2', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '0', data: NodeInfo(value: 2, maxValue: 2)),
+      Node(id: '1', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '2', data: NodeInfo(value: 5, maxValue: 5)),
       Node(id: '3', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '4', data: NodeInfo(value: 5, maxValue: 5)),
-      Node(id: '5', data: NodeInfo(value: 2, maxValue: 2)),
+      Node(id: '4', data: NodeInfo(value: 3, maxValue: 3)),
+      Node(id: '5', data: NodeInfo(value: 4, maxValue: 5)),
       Node(id: '6', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '7', data: NodeInfo(value: 2, maxValue: 5)),
+      Node(id: '7', data: NodeInfo(value: 1, maxValue: 1)),
       Node(id: '8', data: NodeInfo(value: 0, maxValue: 5)),
       Node(id: '9', data: NodeInfo(value: 0, maxValue: 1)),
-      Node(id: '10', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '11', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '12', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '10', data: NodeInfo(value: 5, maxValue: 5)),
+      Node(id: '11', data: NodeInfo(value: 0, maxValue: 1)),
+      Node(id: '12', data: NodeInfo(value: 1, maxValue: 1)),
       Node(id: '13', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '14', data: NodeInfo(value: 0, maxValue: 5)),
-      Node(id: '15', data: NodeInfo(value: 0, maxValue: 5)),
+      Node(id: '14', data: NodeInfo(value: 0, maxValue: 1)),
+      Node(id: '15', data: NodeInfo(value: 0, maxValue: 1)),
       Node(id: '16', data: NodeInfo(value: 0, maxValue: 5)),
     ],
     edges: [
@@ -145,6 +145,7 @@ class _LayeredExamplePageState extends State<LayeredExamplePage> {
                             });
                           }
                         : null,
+                    hasAvailablePoints: hasAvailablePoints,
                     canUnlock: canBeUnlocked,
                     isReachable: isReachable,
                     node: node,

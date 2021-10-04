@@ -1,9 +1,9 @@
 # skill_tree
 
 <p align="center">
-  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/border_lands_skill_tree.png?raw=true" width="40%"/>
+  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/wow_tree.png?raw=true" width="40%"/>
   &nbsp; &nbsp; &nbsp; &nbsp;
-  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/wow_style_skill_tree.png?raw=true" width="40%"/>
+  <img src="https://github.com/Nolence/skill_tree/blob/main/screenshots/wow_style_tree.png?raw=true" width="40%"/>
 </p>
 
 A package to build skill trees. This lib differs from `graphview` as it only tries to provide users an interface to make a skill tree rather than a general purpose viewer.

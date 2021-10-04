@@ -9,6 +9,7 @@ class Item extends StatelessWidget {
     required this.photoNumber,
     required this.seed,
     required this.node,
+    required this.hasAvailablePoints,
     required this.canUnlock,
     required this.isReachable,
     required this.onTap,
@@ -20,6 +21,8 @@ class Item extends StatelessWidget {
   final int seed;
 
   final Node<NodeInfo, String> node;
+
+  final bool hasAvailablePoints;
 
   final bool canUnlock;
 
@@ -34,10 +37,16 @@ class Item extends StatelessWidget {
     const totalNumberOfPhotos = 130;
     final _photoNumber = (photoNumber * seed) % (totalNumberOfPhotos - 1) + 1;
     final nodeInfo = node.data;
-    final unlockableColor =
-        canUnlock ? Colors.greenAccent.shade700 : Colors.grey.shade600;
-    final unlockableAccentColor =
-        canUnlock ? Colors.green.shade200 : Colors.grey.shade400;
+    final primaryColor = node.data.isMaxedOut
+        ? Colors.lime.shade800
+        : canUnlock
+            ? Colors.greenAccent.shade700
+            : Colors.grey.shade600;
+    final accentColor = node.data.isMaxedOut
+        ? Colors.white
+        : canUnlock
+            ? Colors.green.shade200
+            : Colors.grey.shade400;
 
     return JustTheTooltip(
       content: Padding(
@@ -75,14 +84,14 @@ class Item extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3.0),
                   border: Border.all(
-                    color: unlockableColor,
+                    color: primaryColor,
                     width: 2.4,
                   ),
                   boxShadow: [
                     BoxShadow(
                       offset: const Offset(1.0, 2.0),
                       blurRadius: 4.0,
-                      color: unlockableColor,
+                      color: primaryColor,
                     )
                   ],
                 ),
@@ -100,7 +109,7 @@ class Item extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isReachable)
+              if ((hasAvailablePoints && isReachable) || node.data.value != 0)
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -120,7 +129,7 @@ class Item extends StatelessWidget {
                     child: Text(
                       '${nodeInfo.value}/${nodeInfo.maxValue}',
                       style: TextStyle(
-                        color: unlockableAccentColor,
+                        color: accentColor,
                         fontSize: 12,
                       ),
                     ),
